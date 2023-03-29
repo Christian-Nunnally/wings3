@@ -2,11 +2,12 @@
 
 #include <PDM.h>
 #include "SingleEMAFilterLib.h"
+#include <PeakDetection.h> 
 
 #define COLOR_ORDER NEO_GRB
 #define NUM_LEDS    136      // NeoPixels PER STRAND, total number is 8X this!
 #define BAUD_RATE   9600
-#define BATCH_SIZE 512
+#define BATCH_SIZE 256
 int8_t pins[8] = {0,1,2,3,4,5,6,7};
 
 Adafruit_NeoPXL8HDR leds(NUM_LEDS, pins, COLOR_ORDER);
@@ -17,6 +18,40 @@ short sampleBuffer[512];
 volatile int samplesRead;
 
 SingleEMAFilter<int> singleEMAFilter(.25);
+
+PeakDetection peakDetection;
+
+short ledMap[13][13] = { 
+  {11, 10, 9 , 8 , 7 , 6 , 5 , 4 , 3 , 2 , 1 , 0 , 0 },
+  {12, 13, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54},
+  {14, 15, 65, 98, 97, 96, 95, 94, 93, 92, 91, 90, 53},
+  {0 , 16, 66, 99,100,123,122,121,120,119,118, 89, 52},
+  {0 , 17, 18, 68,101,124,125,126,135,134,117, 88, 51},
+  {0 , 19, 20, 69, 70,103,104,127,128,133,116, 87, 50},
+  {0 , 0 , 21, 22, 71, 72,105,106,129,132,115, 86, 49},
+  {0 , 0 , 23, 24, 25, 73, 74,107,130,131,114, 85, 48},
+  {0 , 0 , 0 , 26, 27, 28, 75, 76,109,110,113, 84, 47},
+  {0 , 0 , 0 , 0 , 29, 30, 32, 77, 78,111,112, 83, 46},
+  {0 , 0 , 0 , 0 , 0 , 31, 33, 34, 36, 80, 81, 82, 45},
+  {0 , 0 , 0 , 0 , 0 , 0 , 0 , 35, 37, 38, 39, 41, 44},
+  {66, 79,102,108, 0 , 0 , 0 , 0 , 0 , 0 , 40, 42, 43},
+};
+
+short ledMap[13][13] = { 
+  {11, 10, 9 , 8 , 7 , 6 , 5 , 4 , 3 , 2 , 1 , 0 , 0 },
+  {12, 13, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54},
+  {14, 15, 65, 98, 97, 96, 95, 94, 93, 92, 91, 90, 53},
+  {0 , 16, 66, 99,100,123,122,121,120,119,118, 89, 52},
+  {0 , 17, 18, 68,101,124,125,126,135,134,117, 88, 51},
+  {0 , 19, 20, 69, 70,103,104,127,128,133,116, 87, 50},
+  {0 , 0 , 21, 22, 71, 72,105,106,129,132,115, 86, 49},
+  {0 , 0 , 23, 24, 25, 73, 74,107,130,131,114, 85, 48},
+  {0 , 0 , 0 , 26, 27, 28, 75, 76,109,110,113, 84, 47},
+  {0 , 0 , 0 , 0 , 29, 30, 32, 77, 78,111,112, 83, 46},
+  {0 , 0 , 0 , 0 , 0 , 31, 33, 34, 36, 80, 81, 82, 45},
+  {0 , 0 , 0 , 0 , 0 , 0 , 0 , 35, 37, 38, 39, 41, 44},
+  {66, 79,102,108, 0 , 0 , 0 , 0 , 0 , 0 , 40, 42, 43},
+};
 
 void loop1() {
   leds.refresh();
@@ -32,6 +67,8 @@ void setup() {
     Serial.println("Failed to start PDM!");
     while (1);
   }
+
+  peakDetection.begin(48, 3, 0.6); 
 }
 
 int color = 0;
@@ -40,18 +77,31 @@ int audioSamplesRead = 0;
 float audioSampleTotal = 0.0;
 float rms = 1.0;
 float rmsMax = 1.0;
-// ANIMATION LOOP (similar to "regular" NeoPXL8) ---------------------------
 
-// The loop() function is identical to the non-HDR example. Although
-// NeoPXL8HDR can handle 16-bits-per-channel colors, we're using 8-bit
-// here (packed into a 32-bit value) to show how existing NeoPixel or
-// NeoPXL8 code can carry over directly. The library will expand these
-// to 16 bits behind the scenes.
+int temp2 = 1000;
+int lastPeak = 0;
+bool on = true;
+
+int x;
+int y;
+
 void loop() {
   uint32_t now = millis(); // Get time once at start of each frame
-  for(uint8_t r=0; r<8; r++) { // For each row...
-    for(int p=0; p<NUM_LEDS; p++) { // For each pixel of row...
-      leds.setPixelColor(r * NUM_LEDS + p, rain(now, r, p));
+  for(uint8_t r=4; r<5; r++) { // For each row...
+    for(int p=0; p<NUM_LEDS;) { // For each pixel of row...
+      short index = ledMap[x][y];
+      if (index != 0 || y == 11)
+      {
+        leds.setPixelColor(r * NUM_LEDS + index, rain(now, r, p));
+        p++;
+      }
+      x = x + 1;
+      if (x > 12)
+      {
+        x = 0;
+        y = y + 1;
+        if (y > 12) y = 0;
+      }
     }
   }
   leds.show();
@@ -80,11 +130,19 @@ void loop() {
         rms = sqrt(audioSampleTotal / audioSamplesRead);
         audioSamplesRead = 0;
         audioSampleTotal = 0;
+        peakDetection.add(rms);
+        int peak = peakDetection.getPeak();
+        double filtered = peakDetection.getFilt();
+        if (lastPeak != peak)
+        {
+            lastPeak = peak;
+            if (lastPeak == 1) on = !on;
+        }
         if (rms > rmsMax)
         {
           rmsMax = rms;
         }
-        if (rmsMax > 1) rmsMax = rmsMax - 1;
+        if (rmsMax > 1) rmsMax = rmsMax - (rmsMax / 500);
         singleEMAFilter.AddValue(rms);
         Serial.print(rms);
         Serial.print(",");
@@ -93,6 +151,10 @@ void loop() {
         Serial.print(singleEMAFilter.GetHighPass());
         Serial.print(",");
         Serial.print(rmsMax);
+        Serial.print(",");
+        Serial.print(peak * 1000);
+        Serial.print(",");
+        Serial.print(on * 1000);
         Serial.print(",");
         Serial.println(1200);
       }
@@ -133,6 +195,13 @@ static uint8_t colors[8][3] = {
 uint32_t rain(uint32_t now, uint8_t row, int pixelNum) {
   uint8_t frame = now / 4; // uint8_t rolls over for a 0-255 range
   uint16_t b = (256 - ((frame - row * 32 + pixelNum * 256 / NUM_LEDS) & 0xFF)) * (rms / rmsMax);
+  uint16_t b2 = (256 - ((frame - row * 32 + pixelNum * 256 / NUM_LEDS) & 0xFF));
+  if (on)
+  {
+    return leds.Color((colors[(color + pixelNum) % 8][1] * b2) >> 8,
+                    (colors[(color + pixelNum) % 8][2] * b2) >> 8,
+                    (colors[(color + pixelNum) % 8][0] * b2) >> 8);
+  }
   return leds.Color((colors[(color + pixelNum) % 8][0] * b) >> 8,
                     (colors[(color + pixelNum) % 8][1] * b) >> 8,
                     (colors[(color + pixelNum) % 8][2] * b) >> 8);
