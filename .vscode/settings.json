@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
-        "Adafruit"
+        "Adafruit",
+        "Leds"
     ],
     "files.associations": {
         "chrono": "cpp",
