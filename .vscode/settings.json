@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
         "Adafruit",
-        "Leds"
+        "DSOX",
+        "Leds",
+        "Unico"
     ],
     "files.associations": {
         "chrono": "cpp",
@@ -21,6 +23,8 @@
         "xutility": "cpp",
         "string": "cpp",
         "unordered_map": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "variant": "cpp",
+        "random": "cpp"
     }
 }

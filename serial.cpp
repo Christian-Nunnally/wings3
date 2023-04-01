@@ -1,7 +1,7 @@
 #include "serial.h"
 #include <SoftwareSerial.h>
 
-#define SERIAL_BAUD_RATE            9600
+#define SERIAL_BAUD_RATE 9600
 
 void setupSerial()
 {

@@ -19,8 +19,8 @@ PeakDetection peakDetector;
 
 int samplesRead;
 float sumOfSquaredSample;
-float currentRootMeanSquare = 1.0;
-float currentPeakRootMeanSquare = 1.0;
+double currentRootMeanSquare = 1.0;
+double currentPeakRootMeanSquare = 1.0;
 double currentFilteredAudioLevel;
 int currentPeakDetectorValue;
 int lastPeakDetectorValue;
@@ -32,7 +32,7 @@ bool setupMicrophone()
     return PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
 }
 
-float getAudioIntensityRatio()
+double getAudioIntensityRatio()
 {
     return currentRootMeanSquare / currentPeakRootMeanSquare;
 }
@@ -92,7 +92,7 @@ inline void processSampleBatch()
     applyFiltering();
     setMaxRootMeanSquare();
     decayMaxRootMeanSquare();
-    printMicrophoneDataGraphs();
+    //printMicrophoneDataGraphs();
     resetSampleBatch();
 }
 
