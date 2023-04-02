@@ -2,6 +2,7 @@
 #include "leds.h"
 #include "serial.h"
 #include "movementDetection.h"
+#include "effectController.h"
 
 void setup() 
 {
@@ -13,6 +14,7 @@ void setup()
 
 void loop() 
 {
+  incrementEffectFrame();
   renderLeds();
   processAudioStream();
   checkForMovement();

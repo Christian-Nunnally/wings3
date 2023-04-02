@@ -23,7 +23,6 @@ double currentRootMeanSquare = 1.0;
 double currentPeakRootMeanSquare = 1.0;
 double currentFilteredAudioLevel;
 int currentPeakDetectorValue;
-int lastPeakDetectorValue;
 
 bool setupMicrophone()
 {
@@ -35,6 +34,16 @@ bool setupMicrophone()
 double getAudioIntensityRatio()
 {
     return currentRootMeanSquare / currentPeakRootMeanSquare;
+}
+
+int getCurrentPeakDetectorValue()
+{
+    return currentPeakDetectorValue;
+}
+
+int getCurrentPeakRootMeanSquare()
+{
+    return currentPeakRootMeanSquare;
 }
 
 void onAudioDataReceived() 
@@ -55,7 +64,6 @@ inline void applyFiltering()
     currentRootMeanSquare = sqrt(sumOfSquaredSample / samplesRead);
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
-    lastPeakDetectorValue = currentPeakDetectorValue;
     currentPeakDetectorValue = peakDetector.getPeak();
     currentFilteredAudioLevel = peakDetector.getFilt();
 }
@@ -68,6 +76,7 @@ inline void setMaxRootMeanSquare()
 inline void decayMaxRootMeanSquare()
 {
     if (currentPeakRootMeanSquare > 1) currentPeakRootMeanSquare = currentPeakRootMeanSquare - (currentPeakRootMeanSquare * MAX_RMS_DECAY_RATE);
+    Serial.println(currentPeakRootMeanSquare);
 }
 
 inline void printMicrophoneDataGraphs()
