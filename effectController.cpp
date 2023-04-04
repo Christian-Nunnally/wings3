@@ -31,47 +31,19 @@ Color getLedColorForFrame(int ledIndex)
 {
     if (!isMusicDetected) return {0,0,0};
     if (ledIndex == 67 || ledIndex == 79 || ledIndex == 102 || ledIndex == 108) return {0,0,0};
+
     Color color1 = wavePulse(currentTime / 2, ledIndex, coordsY, coordsY, rainbowPalette, getAudioIntensityRatio() * 65535);
     Color color2;
-    if (getAudioIntensityRatio() > .5)
-    {
-        color2 = wavePulse(audioScaledTime, ledIndex, top_radii, top_angles, rainbowPalette, 65535);
-        // color2 = wavePulse(audioScaledTime, ledIndex, top_radii, top_angles, starter_palette2, getAudioIntensityRatio());
-    }
-    else 
-    {
-        color2 = wavePulse(audioScaledTime, ledIndex, top_radii, top_angles, rainbowPalette, 65535);
-        // color2 = wavePulse(audioScaledTime, ledIndex, top_radii, top_angles, starter_palette2, .3);
-    }
-    if (getAudioIntensityRatio() > .98)
-    {
-        color1 = wavePulse(currentTime, ledIndex, top_radii, top_angles, rainbowPalette, 65535);
-    }
+    if (getAudioIntensityRatio() > .5) color2 = wavePulse(audioScaledTime, ledIndex, top_radii, top_angles, rainbowPalette, 65535);
+    else color2 = wavePulse(audioScaledTime, ledIndex, top_radii, top_angles, rainbowPalette, 65535);
+    if (getAudioIntensityRatio() > .98) color1 = wavePulse(currentTime, ledIndex, top_radii, top_angles, rainbowPalette, 65535);
 
-    if (mixingMode == 0)
-    {
-        return blendColorsUsingMixingGlitched(color1, color2, transition);
-    }
-    if (mixingMode == 1)
-    {
-        return blendColorsUsingMixing(color1, color2, transition);
-    }
-    if (mixingMode == 2)
-    {
-        return blendColorsUsingAdd(color1, color2, transition);
-    }
-    if (mixingMode == 3)
-    {
-        return blendColorsUsingOverlay(color1, color2, transition);
-    }
-    if (mixingMode == 4)
-    {
-        return blendColorsUsingScreen(color1, color2, transition);
-    }
-    if (mixingMode == 5)
-    {
-        return blendColorsUsingAverage(color1, color2, transition);
-    }
+    if (mixingMode == 0) return blendColorsUsingMixingGlitched(color1, color2, transition);
+    if (mixingMode == 1) return blendColorsUsingMixing(color1, color2, transition);
+    if (mixingMode == 2) return blendColorsUsingAdd(color1, color2, transition);
+    if (mixingMode == 3) return blendColorsUsingOverlay(color1, color2, transition);
+    if (mixingMode == 4) return blendColorsUsingScreen(color1, color2, transition);
+    if (mixingMode == 5) return blendColorsUsingAverage(color1, color2, transition);
     return blendColorsUsingSubtract(color1, color2, transition);
 }
 
