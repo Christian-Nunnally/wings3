@@ -4,6 +4,6 @@
 #include "graphics.h"
 
 void incrementEffectFrame();
-Color16 getLedColorForFrame(int ledIndex);
+Color getLedColorForFrame(int ledIndex);
 
 #endif

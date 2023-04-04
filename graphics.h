@@ -5,22 +5,21 @@
 
 typedef struct
 {
-  uint8_t red;
-  uint8_t green;
-  uint8_t blue;
-}
-Color;
-
-typedef struct
-{
   uint16_t red;
   uint16_t green;
   uint16_t blue;
 }
-Color16;
+Color;
 
-Color16 wavePulse(uint32_t now, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], Color color_palette[], double globalBrightnessModifier);
+Color wavePulse(uint32_t now, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], uint16_t color_palette[], uint16_t globalBrightnessModifier);
 
-Color16 blendColorsUsingMixing(Color16 color1, Color16 color2, float blendFactor);
+Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingMultiply(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingAdd(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingSubtract(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingOverlay(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingScreen(Color color1, Color color2, uint16_t blendFactor);
+Color blendColorsUsingAverage(Color color1, Color color2, uint16_t blendFactor);
 
 #endif

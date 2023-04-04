@@ -76,7 +76,6 @@ inline void setMaxRootMeanSquare()
 inline void decayMaxRootMeanSquare()
 {
     if (currentPeakRootMeanSquare > 1) currentPeakRootMeanSquare = currentPeakRootMeanSquare - (currentPeakRootMeanSquare * MAX_RMS_DECAY_RATE);
-    Serial.println(currentPeakRootMeanSquare);
 }
 
 inline void printMicrophoneDataGraphs()

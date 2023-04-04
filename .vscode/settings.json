@@ -3,6 +3,7 @@
         "Adafruit",
         "DSOX",
         "Leds",
+        "PROGMEM",
         "Unico"
     ],
     "files.associations": {
@@ -25,6 +26,8 @@
         "unordered_map": "cpp",
         "string_view": "cpp",
         "variant": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "cmath": "cpp",
+        "xlocale": "cpp"
     }
 }

@@ -30,7 +30,7 @@ void renderLeds()
 {
   for(int pixelIndex; pixelIndex < LED_COUNT_PER_PIN; pixelIndex++) 
   {
-    Color16 color = getLedColorForFrame(pixelIndex);
+    Color color = getLedColorForFrame(pixelIndex);
     ledDisplay.set16(START_LED_OFFSET + pixelIndex, color.red, color.green, color.blue);
   }
   ledDisplay.show();
