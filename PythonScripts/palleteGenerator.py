@@ -16,7 +16,7 @@ for i, color in enumerate(rgb_colors):
     lineEnd = "\n" if rowCount % rowLength == rowLength - 1 else ""
     r = f"{int(color[0]*65_535)},"
     r = f"{r:{' '}{'<'}{6}}"
-    g = f"{int(color[1]*65_535)},"
+    g = f"{int(color[1]*0)},"
     g = f"{g:{' '}{'<'}{6}}"
     b = f"{int(color[2]*65_535)},"
     b = f"{b:{' '}{'<'}{6}}"

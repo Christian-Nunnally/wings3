@@ -11,7 +11,7 @@ typedef struct
 }
 Color;
 
-Color wavePulse(uint32_t now, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], uint16_t color_palette[], uint16_t globalBrightnessModifier);
+Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], uint16_t color_palette[], uint16_t globalBrightnessModifier);
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint16_t blendFactor);

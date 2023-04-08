@@ -15,15 +15,15 @@ Color colorFromPalette(uint16_t palette[768], uint8_t index, uint16_t brightness
   };
 }
 
-Color wavePulse(uint32_t now, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], uint16_t color_palette[], uint16_t globalBrightnessModifier) 
+Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], uint16_t color_palette[], uint16_t globalBrightnessModifier) 
 {
-    uint8_t brightnessFrame = (now / 4);
-    uint8_t colorFrame = (now / 15);
+    uint8_t brightnessFrame8bit = (brightnessFrame / 4);
+    uint8_t colorFrame8bit = (colorFrame / 15);
     uint8_t brightnessStartingPoint = brightnessProjectionMap[pixelNum];
     uint8_t colorStartingPoint = colorProjectionMap[pixelNum];
-    uint16_t brightness = ((uint8_t)(brightnessStartingPoint - brightnessFrame) << 8);
+    uint16_t brightness = ((uint8_t)(brightnessStartingPoint - brightnessFrame8bit) << 8);
     brightness = (brightness * globalBrightnessModifier) >> 16;
-    return colorFromPalette(color_palette, colorStartingPoint + colorFrame, brightness);
+    return colorFromPalette(color_palette, colorStartingPoint + colorFrame8bit, brightness);
 }
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)

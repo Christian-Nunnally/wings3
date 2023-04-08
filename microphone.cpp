@@ -46,6 +46,11 @@ int getCurrentPeakRootMeanSquare()
     return currentPeakRootMeanSquare;
 }
 
+int getCurrentFilteredAudioLevel()
+{
+    return currentFilteredAudioLevel;
+}
+
 void onAudioDataReceived() 
 {
   int bytesAvailable = PDM.available();

@@ -7,5 +7,6 @@ void onAudioDataReceived();
 double getAudioIntensityRatio();
 int getCurrentPeakDetectorValue();
 int getCurrentPeakRootMeanSquare();
+int getCurrentFilteredAudioLevel();
 
 #endif
