@@ -28,6 +28,7 @@
         "variant": "cpp",
         "random": "cpp",
         "cmath": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "bitset": "cpp"
     }
 }

@@ -9,6 +9,8 @@
 
 #define MUSIC_DETECTION_COUNTDOWN 3000
 #define MUSIC_DETECTION_RMS_THRESHOLD 800
+#define MIN_CROSSFADE_DURATION 10
+#define MAX_CROSSFADE_DURATION 200
 
 int currentTime;
 int audioScaledTime;
@@ -47,6 +49,9 @@ Color (*effect3Plus)(int pixel) {};
 Color (*effect4)(int pixel) {};
 Color (*effect4Plus)(int pixel) {};
 
+Color (*mixingModeBlendFunction)(Color color1, Color color2, uint16_t transitionAmount) {};
+Color (*oldMixingModeBlendFunction)(Color color1, Color color2, uint16_t transitionAmount) {};
+
 uint8_t *effect1TransformMap1[272];
 uint8_t *effect1TransformMap2[272];
 uint8_t *effect2TransformMap1[272];
@@ -59,15 +64,16 @@ uint8_t *effect4TransformMap2[272];
 Color getLedColorForFrame(int ledIndex)
 {
     if (!isMusicDetected) return {0,0,0};
+    float audioIntensityRatio = getAudioIntensityRatio();
     if (switchMap)
     {
-        Color color1 = getAudioIntensityRatio() < .98 ? effect1(ledIndex) : effect1Plus(ledIndex);
-        Color color2 = getAudioIntensityRatio() < .5 ? effect2(ledIndex) : effect2Plus(ledIndex);
+        Color color1 = audioIntensityRatio < .98 ? effect1(ledIndex) : effect1Plus(ledIndex);
+        Color color2 = audioIntensityRatio < .5 ? effect2(ledIndex) : effect2Plus(ledIndex);
         Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
         if (switchMapBlendCounter)
         {
-            Color color3 = getAudioIntensityRatio() < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
-            Color color4 = getAudioIntensityRatio() < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
+            Color color3 = audioIntensityRatio < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
+            Color color4 = audioIntensityRatio < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
             Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
             return blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * 65535);
         }
@@ -75,13 +81,13 @@ Color getLedColorForFrame(int ledIndex)
     }
     else 
     {
-        Color color1 = getAudioIntensityRatio() < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
-        Color color2 = getAudioIntensityRatio() < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
+        Color color1 = audioIntensityRatio < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
+        Color color2 = audioIntensityRatio < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
         Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
         if (switchMapBlendCounter)
         {
-            Color color3 = getAudioIntensityRatio() < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
-            Color color4 = getAudioIntensityRatio() < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
+            Color color3 = audioIntensityRatio < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
+            Color color4 = audioIntensityRatio < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
             Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
             return blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * 65535);
         }
@@ -92,25 +98,13 @@ Color getLedColorForFrame(int ledIndex)
 
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
 {
-    Color newColor = blendColorsUsingMixingMode(mixingMode, color1, color2, transition);
+    Color newColor = mixingModeBlendFunction(color1, color2, transition);
     if (oldMixingMode != mixingMode && mixingModeBlendCounter)
     {
-        Color oldColor = blendColorsUsingMixingMode(oldMixingMode, color1, color2, transition);
+        Color oldColor = oldMixingModeBlendFunction(color1, color2, transition);
         return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * 65535);
     }
     return newColor;
-}
-
-inline Color blendColorsUsingMixingMode(int mixingMode, Color color1, Color color2, uint16_t transitionAmount)
-{
-    return blendColorsUsingMixing(color1, color2, transition);
-    if (mixingMode == 0) return blendColorsUsingMixingGlitched(color1, color2, transition);//16ms
-    if (mixingMode == 1) return blendColorsUsingMixing(color1, color2, transition); // 20ms
-    if (mixingMode == 2) return blendColorsUsingAdd(color1, color2, transition); // 11ms
-    if (mixingMode == 3) return blendColorsUsingOverlay(color1, color2, transition); // 12ms
-    if (mixingMode == 4) return blendColorsUsingScreen(color1, color2, transition); // 12ms
-    if (mixingMode == 5) return blendColorsUsingAverage(color1, color2, transition); // 11.5ms
-    return blendColorsUsingSubtract(color1, color2, transition); // 11ms
 }
 
 void incrementEffectFrame()
@@ -124,9 +118,17 @@ void incrementEffectFrame()
         lastPeakDetectorValue = nextPeak;
         if (random(2) == 1) {
             mixingMode = random(7);
+            if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
+            else if (mixingMode == 1) mixingModeBlendFunction = blendColorsUsingMixingFast;
+            else if (mixingMode == 2) mixingModeBlendFunction = blendColorsUsingAdd;
+            else if (mixingMode == 3) mixingModeBlendFunction = blendColorsUsingOverlay;
+            else if (mixingMode == 4) mixingModeBlendFunction = blendColorsUsingScreen;
+            else if (mixingMode == 5) mixingModeBlendFunction = blendColorsUsingAverage;
+            else mixingModeBlendFunction = blendColorsUsingSubtract;
+
             Serial.print("Mixing mode: ");
             Serial.println(mixingMode);
-            mixingModeBlendCounterMax = random(500);
+            mixingModeBlendCounterMax = random(MAX_CROSSFADE_DURATION - MIN_CROSSFADE_DURATION) + MIN_CROSSFADE_DURATION;
             mixingModeBlendCounter = mixingModeBlendCounterMax;
         }
         if (random(100) > 10)
@@ -146,7 +148,7 @@ void incrementEffectFrame()
                 if (random(4) == 1) *effect4TransformMap1 = transformMaps[random(transformMapsCount)];
                 if (random(4) == 1) *effect4TransformMap2 = transformMaps[random(transformMapsCount)];
             }
-            switchMapBlendCounterMax = random(500) + 10;
+            switchMapBlendCounterMax = random(MAX_CROSSFADE_DURATION - MIN_CROSSFADE_DURATION) + MIN_CROSSFADE_DURATION;
             switchMapBlendCounter = switchMapBlendCounterMax;
         }
     }
@@ -167,6 +169,8 @@ void setupEffects()
 
     *effect1TransformMap1 = normalTransformMapX;
     *effect1TransformMap2 = normalTransformMapY;
+
+    mixingModeBlendFunction = blendColorsUsingMixingFast;
 }
 
 inline void monitorAudioLevelsToToggleMusicDetection()
@@ -202,7 +206,6 @@ inline void incrementTime()
 
 inline void incrementTransition()
 {
-    //Serial.println(loopCount);
     loopCount += 1;
     if (loopCount > 1500)
     {
@@ -225,5 +228,8 @@ inline void incrementTransition()
     }
 
     if (oldMixingMode != mixingMode && mixingModeBlendCounter) mixingModeBlendCounter--;
-    else oldMixingMode = mixingMode;  
+    else {
+        oldMixingMode = mixingMode;
+        oldMixingModeBlendFunction = mixingModeBlendFunction;
+    }
 }

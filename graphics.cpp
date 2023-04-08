@@ -3,6 +3,9 @@
 #include "graphics.h"
 #include <pgmspace.h>
 
+inline uint8_t sqrt16(uint16_t x);
+inline uint16_t squareRoot32Bit(int input);
+
 Color colorFromPalette(uint16_t palette[768], uint8_t index, uint16_t brightness)
 {
   uint16_t red = pgm_read_word(palette + index * 3 + 0);
@@ -26,7 +29,48 @@ Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uin
     return colorFromPalette(color_palette, colorStartingPoint + colorFrame8bit, brightness);
 }
 
+Color blendColorsUsingMixingFast(Color color1, Color color2, uint16_t blendFactor)
+{
+  uint16_t red1Squared = (color1.red * color1.red) >> 16;
+  uint16_t red1Calc = ((65535 - blendFactor) * red1Squared) >> 16;
+  uint16_t red2Squared = (color2.red * color2.red) >> 16;
+  uint16_t red2Calc = (blendFactor * red1Squared) >> 16;
+
+  uint16_t green1Squared = (color1.green * color1.green) >> 16;
+  uint16_t green1Calc = ((65535 - blendFactor) * green1Squared) >> 16;
+  uint16_t green2Squared = (color2.green * color2.green) >> 16;
+  uint16_t green2Calc = (blendFactor * green1Squared) >> 16;
+
+  uint16_t blue1Squared = (color1.blue * color1.blue) >> 16;
+  uint16_t blue1Calc = ((65535 - blendFactor) * blue1Squared) >> 16;
+  uint16_t blue2Squared = (color2.blue * color2.blue) >> 16;
+  uint16_t blue2Calc = (blendFactor * blue1Squared) >> 16;
+
+  uint16_t red = sqrt16(red1Calc + red2Calc) << 8;
+  uint16_t green = sqrt16(green1Calc + green2Calc) << 8;
+  uint16_t blue = sqrt16(blue1Calc + blue2Calc) << 8;
+  return {red, green, blue};
+}
+
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)
+{
+  float blendFactorFloat = blendFactor / 65535.0;
+  int redResult = ((1 - blendFactorFloat) * color1.red * color1.red) + (blendFactorFloat * color2.red * color2.red);
+  int greenResult = ((1 - blendFactorFloat) * color1.green * color1.green) + (blendFactorFloat * color2.green * color2.green);
+  int blueResult = ((1 - blendFactorFloat) * color1.blue * color1.blue) + (blendFactorFloat * color2.blue * color2.blue);
+  uint16_t red = squareRoot32Bit(redResult);
+  uint16_t green = squareRoot32Bit(greenResult);
+  uint16_t blue = squareRoot32Bit(blueResult);
+  return {red, green, blue};
+}
+
+inline uint16_t squareRoot32Bit(int input)
+{
+  uint16_t index = input >> 18;
+  return pgm_read_word(squareRootMapFor32BitInputs + index);
+}
+
+Color blendColorsUsingMixing2(Color color1, Color color2, uint16_t blendFactor)
 {
   float blendFactorFloat = blendFactor / 65535.0;
   uint16_t red = sqrt(((1 - blendFactorFloat) * color1.red * color1.red) + (blendFactorFloat * color2.red * color2.red));
@@ -60,7 +104,6 @@ Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint16_t blendF
 
 Color blendColorsUsingMultiply(Color color1, Color color2, uint16_t blendFactor)
 {
-  // TODO: adjust to make it not go dim at blendFactor 0 and 1;
   uint16_t color1Red = color1.red;
   uint16_t color2Red = color2.red;
   if (blendFactor > 65535 / 2) color1Red = ((65535 - ((blendFactor - 32768) * 2)) * color1.red) >> 16;
@@ -132,17 +175,17 @@ Color blendColorsUsingOverlay(Color color1, Color color2, uint16_t blendFactor)
 {
   uint16_t color1Red = color1.red;
   uint16_t color2Red = color2.red;
-  if (blendFactor > 65535 / 2) color1Red = ((65535 - ((blendFactor - 32768) * 2)) * color1.red) >> 16;
+  if (blendFactor > (65535 >> 1)) color1Red = ((65535 - ((blendFactor - 32768) * 2)) * color1.red) >> 16;
   else color2Red = (blendFactor * 2 * color2.red) >> 16;
 
   uint16_t color1Green = color1.green;
   uint16_t color2Green = color2.green;
-  if (blendFactor > 65535 / 2) color1Green = ((65535 - ((blendFactor - 32768) * 2)) * color1.green) >> 16;
+  if (blendFactor > (65535 >> 1)) color1Green = ((65535 - ((blendFactor - 32768) * 2)) * color1.green) >> 16;
   else color2Green = (blendFactor * 2 * color2.green) >> 16;
 
   uint16_t color1Blue = color1.blue;
   uint16_t color2Blue = color2.blue;
-  if (blendFactor > 65535 / 2) color1Blue = ((65535 - ((blendFactor - 32768) * 2)) * color1.blue) >> 16;
+  if (blendFactor > (65535 >> 1)) color1Blue = ((65535 - ((blendFactor - 32768) * 2)) * color1.blue) >> 16;
   else color2Blue = (blendFactor * 2 * color2.blue) >> 16;
 
   uint16_t r;
@@ -210,4 +253,34 @@ Color blendColorsUsingAverage(Color color1, Color color2, uint16_t blendFactor)
   uint16_t g = (color1Green + color2Green) / 2;
   uint16_t b =  (color1Blue + color2Blue) / 2;
   return {r, g, b};
+}
+
+inline uint8_t sqrt16(uint16_t x)
+{
+    if( x <= 1) {
+        return x;
+    }
+
+    uint8_t low = 1; // lower bound
+    uint8_t hi, mid;
+
+    if( x > 7904) {
+        hi = 255;
+    } else {
+        hi = (x >> 5) + 8; // initial estimate for upper bound
+    }
+
+    do {
+        mid = (low + hi) >> 1;
+        if ((uint16_t)(mid * mid) > x) {
+            hi = mid - 1;
+        } else {
+            if( mid == 255) {
+                return 255;
+            }
+            low = mid + 1;
+        }
+    } while (hi >= low);
+
+    return low - 1;
 }
