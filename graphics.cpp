@@ -3,8 +3,7 @@
 #include "graphics.h"
 #include <pgmspace.h>
 
-inline uint8_t sqrt16(uint16_t x);
-inline uint16_t squareRoot32Bit(int input);
+uint16_t squareRoot32Bit(int input);
 
 Color colorFromPalette(uint16_t palette[768], uint8_t index, uint16_t brightness)
 {
@@ -27,29 +26,6 @@ Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uin
     uint16_t brightness = ((uint8_t)(brightnessStartingPoint - brightnessFrame8bit) << 8);
     brightness = (brightness * globalBrightnessModifier) >> 16;
     return colorFromPalette(color_palette, colorStartingPoint + colorFrame8bit, brightness);
-}
-
-Color blendColorsUsingMixingFast(Color color1, Color color2, uint16_t blendFactor)
-{
-  uint16_t red1Squared = (color1.red * color1.red) >> 16;
-  uint16_t red1Calc = ((65535 - blendFactor) * red1Squared) >> 16;
-  uint16_t red2Squared = (color2.red * color2.red) >> 16;
-  uint16_t red2Calc = (blendFactor * red1Squared) >> 16;
-
-  uint16_t green1Squared = (color1.green * color1.green) >> 16;
-  uint16_t green1Calc = ((65535 - blendFactor) * green1Squared) >> 16;
-  uint16_t green2Squared = (color2.green * color2.green) >> 16;
-  uint16_t green2Calc = (blendFactor * green1Squared) >> 16;
-
-  uint16_t blue1Squared = (color1.blue * color1.blue) >> 16;
-  uint16_t blue1Calc = ((65535 - blendFactor) * blue1Squared) >> 16;
-  uint16_t blue2Squared = (color2.blue * color2.blue) >> 16;
-  uint16_t blue2Calc = (blendFactor * blue1Squared) >> 16;
-
-  uint16_t red = sqrt16(red1Calc + red2Calc) << 8;
-  uint16_t green = sqrt16(green1Calc + green2Calc) << 8;
-  uint16_t blue = sqrt16(blue1Calc + blue2Calc) << 8;
-  return {red, green, blue};
 }
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)
@@ -255,32 +231,9 @@ Color blendColorsUsingAverage(Color color1, Color color2, uint16_t blendFactor)
   return {r, g, b};
 }
 
-inline uint8_t sqrt16(uint16_t x)
+Color blendColorsUsingShimmer(Color color1, Color color2, uint16_t blendFactor)
 {
-    if( x <= 1) {
-        return x;
-    }
-
-    uint8_t low = 1; // lower bound
-    uint8_t hi, mid;
-
-    if( x > 7904) {
-        hi = 255;
-    } else {
-        hi = (x >> 5) + 8; // initial estimate for upper bound
-    }
-
-    do {
-        mid = (low + hi) >> 1;
-        if ((uint16_t)(mid * mid) > x) {
-            hi = mid - 1;
-        } else {
-            if( mid == 255) {
-                return 255;
-            }
-            low = mid + 1;
-        }
-    } while (hi >= low);
-
-    return low - 1;
+  uint16_t index = blendFactor >> 4;
+  if (shimmerMap[index]) return color2;
+  return color1;
 }

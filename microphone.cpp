@@ -11,6 +11,8 @@
 #define PEAK_DETECTOR_THRESHOLD     3
 #define PEAK_DETECTOR_INFLUENCE     0.6
 #define MAX_RMS_DECAY_RATE          0.002
+#define MUSIC_DETECTION_COUNTDOWN 3000
+#define MUSIC_DETECTION_RMS_THRESHOLD 800
 
 short audioSampleBuffer[512];
 volatile int numberOfAudioSamplesRead;
@@ -23,6 +25,11 @@ double currentRootMeanSquare = 1.0;
 double currentPeakRootMeanSquare = 1.0;
 double currentFilteredAudioLevel;
 int currentPeakDetectorValue;
+bool isMusicDetectedInternal = false;
+int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
+
+inline void monitorAudioLevelsToToggleMusicDetection();
+inline void incrementMusicDetectionToggle();
 
 bool setupMicrophone()
 {
@@ -49,6 +56,12 @@ int getCurrentPeakRootMeanSquare()
 int getCurrentFilteredAudioLevel()
 {
     return currentFilteredAudioLevel;
+}
+
+bool isMusicDetected()
+{
+    return true;
+    return isMusicDetectedInternal;
 }
 
 void onAudioDataReceived() 
@@ -83,30 +96,13 @@ inline void decayMaxRootMeanSquare()
     if (currentPeakRootMeanSquare > 1) currentPeakRootMeanSquare = currentPeakRootMeanSquare - (currentPeakRootMeanSquare * MAX_RMS_DECAY_RATE);
 }
 
-inline void printMicrophoneDataGraphs()
-{
-    Serial.print(currentRootMeanSquare);
-    Serial.print(",");
-    Serial.print(singleEMAFilter.GetLowPass());
-    Serial.print(",");
-    Serial.print(singleEMAFilter.GetHighPass());
-    Serial.print(",");
-    Serial.print(currentPeakRootMeanSquare);
-    Serial.print(",");
-    Serial.print(currentPeakDetectorValue * 1000);
-    Serial.print(",");
-    Serial.print(currentFilteredAudioLevel);
-    Serial.print(",");
-    Serial.println(1200);
-}
-
 inline void processSampleBatch()
 {
     applyFiltering();
     setMaxRootMeanSquare();
     decayMaxRootMeanSquare();
-    //printMicrophoneDataGraphs();
     resetSampleBatch();
+    monitorAudioLevelsToToggleMusicDetection();
 }
 
 void processAudioStream()
@@ -118,4 +114,27 @@ void processAudioStream()
         if (samplesRead == AUDIO_SAMPLE_BATCH_SIZE) processSampleBatch();
     }
     numberOfAudioSamplesRead = 0;
+}
+
+inline void monitorAudioLevelsToToggleMusicDetection()
+{
+    if (isMusicDetectedInternal)
+    {
+        if (getCurrentPeakRootMeanSquare() < MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
+    }
+    else 
+    {
+        if (getCurrentPeakRootMeanSquare() > MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
+    }
+    if (musicDetectionCountdown < MUSIC_DETECTION_COUNTDOWN) musicDetectionCountdown++;
+}
+
+inline void incrementMusicDetectionToggle()
+{
+    musicDetectionCountdown -= 2;
+    if (musicDetectionCountdown <= 2)
+    {
+        isMusicDetectedInternal = !isMusicDetectedInternal;
+        musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
+    }
 }

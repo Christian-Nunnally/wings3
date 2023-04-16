@@ -7,38 +7,40 @@
 #include "transformMaps.h"
 #include "palettes.h"
 
-#define MUSIC_DETECTION_COUNTDOWN 3000
-#define MUSIC_DETECTION_RMS_THRESHOLD 800
-#define MIN_CROSSFADE_DURATION 10
-#define MAX_CROSSFADE_DURATION 200
+#define MIN_CROSS_FADE_DURATION 10.0
+#define MAX_CROSS_FADE_DURATION 200.0
 
 int currentTime;
+int currentTimeHalf;
+int currentTimeFifth;
+int currentTimeEighth;
 int audioScaledTime;
-int audioPulsedTime;
+int audioScaledTimeHalf;
+int audioScaledTimeFifth;
+int audioScaledTimeEighth;
+int audioReverseScaledTime;
 float audioInfluenceFactorForAudioScaledTime = 1;
+float currentAudioIntensityLevel;
 
-int transition = 0.0;
-int loopCount = 0;
+int transition;
+int loopCount;
 int loopCountDirection = 1;
 int lastPeakDetectorValue;
-bool isMusicDetected = false;
-int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
 int mixingMode;
 int oldMixingMode;
 int mixingModeBlendCounter;
-float mixingModeBlendCounterMax = 300.0;
+float mixingModeBlendCounterMax = MAX_CROSS_FADE_DURATION;
 
 int switchMapBlendCounter;
-float switchMapBlendCounterMax = 300.0;
+float switchMapBlendCounterMax = MAX_CROSS_FADE_DURATION;
 
 bool switchMap = false;
 
-void monitorAudioLevelsToToggleMusicDetection();
-void incrementMusicDetectionToggle();
 void incrementTime();
 void incrementTransition();
 Color blendIncorporatingOldMixingMode(Color color1, Color color2);
-Color blendColorsUsingMixingMode(int mixingMode, Color color1, Color color2, uint16_t transitionAmount);
+void randomizeBlendingMode();
+int* getRandomEffectSpeed();
 
 Color (*effect1)(int pixel) {};
 Color (*effect1Plus)(int pixel) {};
@@ -61,19 +63,22 @@ uint8_t *effect3TransformMap2[272];
 uint8_t *effect4TransformMap1[272];
 uint8_t *effect4TransformMap2[272];
 
+int *effect1Time;
+int *effect2Time;
+int *effect3Time;
+int *effect4Time;
+
 Color getLedColorForFrame(int ledIndex)
 {
-    if (!isMusicDetected) return {0,0,0};
-    float audioIntensityRatio = getAudioIntensityRatio();
     if (switchMap)
     {
-        Color color1 = audioIntensityRatio < .98 ? effect1(ledIndex) : effect1Plus(ledIndex);
-        Color color2 = audioIntensityRatio < .5 ? effect2(ledIndex) : effect2Plus(ledIndex);
+        Color color1 = currentAudioIntensityLevel < .98 ? effect1(ledIndex) : effect1Plus(ledIndex);
+        Color color2 = currentAudioIntensityLevel < .5 ? effect2(ledIndex) : effect2Plus(ledIndex);
         Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
         if (switchMapBlendCounter)
         {
-            Color color3 = audioIntensityRatio < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
-            Color color4 = audioIntensityRatio < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
+            Color color3 = currentAudioIntensityLevel < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
+            Color color4 = currentAudioIntensityLevel < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
             Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
             return blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * 65535);
         }
@@ -81,56 +86,38 @@ Color getLedColorForFrame(int ledIndex)
     }
     else 
     {
-        Color color1 = audioIntensityRatio < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
-        Color color2 = audioIntensityRatio < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
+        Color color1 = currentAudioIntensityLevel < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
+        Color color2 = currentAudioIntensityLevel < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
         Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
         if (switchMapBlendCounter)
         {
-            Color color3 = audioIntensityRatio < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
-            Color color4 = audioIntensityRatio < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
+            Color color3 = currentAudioIntensityLevel < .98 ? effect3(ledIndex) : effect4Plus(ledIndex);
+            Color color4 = currentAudioIntensityLevel < .5 ? effect4(ledIndex) : effect4Plus(ledIndex);
             Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
             return blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * 65535);
         }
         return resultColor1;
-        return blendIncorporatingOldMixingMode(color1, color2);
     }
 }
 
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
 {
     Color newColor = mixingModeBlendFunction(color1, color2, transition);
-    if (oldMixingMode != mixingMode && mixingModeBlendCounter)
-    {
-        Color oldColor = oldMixingModeBlendFunction(color1, color2, transition);
-        return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * 65535);
-    }
-    return newColor;
+    if (oldMixingMode == mixingMode || mixingModeBlendCounter == 0) return newColor;
+    Color oldColor = oldMixingModeBlendFunction(color1, color2, transition);
+    return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * 65535);
 }
 
 void incrementEffectFrame()
 {
     incrementTime();
     incrementTransition();
-
+    currentAudioIntensityLevel = getAudioIntensityRatio();
     int nextPeak = getCurrentPeakDetectorValue();
     if (nextPeak != lastPeakDetectorValue)
     {
         lastPeakDetectorValue = nextPeak;
-        if (random(2) == 1) {
-            mixingMode = random(7);
-            if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
-            else if (mixingMode == 1) mixingModeBlendFunction = blendColorsUsingMixingFast;
-            else if (mixingMode == 2) mixingModeBlendFunction = blendColorsUsingAdd;
-            else if (mixingMode == 3) mixingModeBlendFunction = blendColorsUsingOverlay;
-            else if (mixingMode == 4) mixingModeBlendFunction = blendColorsUsingScreen;
-            else if (mixingMode == 5) mixingModeBlendFunction = blendColorsUsingAverage;
-            else mixingModeBlendFunction = blendColorsUsingSubtract;
-
-            Serial.print("Mixing mode: ");
-            Serial.println(mixingMode);
-            mixingModeBlendCounterMax = random(MAX_CROSSFADE_DURATION - MIN_CROSSFADE_DURATION) + MIN_CROSSFADE_DURATION;
-            mixingModeBlendCounter = mixingModeBlendCounterMax;
-        }
+        if (random(2) == 1) randomizeBlendingMode();
         if (random(100) > 10)
         {
             switchMap = !switchMap;
@@ -148,60 +135,82 @@ void incrementEffectFrame()
                 if (random(4) == 1) *effect4TransformMap1 = transformMaps[random(transformMapsCount)];
                 if (random(4) == 1) *effect4TransformMap2 = transformMaps[random(transformMapsCount)];
             }
-            switchMapBlendCounterMax = random(MAX_CROSSFADE_DURATION - MIN_CROSSFADE_DURATION) + MIN_CROSSFADE_DURATION;
+            switchMapBlendCounterMax = random(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
             switchMapBlendCounter = switchMapBlendCounterMax;
+
+            if (random(4) == 1) effect1Time = getRandomEffectSpeed();
+            if (random(4) == 1) effect2Time = getRandomEffectSpeed();
+            if (random(4) == 1) effect3Time = getRandomEffectSpeed();
+            if (random(4) == 1) effect4Time = getRandomEffectSpeed();
         }
     }
+}
 
-    monitorAudioLevelsToToggleMusicDetection();
+int* getRandomEffectSpeed()
+{
+    byte timeMode = random(9);
+    if (timeMode == 0) return &currentTime;
+    else if (timeMode == 1) return &currentTimeHalf;
+    else if (timeMode == 2) return &currentTimeFifth;
+    else if (timeMode == 3) return &currentTimeEighth;
+    else if (timeMode == 4) return &audioReverseScaledTime;
+    else if (timeMode == 5) return &audioScaledTime;
+    else if (timeMode == 6) return &audioScaledTimeHalf;
+    else if (timeMode == 7) return &audioScaledTimeFifth;
+    return &audioScaledTimeEighth;
+}
+
+void randomizeBlendingMode()
+{
+    mixingMode = random(8);
+    if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
+    else if (mixingMode == 1) mixingModeBlendFunction = blendColorsUsingMixing;
+    else if (mixingMode == 2) mixingModeBlendFunction = blendColorsUsingAdd;
+    else if (mixingMode == 3) mixingModeBlendFunction = blendColorsUsingOverlay;
+    else if (mixingMode == 4) mixingModeBlendFunction = blendColorsUsingScreen;
+    else if (mixingMode == 5) mixingModeBlendFunction = blendColorsUsingAverage;
+    else if (mixingMode == 6) mixingModeBlendFunction = blendColorsUsingShimmer;
+    else mixingModeBlendFunction = blendColorsUsingSubtract;
+    Serial.println(mixingMode);
+    mixingModeBlendCounterMax = random(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
+    mixingModeBlendCounter = mixingModeBlendCounterMax;
 }
 
 void setupEffects()
 {
-    effect1 = [](int ledIndex) { return wavePulse(currentTime / 2, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, rainbowPalette, getAudioIntensityRatio() * 65535); };
-    effect1Plus = [](int ledIndex) { return wavePulse(currentTime, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, rainbowPalette, 65535); };
-    effect2 = [](int ledIndex) { return wavePulse(audioScaledTime, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, rainbowPalette, 65535); };
-    effect2Plus = [](int ledIndex) { return wavePulse(currentTime / 2, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, rainbowPalette, 65535); };
-    effect3 = [](int ledIndex) { return wavePulse(audioScaledTime, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, rainbowPalette, 65535); };
-    effect3Plus = [](int ledIndex) { return wavePulse(audioScaledTime, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, rainbowPalette, 65535); };
-    effect4 = [](int ledIndex) { return wavePulse(audioScaledTime, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, rainbowPalette, 65535); };
-    effect4Plus = [](int ledIndex) { return wavePulse(audioScaledTime, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, rainbowPalette, 65535); };
+    effect1 = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, rainbowPalette, getAudioIntensityRatio() * 65535); };
+    effect1Plus = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, rainbowPalette, 65535); };
+    effect2 = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, rainbowPalette, 65535); };
+    effect2Plus = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, rainbowPalette, 65535); };
+    effect3 = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, rainbowPalette, 65535); };
+    effect3Plus = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, rainbowPalette, 65535); };
+    effect4 = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, rainbowPalette, 65535); };
+    effect4Plus = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, rainbowPalette, 65535); };
 
     *effect1TransformMap1 = normalTransformMapX;
     *effect1TransformMap2 = normalTransformMapY;
 
-    mixingModeBlendFunction = blendColorsUsingMixingFast;
-}
-
-inline void monitorAudioLevelsToToggleMusicDetection()
-{
-    if (isMusicDetected)
-    {
-        if (getCurrentPeakRootMeanSquare() < MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
-    }
-    else 
-    {
-        if (getCurrentPeakRootMeanSquare() > MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
-    }
-    if (musicDetectionCountdown < MUSIC_DETECTION_COUNTDOWN) musicDetectionCountdown++;
-}
-
-inline void incrementMusicDetectionToggle()
-{
-    musicDetectionCountdown -= 2;
-    if (musicDetectionCountdown <= 2)
-    {
-        isMusicDetected = !isMusicDetected;
-        musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
-    }
+    mixingModeBlendFunction = blendColorsUsingMixing;
+    oldMixingModeBlendFunction = blendColorsUsingMixing;
 }
 
 inline void incrementTime()
 {
     int lastTime = currentTime;
     currentTime = millis();
+    currentTimeHalf = currentTime >> 1;
+    currentTimeFifth = currentTime / 5;
+    currentTimeEighth = currentTime >> 3;
     int timeDelta = currentTime - lastTime;
+    Serial.print("ft: ");
+    Serial.println(timeDelta);
     audioScaledTime += getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta;
+    audioScaledTimeHalf = audioScaledTime >> 1;
+    audioScaledTimeFifth = audioScaledTime / 5;
+    audioScaledTimeEighth = audioScaledTime >> 3;
+
+    audioReverseScaledTime += timeDelta;
+    audioReverseScaledTime -= getAudioIntensityRatio() / 100;;
 }
 
 inline void incrementTransition()

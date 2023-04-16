@@ -28,10 +28,14 @@ bool setupLeds()
 
 void renderLeds()
 {
-  for(int pixelIndex; pixelIndex < LED_COUNT_PER_PIN; pixelIndex++) 
+  if (!isMusicDetected()) ledDisplay.fill(0, 0, 0);
+  else 
   {
-    Color color = getLedColorForFrame(pixelIndex);
-    ledDisplay.set16(START_LED_OFFSET + pixelIndex, color.red, color.green, color.blue);
+    for(int pixelIndex; pixelIndex < LED_COUNT_PER_PIN; pixelIndex++) 
+    {
+      Color color = getLedColorForFrame(pixelIndex);
+      ledDisplay.set16(START_LED_OFFSET + pixelIndex, color.red, color.green, color.blue);
+    }
   }
   ledDisplay.show();
 }
