@@ -3,6 +3,7 @@
         "Adafruit",
         "DSOX",
         "Leds",
+        "pgmspace",
         "PROGMEM",
         "Unico"
     ],
