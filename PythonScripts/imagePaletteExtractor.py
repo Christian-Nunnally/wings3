@@ -30,7 +30,7 @@ def printPaletteCode(colors):
     print("    ", end="")
     for i in range(len(colors)):
 
-        print(f"{colors[i]:{' '}{'>'}{3}}", end = "")
+        print(f"{colors[i]}", end = "")
         if (not i == len(colors) - 1):
             print(", ", end="")
         if (i % numbersPerRow == numbersPerRow - 1):
@@ -51,7 +51,7 @@ def printPaletteCode(colors):
     print(*paletteHeights, sep = ",") 
     print("};")
 
-colors = createPaletteFromImages(['palette.bmp', 'palette2.bmp'])
+colors = createPaletteFromImages(['palette.bmp', 'palette2.bmp', 'blackAndWhitePalette.bmp'])
 print("#ifndef PALETTES_H")
 print("#define PALETTES_H")
 print()

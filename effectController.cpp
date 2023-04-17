@@ -7,7 +7,7 @@
 #include "transformMaps.h"
 #include "palettes.h"
 
-#define MIN_CROSS_FADE_DURATION 10.0
+#define MIN_CROSS_FADE_DURATION 15.0
 #define MAX_CROSS_FADE_DURATION 200.0
 
 int currentTime;
@@ -69,6 +69,8 @@ int *effect2Time;
 int *effect3Time;
 int *effect4Time;
 
+int currentPalette1;
+int currentPalette2;
 int currentPalette1Offset; 
 int currentPalette2Offset; 
 int *currentPalette1OffsetPointer; 
@@ -114,6 +116,12 @@ inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
     return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * 65535);
 }
 
+int pickRandomSubPaletteFromPalette(int palette)
+{
+    int subPaletteOffset = random(paletteHeights[palette]) * PALETTE_LENGTH;
+    return paletteStarts[palette] + subPaletteOffset;
+}
+
 void incrementEffectFrame()
 {
     incrementTime();
@@ -123,23 +131,24 @@ void incrementEffectFrame()
     if (nextPeak != lastPeakDetectorValue)
     {
         lastPeakDetectorValue = nextPeak;
-        if (random(4) == 1) randomizeBlendingMode();
-        if (random(4) == 1)
+        if (random(2) == 1) randomizeBlendingMode();
+        if (random(2) == 1)
         {
-            if (random(3) == 1)
+            if (random(2) == 1)
             {
-                currentPalette1Offset = random(NUMBER_OF_PALETTES) * PALETTE_LENGTH;
-                currentPalette2Offset = random(NUMBER_OF_PALETTES) * PALETTE_LENGTH;
+                currentPalette1 = random(TOTAL_NUMBER_OF_PALETTES);
+                currentPalette2 = random(TOTAL_NUMBER_OF_PALETTES);
+            }
+            if (random(2) == 1)
+            {
+                currentPalette1Offset = pickRandomSubPaletteFromPalette(currentPalette1);
+                currentPalette2Offset = pickRandomSubPaletteFromPalette(currentPalette1);
             }
             else
             {
-                currentPalette1Offset = random(NUMBER_OF_PALETTES) * PALETTE_LENGTH;
+                currentPalette1Offset = pickRandomSubPaletteFromPalette(currentPalette1);
                 currentPalette2Offset = currentPalette1Offset;
             }
-            Serial.print("currentPalette1Offset = ");
-            Serial.println(currentPalette1Offset);
-            Serial.print("currentPalette2Offset = ");
-            Serial.println(currentPalette2Offset);
             
         }
         if (random(100) > 10)
