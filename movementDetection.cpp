@@ -26,9 +26,13 @@ void checkFifo();
 void setupImu() 
 {
     setupIc2();
+    delay(10);
     feedProgramIntoImu();
+    delay(10);
     setupAccelerometerGyro();
+    delay(10);
     setupInterrupt();
+    delay(10);
 }
 
 void checkForMovement() 
@@ -51,7 +55,7 @@ void checkFifo()
     uint16_t numSamples = 0; // number of samples in FIFO
     uint8_t Tag; // FIFO data sensor identifier
     int32_t acceleration[3]; // X, Y, Z accelerometer values in mg
-    int32_t rotation[3]; // X, Y, Z giroscope values in mdps
+    int32_t rotation[3]; // X, Y, Z gyroscope values in mdps
     int16_t dummy[3];
     uint8_t fullStatus = 0; // full status
     int32_t count_acc_samples = 0;
@@ -85,7 +89,7 @@ void checkFifo()
         if (Tag == 1) { 
             imu.Get_FIFO_G_Axes(rotation);
             count_gyro_samples++;
-            #if 1 // set to 1 for printing values
+            #if 0 // set to 1 for printing values
             Serial.print("mdps: "); Serial.print(rotation[0]); 
             Serial.print(", "); Serial.print(rotation[1]); 
             Serial.print(", "); Serial.print(rotation[2]); 
@@ -98,7 +102,7 @@ void checkFifo()
         else if (Tag == 2) {
             imu.Get_FIFO_X_Axes(acceleration);
             count_acc_samples++; 
-            #if 1 // set to 1 for printing values
+            #if 0 // set to 1 for printing values
             Serial.print("mG: "); Serial.print(acceleration[0]); 
             Serial.print(", "); Serial.print(acceleration[1]); 
             Serial.print(", "); Serial.print(acceleration[2]); 
@@ -141,38 +145,53 @@ void setupAccelerometerGyro()
 {
     int result;
     result = imu.begin();
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Enable_X();
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Enable_G();
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_X_FS(ACCELEROMETER_SENSITIVITY);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_G_FS(GYROSCOPE_SENSITIVITY);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_X_ODR(ACCELEROMETER_OUTPUT_DATA_RATE);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_G_ODR(GYROSCOPE_OUTPUT_DATA_RATE);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_X_BDR(ACCELEROMETER_OUTPUT_DATA_RATE);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_G_BDR(GYROSCOPE_OUTPUT_DATA_RATE);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_Mode(LSM6DSOX_BYPASS_MODE);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     delay(10);
     result = imu.Set_FIFO_Mode(LSM6DSOX_STREAM_MODE);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_INT1_FIFO_Full(1); // enable FIFO full interrupt on sensor INT1 pin.
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_Watermark_Level(IMU_FIFO_FILL_THRESHOLD);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_Stop_On_Fth(1);
+    result = imu.Set_FIFO_Stop_On_Fth(1); delay(10);
+     delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    // if (imu.Enable_Pedometer())
-    // {
-    //     Serial.println("Error: Enabling pedometer unsuccessful.");
-    // }
+     delay(10);
+    if (imu.Enable_Pedometer())
+    {
+        Serial.println("Error: Enabling pedometer unsuccessful.");
+    }
 }
 
 void feedProgramIntoImu()

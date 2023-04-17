@@ -14,12 +14,13 @@ int currentTime;
 int currentTimeHalf;
 int currentTimeFifth;
 int currentTimeEighth;
+int currentTimeSixteenth;
 int audioScaledTime;
 int audioScaledTimeHalf;
 int audioScaledTimeFifth;
 int audioScaledTimeEighth;
 int audioReverseScaledTime;
-float audioInfluenceFactorForAudioScaledTime = 1;
+float audioInfluenceFactorForAudioScaledTime = 2;
 float currentAudioIntensityLevel;
 
 int transition;
@@ -67,6 +68,11 @@ int *effect1Time;
 int *effect2Time;
 int *effect3Time;
 int *effect4Time;
+
+int currentPalette1Offset; 
+int currentPalette2Offset; 
+int *currentPalette1OffsetPointer; 
+int *currentPalette2OffsetPointer; 
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -117,7 +123,25 @@ void incrementEffectFrame()
     if (nextPeak != lastPeakDetectorValue)
     {
         lastPeakDetectorValue = nextPeak;
-        if (random(2) == 1) randomizeBlendingMode();
+        if (random(4) == 1) randomizeBlendingMode();
+        if (random(4) == 1)
+        {
+            if (random(3) == 1)
+            {
+                currentPalette1Offset = random(NUMBER_OF_PALETTES) * PALETTE_LENGTH;
+                currentPalette2Offset = random(NUMBER_OF_PALETTES) * PALETTE_LENGTH;
+            }
+            else
+            {
+                currentPalette1Offset = random(NUMBER_OF_PALETTES) * PALETTE_LENGTH;
+                currentPalette2Offset = currentPalette1Offset;
+            }
+            Serial.print("currentPalette1Offset = ");
+            Serial.println(currentPalette1Offset);
+            Serial.print("currentPalette2Offset = ");
+            Serial.println(currentPalette2Offset);
+            
+        }
         if (random(100) > 10)
         {
             switchMap = !switchMap;
@@ -142,13 +166,14 @@ void incrementEffectFrame()
             if (random(4) == 1) effect2Time = getRandomEffectSpeed();
             if (random(4) == 1) effect3Time = getRandomEffectSpeed();
             if (random(4) == 1) effect4Time = getRandomEffectSpeed();
+
         }
     }
 }
 
 int* getRandomEffectSpeed()
 {
-    byte timeMode = random(9);
+    byte timeMode = random(10);
     if (timeMode == 0) return &currentTime;
     else if (timeMode == 1) return &currentTimeHalf;
     else if (timeMode == 2) return &currentTimeFifth;
@@ -157,6 +182,7 @@ int* getRandomEffectSpeed()
     else if (timeMode == 5) return &audioScaledTime;
     else if (timeMode == 6) return &audioScaledTimeHalf;
     else if (timeMode == 7) return &audioScaledTimeFifth;
+    else if (timeMode == 8) return &currentTimeSixteenth;
     return &audioScaledTimeEighth;
 }
 
@@ -178,14 +204,16 @@ void randomizeBlendingMode()
 
 void setupEffects()
 {
-    effect1 = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, rainbowPalette, getAudioIntensityRatio() * 65535); };
-    effect1Plus = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, rainbowPalette, 65535); };
-    effect2 = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, rainbowPalette, 65535); };
-    effect2Plus = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, rainbowPalette, 65535); };
-    effect3 = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, rainbowPalette, 65535); };
-    effect3Plus = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, rainbowPalette, 65535); };
-    effect4 = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, rainbowPalette, 65535); };
-    effect4Plus = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, rainbowPalette, 65535); };
+    currentPalette1OffsetPointer = &currentPalette1Offset;
+    currentPalette2OffsetPointer = &currentPalette2Offset;
+    effect1 = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
+    effect1Plus = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
+    effect2 = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
+    effect2Plus = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
+    effect3 = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect3Plus = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect4 = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect4Plus = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
 
     *effect1TransformMap1 = normalTransformMapX;
     *effect1TransformMap2 = normalTransformMapY;
@@ -201,6 +229,7 @@ inline void incrementTime()
     currentTimeHalf = currentTime >> 1;
     currentTimeFifth = currentTime / 5;
     currentTimeEighth = currentTime >> 3;
+    currentTimeSixteenth = currentTime >> 4;
     int timeDelta = currentTime - lastTime;
     Serial.print("ft: ");
     Serial.println(timeDelta);

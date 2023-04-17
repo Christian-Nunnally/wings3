@@ -2,22 +2,23 @@
 #include "microphone.h"
 #include "graphics.h"
 #include <pgmspace.h>
+#include "palettes.h"
 
 uint16_t squareRoot32Bit(int input);
 
-Color colorFromPalette(uint16_t palette[768], uint8_t index, uint16_t brightness)
+Color colorFromPalette(int index, uint16_t brightness)
 {
-  uint16_t red = pgm_read_word(palette + index * 3 + 0);
-  uint16_t green = pgm_read_word(palette + index * 3 + 1);
-  uint16_t blue = pgm_read_word(palette + index * 3 + 2);
+  uint8_t red = palette[index * 3 + 0];
+  uint8_t green = palette[index * 3 + 1];
+  uint8_t blue = palette[index * 3 + 2];
   return { 
-    (uint16_t)((red * brightness) >> 16), 
-    (uint16_t)((green * brightness) >> 16),
-    (uint16_t)((blue * brightness) >> 16)
+    (uint16_t)((red * brightness) >> 8), 
+    (uint16_t)((green * brightness) >> 8),
+    (uint16_t)((blue * brightness) >> 8)
   };
 }
 
-Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], uint16_t color_palette[], uint16_t globalBrightnessModifier) 
+Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], int paletteOffset, uint16_t globalBrightnessModifier) 
 {
     uint8_t brightnessFrame8bit = (brightnessFrame / 4);
     uint8_t colorFrame8bit = (colorFrame / 15);
@@ -25,7 +26,8 @@ Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uin
     uint8_t colorStartingPoint = colorProjectionMap[pixelNum];
     uint16_t brightness = ((uint8_t)(brightnessStartingPoint - brightnessFrame8bit) << 8);
     brightness = (brightness * globalBrightnessModifier) >> 16;
-    return colorFromPalette(color_palette, colorStartingPoint + colorFrame8bit, brightness);
+    uint8_t colorFramePreOffset = colorStartingPoint + colorFrame8bit;
+    return colorFromPalette(paletteOffset + colorFramePreOffset, brightness);
 }
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)

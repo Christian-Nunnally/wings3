@@ -29,6 +29,7 @@
         "random": "cpp",
         "cmath": "cpp",
         "xlocale": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "xiosbase": "cpp"
     }
 }

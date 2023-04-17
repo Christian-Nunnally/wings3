@@ -8,17 +8,17 @@
 void setup() 
 {
   setupSerial();
-  //setupLeds();
-  //setupMicrophone();
+  setupLeds();
+  setupMicrophone();
   setupImu();
-  //setupEffects();
+  setupEffects();
 }
 
 void loop() 
 {
-  //incrementEffectFrame();
-  //renderLeds();
-  //processAudioStream();
+  incrementEffectFrame();
+  renderLeds();
+  processAudioStream();
   checkForMovement();
 }
 
