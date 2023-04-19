@@ -4,6 +4,7 @@
 #include "movementDetection.h"
 #include "effectController.h"
 #include "graphics.h"
+#include "time.h"
 
 void setup() 
 {
@@ -16,10 +17,11 @@ void setup()
 
 void loop() 
 {
+  setTime(millis());
   incrementEffectFrame();
   renderLeds();
   processAudioStream();
-  checkForMovement();
+  //checkForMovement();
 }
 
 void loop1() 

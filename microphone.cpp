@@ -2,16 +2,17 @@
 #include <SingleEMAFilterLib.h>
 #include <PDM.h>
 #include "microphone.h"
+#include "time.h"
 
-#define AUDIO_SAMPLE_BATCH_SIZE     256
+#define AUDIO_SAMPLE_BATCH_SIZE     128
 #define MICROPHONE_SAMPLE_FREQUENCY 16000
 #define MICROPHONE_CHANNELS         1
 #define EMA_FILTER_ALPHA            .25
-#define PEAK_DETECTOR_LAG           48
-#define PEAK_DETECTOR_THRESHOLD     3
-#define PEAK_DETECTOR_INFLUENCE     0.6
-#define MAX_RMS_DECAY_RATE          0.002
-#define MUSIC_DETECTION_COUNTDOWN 3000
+#define PEAK_DETECTOR_LAG           10
+#define PEAK_DETECTOR_THRESHOLD     3.1
+#define PEAK_DETECTOR_INFLUENCE     0.9
+#define MAX_RMS_DECAY_RATE          0.0015
+#define MUSIC_DETECTION_COUNTDOWN   3000
 #define MUSIC_DETECTION_RMS_THRESHOLD 800
 
 short audioSampleBuffer[512];
@@ -27,6 +28,9 @@ double currentFilteredAudioLevel;
 int currentPeakDetectorValue;
 bool isMusicDetectedInternal = false;
 int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
+unsigned long peakTimes[32];
+unsigned long lastTimePeakWasDetected;
+int peakTimesIndex;
 
 inline void monitorAudioLevelsToToggleMusicDetection();
 inline void incrementMusicDetectionToggle();
@@ -60,7 +64,6 @@ int getCurrentFilteredAudioLevel()
 
 bool isMusicDetected()
 {
-    return true;
     return isMusicDetectedInternal;
 }
 
@@ -82,7 +85,28 @@ inline void applyFiltering()
     currentRootMeanSquare = sqrt(sumOfSquaredSample / samplesRead);
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
-    currentPeakDetectorValue = peakDetector.getPeak();
+    int newPeakDetectorValue = peakDetector.getPeak();
+    if (newPeakDetectorValue != currentPeakDetectorValue)
+    {
+        if (lastTimePeakWasDetected != 0 && newPeakDetectorValue == 1)
+        {
+            Serial.print("Peak: ");
+            Serial.println(newPeakDetectorValue);
+            peakTimes[peakTimesIndex] = getTime() - lastTimePeakWasDetected;
+
+            int total = 0;
+            for (int i = 0; i < 32; i++)
+            {
+                total += peakTimes[i];
+            }
+            Serial.print("average time: ");
+            Serial.println(total >> 5);
+        }
+        lastTimePeakWasDetected = getTime();
+
+        peakTimesIndex = (peakTimesIndex + 1) % 32;
+    }
+    currentPeakDetectorValue = newPeakDetectorValue;
     currentFilteredAudioLevel = peakDetector.getFilt();
 }
 

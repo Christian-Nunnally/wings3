@@ -2,7 +2,9 @@
 #include "microphone.h"
 #include "graphics.h"
 #include <pgmspace.h>
-#include "palettes.h"
+
+//#include "palettes.h"
+#include "palettesMinimal.h"
 
 uint16_t squareRoot32Bit(int input);
 

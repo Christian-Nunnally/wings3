@@ -6,6 +6,7 @@
 #include "movementDetection.h"
 #include "transformMaps.h"
 #include "palettes.h"
+#include "time.h"
 
 #define MIN_CROSS_FADE_DURATION 15.0
 #define MAX_CROSS_FADE_DURATION 200.0
@@ -128,56 +129,55 @@ void incrementEffectFrame()
     incrementTransition();
     currentAudioIntensityLevel = getAudioIntensityRatio();
     int nextPeak = getCurrentPeakDetectorValue();
-    if (nextPeak != lastPeakDetectorValue)
+    if (nextPeak != lastPeakDetectorValue && nextPeak == 1)
     {
-        lastPeakDetectorValue = nextPeak;
-        if (random(2) == 1) randomizeBlendingMode();
-        if (random(2) == 1)
+        Serial.println("RANDOMIZING!");
+        int currentRandom = random(6);
+        if (currentRandom == 0) randomizeBlendingMode();
+        if (currentRandom == 1)
         {
-            if (random(2) == 1)
-            {
-                currentPalette1 = random(TOTAL_NUMBER_OF_PALETTES);
-                currentPalette2 = random(TOTAL_NUMBER_OF_PALETTES);
-            }
-            if (random(2) == 1)
-            {
-                currentPalette1Offset = pickRandomSubPaletteFromPalette(currentPalette1);
-                currentPalette2Offset = pickRandomSubPaletteFromPalette(currentPalette1);
-            }
-            else
-            {
-                currentPalette1Offset = pickRandomSubPaletteFromPalette(currentPalette1);
-                currentPalette2Offset = currentPalette1Offset;
-            }
-            
+            currentPalette1 = random(TOTAL_NUMBER_OF_PALETTES);
+            currentPalette2 = random(TOTAL_NUMBER_OF_PALETTES);
         }
-        if (random(100) > 10)
+        if (currentRandom == 2)
+        {
+            currentPalette1Offset = pickRandomSubPaletteFromPalette(currentPalette1);
+            currentPalette2Offset = pickRandomSubPaletteFromPalette(currentPalette1);
+        }
+        else if (currentRandom == 3)
+        {
+            currentPalette1Offset = pickRandomSubPaletteFromPalette(currentPalette1);
+            currentPalette2Offset = currentPalette1Offset;
+        }
+        else if (currentRandom == 4)
         {
             switchMap = !switchMap;
             if (switchMap)
             {
-                if (random(4) == 1) *effect1TransformMap1 = transformMaps[random(transformMapsCount)];
-                if (random(4) == 1) *effect1TransformMap2 = transformMaps[random(transformMapsCount)];
-                if (random(4) == 1) *effect2TransformMap1 = transformMaps[random(transformMapsCount)];
-                if (random(4) == 1) *effect2TransformMap2 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect1TransformMap1 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect1TransformMap2 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect2TransformMap1 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect2TransformMap2 = transformMaps[random(transformMapsCount)];
             }
             else
             {
-                if (random(4) == 1) *effect3TransformMap1 = transformMaps[random(transformMapsCount)];
-                if (random(4) == 1) *effect3TransformMap2 = transformMaps[random(transformMapsCount)];
-                if (random(4) == 1) *effect4TransformMap1 = transformMaps[random(transformMapsCount)];
-                if (random(4) == 1) *effect4TransformMap2 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect3TransformMap1 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect3TransformMap2 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect4TransformMap1 = transformMaps[random(transformMapsCount)];
+                if (random(10) > 5) *effect4TransformMap2 = transformMaps[random(transformMapsCount)];
             }
             switchMapBlendCounterMax = random(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
             switchMapBlendCounter = switchMapBlendCounterMax;
-
-            if (random(4) == 1) effect1Time = getRandomEffectSpeed();
-            if (random(4) == 1) effect2Time = getRandomEffectSpeed();
-            if (random(4) == 1) effect3Time = getRandomEffectSpeed();
-            if (random(4) == 1) effect4Time = getRandomEffectSpeed();
-
+        }
+        else if (currentRandom == 5)
+        {
+            if (random(10) > 6) effect1Time = getRandomEffectSpeed();
+            if (random(10) > 6) effect2Time = getRandomEffectSpeed();
+            if (random(10) > 6) effect3Time = getRandomEffectSpeed();
+            if (random(10) > 6) effect4Time = getRandomEffectSpeed();
         }
     }
+    lastPeakDetectorValue = nextPeak;
 }
 
 int* getRandomEffectSpeed()
@@ -206,7 +206,6 @@ void randomizeBlendingMode()
     else if (mixingMode == 5) mixingModeBlendFunction = blendColorsUsingAverage;
     else if (mixingMode == 6) mixingModeBlendFunction = blendColorsUsingShimmer;
     else mixingModeBlendFunction = blendColorsUsingSubtract;
-    Serial.println(mixingMode);
     mixingModeBlendCounterMax = random(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
     mixingModeBlendCounter = mixingModeBlendCounterMax;
 }
@@ -234,7 +233,7 @@ void setupEffects()
 inline void incrementTime()
 {
     int lastTime = currentTime;
-    currentTime = millis();
+    currentTime = getTime() >> 1;
     currentTimeHalf = currentTime >> 1;
     currentTimeFifth = currentTime / 5;
     currentTimeEighth = currentTime >> 3;

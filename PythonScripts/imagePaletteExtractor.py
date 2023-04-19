@@ -1,4 +1,6 @@
 from PIL import Image
+import os
+import sys
 
 paletteWidth = 256
 paletteHeights = []
@@ -51,7 +53,15 @@ def printPaletteCode(colors):
     print(*paletteHeights, sep = ",") 
     print("};")
 
-colors = createPaletteFromImages(['palette.bmp', 'palette2.bmp', 'blackAndWhitePalette.bmp'])
+if not len(sys.argv) == 2:
+    print("Error: Must provide a folder name with bitmaps inside.")
+bitmapFolder = sys.argv[1]
+bitmapFiles = []
+for filename in os.listdir(bitmapFolder):
+    if filename.endswith(".bmp"):
+        bitmapFiles.append(bitmapFolder + filename)
+
+colors = createPaletteFromImages(bitmapFiles)
 print("#ifndef PALETTES_H")
 print("#define PALETTES_H")
 print()
@@ -63,3 +73,5 @@ print()
 printPaletteCode(colors)
 print()
 print("#endif")
+
+# run with: python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ | out-file -encoding ASCII palette.h
