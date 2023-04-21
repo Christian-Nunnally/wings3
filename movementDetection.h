@@ -14,5 +14,7 @@ enum MovementType
 void setupImu();
 void checkForMovement();
 MovementType getCurrentMovementType();
+void subscribeToStepDetectedEvent(void (*subscriber)());
+void unsubscribeFromStepDetectedEvent(void (*subscriber)());
 
 #endif

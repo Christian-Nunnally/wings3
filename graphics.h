@@ -12,6 +12,9 @@ typedef struct
 Color;
 
 Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], int paletteOffset, uint16_t globalBrightnessModifier);
+Color starShimmer(int fadeAmount, int newStarLikelihood, int pixelIndex, int paletteOffset, uint16_t globalBrightnessModifier);
+Color meteorRain(uint32_t animationFrame, uint32_t colorFrame, int pixelIndex, byte meteorSize, float meteorTrailDecay, uint8_t projectionMap[], int paletteOffset, uint16_t globalBrightnessModifier);
+Color meteorRain2(uint32_t projectionMap1Frame, uint32_t projectionMap2Frame, uint32_t colorFrame, int pixelIndex, byte meteorSize, float meteorTrailDecay, uint8_t projectionMap[], uint8_t projectionMap2[], int paletteOffset, uint16_t globalBrightnessModifier);
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint16_t blendFactor);

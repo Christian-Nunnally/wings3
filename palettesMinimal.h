@@ -2,9 +2,9 @@
 #define PALETTES_H
 
 #include <pgmspace.h>
+#include "settings.h"
 
 #define TOTAL_NUMBER_OF_PALETTES 1
-#define PALETTE_LENGTH 256
 
 const static uint8_t palette[38400] PROGMEM = 
 {

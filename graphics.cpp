@@ -1,5 +1,6 @@
 #include <Adafruit_NeoPXL8.h>
 #include "microphone.h"
+#include "settings.h"
 #include "graphics.h"
 #include <pgmspace.h>
 
@@ -7,6 +8,9 @@
 #include "palettesMinimal.h"
 
 uint16_t squareRoot32Bit(int input);
+inline Color fadeToBlack(Color color, float fadeValue);
+
+Color currentLedColorMap[TOTAL_LEDS];
 
 Color colorFromPalette(int index, uint16_t brightness)
 {
@@ -20,17 +24,132 @@ Color colorFromPalette(int index, uint16_t brightness)
   };
 }
 
-Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelNum, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], int paletteOffset, uint16_t globalBrightnessModifier) 
+Color wavePulse(uint32_t brightnessFrame, uint32_t colorFrame, int pixelIndex, uint8_t brightnessProjectionMap[], uint8_t colorProjectionMap[], int paletteOffset, uint16_t globalBrightnessModifier) 
 {
     uint8_t brightnessFrame8bit = (brightnessFrame / 4);
     uint8_t colorFrame8bit = (colorFrame / 15);
-    uint8_t brightnessStartingPoint = brightnessProjectionMap[pixelNum];
-    uint8_t colorStartingPoint = colorProjectionMap[pixelNum];
+    uint8_t brightnessStartingPoint = brightnessProjectionMap[pixelIndex];
+    uint8_t colorStartingPoint = colorProjectionMap[pixelIndex];
     uint16_t brightness = ((uint8_t)(brightnessStartingPoint - brightnessFrame8bit) << 8);
     brightness = (brightness * globalBrightnessModifier) >> 16;
     uint8_t colorFramePreOffset = colorStartingPoint + colorFrame8bit;
     return colorFromPalette(paletteOffset + colorFramePreOffset, brightness);
 }
+
+uint16_t starShimmerMap[TOTAL_LEDS];
+uint16_t starShimmerCurrentTargetValueMap[TOTAL_LEDS];
+uint16_t starShimmerSpeedMap[TOTAL_LEDS];
+uint16_t starShimmerColorMap[TOTAL_LEDS];
+uint16_t starShimmerTwinkleMap[TOTAL_LEDS];
+uint16_t starShimmerTwinklePersistanceMap[TOTAL_LEDS];
+bool starShimmerTwinkleDirectionMap[TOTAL_LEDS];
+
+Color starShimmer(int fadeAmount, int newStarLikelihood, int pixelIndex, int paletteOffset, uint16_t globalBrightnessModifier) 
+{
+  if (pixelIndex == 0)
+  {
+    if (random(10000) < newStarLikelihood)
+    {
+      int chosenLed = random(TOTAL_LEDS);
+      starShimmerCurrentTargetValueMap[chosenLed] = random(globalBrightnessModifier);
+      starShimmerSpeedMap[chosenLed] = 2 * random(fadeAmount) + 1;
+      starShimmerColorMap[chosenLed] = random(PALETTE_LENGTH) + paletteOffset;
+      starShimmerTwinkleMap[chosenLed] = 0;
+      starShimmerTwinklePersistanceMap[chosenLed] = 0;
+      starShimmerTwinkleDirectionMap[chosenLed] = 0;
+    }
+  }
+
+  if (starShimmerCurrentTargetValueMap[pixelIndex] > 0)
+  {
+    if(starShimmerMap[pixelIndex] < starShimmerCurrentTargetValueMap[pixelIndex])
+    {
+      if (starShimmerMap[pixelIndex] + starShimmerSpeedMap[pixelIndex] < starShimmerCurrentTargetValueMap[pixelIndex])
+      {
+        starShimmerMap[pixelIndex] += starShimmerSpeedMap[pixelIndex];
+      }
+      else 
+      {
+        starShimmerMap[pixelIndex] = starShimmerCurrentTargetValueMap[pixelIndex];
+        starShimmerCurrentTargetValueMap[pixelIndex] = 1;
+        starShimmerSpeedMap[pixelIndex] = random(fadeAmount) + 1;
+        starShimmerTwinkleMap[pixelIndex] = random(2000);
+        starShimmerTwinklePersistanceMap[pixelIndex] = random(800);
+      }
+    }
+    else 
+    {
+      if (starShimmerMap[pixelIndex] > starShimmerSpeedMap[pixelIndex])
+      {
+        starShimmerMap[pixelIndex] -= starShimmerSpeedMap[pixelIndex];
+      }
+      else 
+      {
+        starShimmerMap[pixelIndex] = 0;
+        starShimmerCurrentTargetValueMap[pixelIndex] = 0;
+      }
+    }
+  }
+  if (starShimmerMap[pixelIndex] == 0) return {0,0,0};
+
+  int shimmerAmount = random(starShimmerTwinklePersistanceMap[pixelIndex]) - (starShimmerTwinklePersistanceMap[pixelIndex] / 2);
+  if (starShimmerTwinkleDirectionMap[pixelIndex])
+  {
+    starShimmerTwinkleDirectionMap[pixelIndex] = false;
+    shimmerAmount += starShimmerTwinkleMap[pixelIndex];
+  }
+  else 
+  {
+    starShimmerTwinkleDirectionMap[pixelIndex] = true;
+    shimmerAmount -= starShimmerTwinkleMap[pixelIndex];
+  }
+  if (starShimmerMap[pixelIndex] + shimmerAmount > 0 && starShimmerMap[pixelIndex] + shimmerAmount <= 65535)
+  {
+    starShimmerMap[pixelIndex] += shimmerAmount;
+  }
+  return colorFromPalette(paletteOffset + starShimmerColorMap[pixelIndex], starShimmerMap[pixelIndex]);
+}
+
+Color meteorRain(uint32_t animationFrame, uint32_t colorFrame, int pixelIndex, byte meteorSize, float meteorTrailDecay, uint8_t projectionMap[], int paletteOffset, uint16_t globalBrightnessModifier)
+{
+  uint32_t animationFrame9bit = animationFrame & 0x1FF;
+  if (random(100) > 90)
+  {
+    currentLedColorMap[pixelIndex] = fadeToBlack(currentLedColorMap[pixelIndex], meteorTrailDecay );        
+  }
+  if (projectionMap[pixelIndex] + meteorSize > animationFrame9bit && projectionMap[pixelIndex] + meteorSize < animationFrame9bit + meteorSize)
+  {
+    uint8_t colorFrame8bit = (colorFrame / 15);
+    uint8_t colorStartingPoint = projectionMap[pixelIndex];
+    uint8_t colorFramePreOffset = colorStartingPoint + colorFrame8bit;
+    Color result = colorFromPalette(paletteOffset + colorFramePreOffset, globalBrightnessModifier);
+    currentLedColorMap[pixelIndex] = result;
+  }
+  return currentLedColorMap[pixelIndex];
+}
+
+Color meteorRain2(uint32_t projectionMap1Frame, uint32_t projectionMap2Frame, uint32_t colorFrame, int pixelIndex, byte meteorSize, float meteorTrailDecay, uint8_t projectionMap[], uint8_t projectionMap2[], int paletteOffset, uint16_t globalBrightnessModifier)
+{
+  uint32_t projectionMap1FrameWrapping = projectionMap1Frame % (256 + meteorSize * 2);
+  uint32_t projectionMap2FrameWrapping = projectionMap2Frame % (256 + meteorSize * 2);
+  if (random(100) > 90)
+  {
+    currentLedColorMap[pixelIndex] = fadeToBlack(currentLedColorMap[pixelIndex], meteorTrailDecay );        
+  }
+  if (projectionMap[pixelIndex] + meteorSize > projectionMap1FrameWrapping && projectionMap[pixelIndex] + meteorSize < projectionMap1FrameWrapping + meteorSize)
+  {
+    if (projectionMap2[pixelIndex] + meteorSize > projectionMap2FrameWrapping && projectionMap2[pixelIndex] + meteorSize < projectionMap2FrameWrapping + meteorSize)
+    {
+      uint8_t colorFrame8bit = (colorFrame / 15);
+      uint8_t colorStartingPoint = projectionMap[pixelIndex];
+      uint8_t colorFramePreOffset = colorStartingPoint + colorFrame8bit;
+      Color result = colorFromPalette(paletteOffset + colorFramePreOffset, globalBrightnessModifier);
+      currentLedColorMap[pixelIndex] = result;
+    }
+  }
+  return currentLedColorMap[pixelIndex];
+}
+
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)
 {
@@ -240,4 +359,12 @@ Color blendColorsUsingShimmer(Color color1, Color color2, uint16_t blendFactor)
   uint16_t index = blendFactor >> 4;
   if (shimmerMap[index]) return color2;
   return color1;
+}
+
+inline Color fadeToBlack(Color color, float fadeValue) {
+    uint16_t r, g, b;
+    r = (color.red <= 10) ? 0 : color.red - (color.red * fadeValue);
+    g = (color.green <= 10) ? 0 : color.green - (color.green * fadeValue);
+    b = (color.blue <= 10) ? 0 : color.blue - (color.blue * fadeValue);
+    return {r,g,b};
 }

@@ -2,13 +2,15 @@
 #include <LSM6DSOXSensor.h>
 #include "movementDetectionMlc.h"
 #include "movementDetection.h"
+#include "time.h"
 
 #define ACCELEROMETER_SENSITIVITY 2 // Available values are: 2, 4, 8, 16 (G)
 #define GYROSCOPE_SENSITIVITY 125 // Available values are: 125, 250, 500, 1000, 2000 (degrees per second)
 #define ACCELEROMETER_OUTPUT_DATA_RATE 26.0f // Available values are: 1.6, 12.5, 26, 52, 104, 208, 417, 833, 1667, 3333, 6667 (Hz)
 #define GYROSCOPE_OUTPUT_DATA_RATE 26.0f // Available values are: 12.5, 26, 52, 104, 208, 417, 833, 1667, 3333, 6667 (Hz)
 #define INT_IMU 24
-#define IMU_FIFO_FILL_THRESHOLD 199
+#define IMU_FIFO_FILL_THRESHOLD 50
+#define MAX_STEP_DETECTED_SUBSCRIBERS 10
 
 volatile int mems_event;
 MovementType currentMovementType;
@@ -16,13 +18,24 @@ LSM6DSOXSensor imu(&Wire, (uint8_t)LSM6DSOX_I2C_ADD_L);
 ucf_line_t *machineLearningCoreProgramPointer;
 int32_t machineLearningCoreLineCounter;
 int32_t machineLearningCoreTotalNumberOfLine;
+uint16_t currentStepCount;
+uint16_t newStepCount;
+uint16_t oldStepCount;
+unsigned long lastFifoPollTime;
+
+void (*stepDetectedEventSubscribers[MAX_STEP_DETECTED_SUBSCRIBERS])();
+byte currentSubscriberCount = 0;
+
 void setupIc2();
 void setupAccelerometerGyro();
 void feedProgramIntoImu();
 void setupInterrupt();
 void movementDetectedCallback();
 void updateMovementTypeFromMLCStatus(uint8_t status);
-void checkFifo(); 
+void checkFifo();
+inline void notifyStepDetectedEventSubscribers();
+
+#define MILLISECONDS_BETWEEN_FIFO_POLL 1000 
 
 void setupImu() 
 {
@@ -38,8 +51,24 @@ void setupImu()
 
 void checkForMovement() 
 {
-    if (!mems_event) return; 
+    if (!mems_event) 
+    {
+        if (getTime() - lastFifoPollTime > MILLISECONDS_BETWEEN_FIFO_POLL)
+        {
+            lastFifoPollTime = getTime();
+            checkFifo();
+        }
+        return;
+    }
     mems_event=0;
+    uint16_t newStepCount;
+    imu.Get_Step_Count(&newStepCount);
+    if (newStepCount != oldStepCount)
+    {
+        oldStepCount = newStepCount;
+        notifyStepDetectedEventSubscribers();
+    }
+
     LSM6DSOX_MLC_Status_t status;
     imu.Get_MLC_Status(&status);
     if (status.is_mlc1)
@@ -173,22 +202,22 @@ void setupAccelerometerGyro()
      delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_Mode(LSM6DSOX_BYPASS_MODE);
-     delay(10);
+    delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     delay(10);
     result = imu.Set_FIFO_Mode(LSM6DSOX_STREAM_MODE);
-     delay(10);
+    delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_INT1_FIFO_Full(1); // enable FIFO full interrupt on sensor INT1 pin.
-     delay(10);
+    delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_Watermark_Level(IMU_FIFO_FILL_THRESHOLD);
-     delay(10);
+    delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
     result = imu.Set_FIFO_Stop_On_Fth(1); delay(10);
-     delay(10);
+    delay(10);
     if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-     delay(10);
+    delay(10);
     if (imu.Enable_Pedometer())
     {
         Serial.println("Error: Enabling pedometer unsuccessful.");
@@ -269,4 +298,44 @@ void updateMovementTypeFromMLCStatus(uint8_t status)
             Serial.println("Activity: Unknown");
             break;
     }   
+}
+
+void subscribeToStepDetectedEvent(void (*subscriber)()) 
+{
+  if (currentSubscriberCount < MAX_STEP_DETECTED_SUBSCRIBERS) { // Check if there is still space in the array
+    stepDetectedEventSubscribers[currentSubscriberCount] = subscriber;
+    currentSubscriberCount++;
+    printf("Subscriber added.\n");
+  } else {
+    printf("Maximum number of subscribers reached.\n");
+  }
+}
+
+void unsubscribeFromStepDetectedEvent(void (*subscriber)()) 
+{
+    for (int i = 0; i < currentSubscriberCount; i++) 
+    {
+        if (stepDetectedEventSubscribers[i] == subscriber) 
+        {
+            stepDetectedEventSubscribers[i] = NULL;
+            for (int j = i; j < currentSubscriberCount - 1; j++) 
+            {
+                stepDetectedEventSubscribers[j] = stepDetectedEventSubscribers[j + 1];
+            }
+            printf("Subscriber removed.\n");
+            return;
+        }
+    }
+    printf("Subscriber not found.\n");
+}
+
+inline void notifyStepDetectedEventSubscribers() 
+{
+    for (int i = 0; i < currentSubscriberCount; i++) 
+    {
+        if (stepDetectedEventSubscribers[i] != NULL) 
+        {
+            (*stepDetectedEventSubscribers[i])();
+        }
+    }
 }

@@ -5,6 +5,9 @@
 #include "effectController.h"
 #include "graphics.h"
 #include "time.h"
+#include "analogInput.h"
+
+unsigned long lastTime;
 
 void setup() 
 {
@@ -13,6 +16,7 @@ void setup()
   setupMicrophone();
   setupImu();
   setupEffects();
+  setupAnalogInputs();
 }
 
 void loop() 
@@ -21,7 +25,12 @@ void loop()
   incrementEffectFrame();
   renderLeds();
   processAudioStream();
-  //checkForMovement();
+  checkForMovement();
+  readAnalogValues();
+
+  Serial.print("ft: ");
+  Serial.println(getTime() - lastTime);
+  lastTime = getTime();
 }
 
 void loop1() 

@@ -64,6 +64,7 @@ int getCurrentFilteredAudioLevel()
 
 bool isMusicDetected()
 {
+    return true;
     return isMusicDetectedInternal;
 }
 

@@ -7,9 +7,11 @@
 #include "transformMaps.h"
 #include "palettes.h"
 #include "time.h"
+#include "analogInput.h"
 
 #define MIN_CROSS_FADE_DURATION 15.0
 #define MAX_CROSS_FADE_DURATION 200.0
+#define STEP_RESET_TIME_MAX 1500
 
 int currentTime;
 int currentTimeHalf;
@@ -21,6 +23,7 @@ int audioScaledTimeHalf;
 int audioScaledTimeFifth;
 int audioScaledTimeEighth;
 int audioReverseScaledTime;
+int stepResetTime;
 float audioInfluenceFactorForAudioScaledTime = 2;
 float currentAudioIntensityLevel;
 
@@ -43,6 +46,7 @@ void incrementTransition();
 Color blendIncorporatingOldMixingMode(Color color1, Color color2);
 void randomizeBlendingMode();
 int* getRandomEffectSpeed();
+void handleStepDetected();
 
 Color (*effect1)(int pixel) {};
 Color (*effect1Plus)(int pixel) {};
@@ -79,6 +83,10 @@ int *currentPalette2OffsetPointer;
 
 Color getLedColorForFrame(int ledIndex)
 {
+    //return starShimmer(15, 27, ledIndex, currentPalette1Offset, 65535);
+    //return starShimmer(15, 120, ledIndex, currentPalette1Offset, 65535);
+    //return meteorRain(currentTime,currentTimeHalf,ledIndex, 50, .01, normalTransformMapX, currentPalette1, 65535);
+    return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 25, .01, normalTransformMapX, normalTopRadiusMap1, currentPalette1, 65535);
     if (switchMap)
     {
         Color color1 = currentAudioIntensityLevel < .98 ? effect1(ledIndex) : effect1Plus(ledIndex);
@@ -132,7 +140,7 @@ void incrementEffectFrame()
     if (nextPeak != lastPeakDetectorValue && nextPeak == 1)
     {
         Serial.println("RANDOMIZING!");
-        int currentRandom = random(6);
+        int currentRandom = random(10);
         if (currentRandom == 0) randomizeBlendingMode();
         if (currentRandom == 1)
         {
@@ -228,6 +236,8 @@ void setupEffects()
 
     mixingModeBlendFunction = blendColorsUsingMixing;
     oldMixingModeBlendFunction = blendColorsUsingMixing;
+
+    subscribeToStepDetectedEvent(handleStepDetected);
 }
 
 inline void incrementTime()
@@ -239,8 +249,7 @@ inline void incrementTime()
     currentTimeEighth = currentTime >> 3;
     currentTimeSixteenth = currentTime >> 4;
     int timeDelta = currentTime - lastTime;
-    Serial.print("ft: ");
-    Serial.println(timeDelta);
+    if (stepResetTime < STEP_RESET_TIME_MAX) stepResetTime += timeDelta;
     audioScaledTime += getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta;
     audioScaledTimeHalf = audioScaledTime >> 1;
     audioScaledTimeFifth = audioScaledTime / 5;
@@ -278,4 +287,10 @@ inline void incrementTransition()
         oldMixingMode = mixingMode;
         oldMixingModeBlendFunction = mixingModeBlendFunction;
     }
+}
+
+void handleStepDetected()
+{
+    Serial.println("Step detected!");
+    stepResetTime = 0;
 }
