@@ -24,7 +24,6 @@
 
 extern "C" {
 
-/* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 #ifndef MEMS_UCF_SHARED_TYPES
 #define MEMS_UCF_SHARED_TYPES
