@@ -132,7 +132,7 @@ Color meteorRain2(uint32_t projectionMap1Frame, uint32_t projectionMap2Frame, ui
 {
   uint32_t projectionMap1FrameWrapping = projectionMap1Frame % (256 + meteorSize * 2);
   uint32_t projectionMap2FrameWrapping = projectionMap2Frame % (256 + meteorSize * 2);
-  if (random(100) > 90)
+  if (random(100) > 98)
   {
     currentLedColorMap[pixelIndex] = fadeToBlack(currentLedColorMap[pixelIndex], meteorTrailDecay );        
   }

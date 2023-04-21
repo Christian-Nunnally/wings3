@@ -32,6 +32,7 @@
         "cmath": "cpp",
         "xlocale": "cpp",
         "bitset": "cpp",
-        "xiosbase": "cpp"
+        "xiosbase": "cpp",
+        "functional": "cpp"
     }
 }

@@ -3,6 +3,8 @@
 #include "movementDetectionMlc.h"
 #include "movementDetection.h"
 #include "time.h"
+#include "src/Observers/stepDectectedObserver.h"
+#include "src/Observers/movementDetectedObserver.h"
 
 #define ACCELEROMETER_SENSITIVITY 2 // Available values are: 2, 4, 8, 16 (G)
 #define GYROSCOPE_SENSITIVITY 125 // Available values are: 125, 250, 500, 1000, 2000 (degrees per second)
@@ -11,20 +13,16 @@
 #define INT_IMU 24
 #define IMU_FIFO_FILL_THRESHOLD 50
 #define MAX_STEP_DETECTED_SUBSCRIBERS 10
+#define MILLISECONDS_BETWEEN_FIFO_POLL 1000 
 
 volatile int mems_event;
+uint8_t lastMovementTypeStatus;
 MovementType currentMovementType;
 LSM6DSOXSensor imu(&Wire, (uint8_t)LSM6DSOX_I2C_ADD_L);
-ucf_line_t *machineLearningCoreProgramPointer;
-int32_t machineLearningCoreLineCounter;
-int32_t machineLearningCoreTotalNumberOfLine;
 uint16_t currentStepCount;
 uint16_t newStepCount;
 uint16_t oldStepCount;
 unsigned long lastFifoPollTime;
-
-void (*stepDetectedEventSubscribers[MAX_STEP_DETECTED_SUBSCRIBERS])();
-byte currentSubscriberCount = 0;
 
 void setupIc2();
 void setupAccelerometerGyro();
@@ -33,42 +31,55 @@ void setupInterrupt();
 void movementDetectedCallback();
 void updateMovementTypeFromMLCStatus(uint8_t status);
 void checkFifo();
-inline void notifyStepDetectedEventSubscribers();
-
-#define MILLISECONDS_BETWEEN_FIFO_POLL 1000 
+inline bool doesFifoNeedPolling();
+inline void checkMachineLearningCore();
+inline void checkPedometer();
 
 void setupImu() 
 {
     setupIc2();
-    delay(10);
     feedProgramIntoImu();
-    delay(10);
     setupAccelerometerGyro();
-    delay(10);
     setupInterrupt();
-    delay(10);
 }
 
 void checkForMovement() 
 {
     if (!mems_event) 
     {
-        if (getTime() - lastFifoPollTime > MILLISECONDS_BETWEEN_FIFO_POLL)
-        {
-            lastFifoPollTime = getTime();
-            checkFifo();
-        }
+        if (doesFifoNeedPolling()) checkFifo();
         return;
     }
     mems_event=0;
+
+    checkPedometer();
+    checkMachineLearningCore();
+    checkFifo();
+}
+
+inline void checkPedometer()
+{
     uint16_t newStepCount;
     imu.Get_Step_Count(&newStepCount);
     if (newStepCount != oldStepCount)
     {
         oldStepCount = newStepCount;
-        notifyStepDetectedEventSubscribers();
+        notifyStepDetectedEvent();
     }
+}
 
+inline bool doesFifoNeedPolling()
+{
+    if (getTime() - lastFifoPollTime > MILLISECONDS_BETWEEN_FIFO_POLL)
+    {
+        lastFifoPollTime = getTime();
+        return true;
+    }
+    return false;
+}
+
+inline void checkMachineLearningCore()
+{
     LSM6DSOX_MLC_Status_t status;
     imu.Get_MLC_Status(&status);
     if (status.is_mlc1)
@@ -77,75 +88,41 @@ void checkForMovement()
         imu.Get_MLC_Output(mlc_out);
         updateMovementTypeFromMLCStatus(mlc_out[0]);
     }
-    checkFifo();
 }
 
 void checkFifo()
 {
-    uint16_t numSamples = 0; // number of samples in FIFO
-    uint8_t Tag; // FIFO data sensor identifier
-    int32_t acceleration[3]; // X, Y, Z accelerometer values in mg
-    int32_t rotation[3]; // X, Y, Z gyroscope values in mdps
+    uint16_t numberOfSamplesInFifo = 0;
+    uint8_t FifoTag;
+    int32_t acceleration[3];
+    int32_t rotation[3];
     int16_t dummy[3];
-    uint8_t fullStatus = 0; // full status
+    uint8_t fullStatus = 0;
     int32_t count_acc_samples = 0;
     int32_t count_gyro_samples = 0;
     int32_t count_dummy_samples = 0;
 
-    // Get number of samples in buffer
-    imu.Get_FIFO_Num_Samples(&numSamples);
-    Serial.print("Samples in FIFO: ");
-    Serial.println(numSamples);
-    Serial.flush();
-
+    imu.Get_FIFO_Num_Samples(&numberOfSamplesInFifo);
     imu.Get_FIFO_Full_Status(&fullStatus);
 
     if(fullStatus) {
-        Serial.println("-- FIFO Watermark level reached!, fetching data.");
-        Serial.flush();
-
-        imu.Get_FIFO_Num_Samples(&numSamples);
-
-        Serial.print("numSamples=");
-        Serial.println(numSamples);
-        Serial.flush();
-
-        // fetch data from FIFO
-        for (uint16_t i = 0; i < numSamples; i++) {
-
-        imu.Get_FIFO_Tag(&Tag); // get data identifier
-        
-        // Get gyroscope data
-        if (Tag == 1) { 
-            imu.Get_FIFO_G_Axes(rotation);
-            count_gyro_samples++;
-            #if 0 // set to 1 for printing values
-            Serial.print("mdps: "); Serial.print(rotation[0]); 
-            Serial.print(", "); Serial.print(rotation[1]); 
-            Serial.print(", "); Serial.print(rotation[2]); 
-            Serial.println();
-            Serial.flush();
-            #endif
-        } 
-        
-        // Get accelerometer data
-        else if (Tag == 2) {
-            imu.Get_FIFO_X_Axes(acceleration);
-            count_acc_samples++; 
-            #if 0 // set to 1 for printing values
-            Serial.print("mG: "); Serial.print(acceleration[0]); 
-            Serial.print(", "); Serial.print(acceleration[1]); 
-            Serial.print(", "); Serial.print(acceleration[2]); 
-            Serial.println();
-            Serial.flush();
-            #endif
-        }
-
-        // Flush unused tag
-        else {
-            imu.Get_FIFO_Data((uint8_t *)dummy);
-            count_dummy_samples++;
-        }
+        imu.Get_FIFO_Num_Samples(&numberOfSamplesInFifo);
+        for (uint16_t i = 0; i < numberOfSamplesInFifo; i++) 
+        {
+            imu.Get_FIFO_Tag(&FifoTag);
+            
+            if (FifoTag == 1) { 
+                imu.Get_FIFO_G_Axes(rotation);
+                count_gyro_samples++;
+            } 
+            else if (FifoTag == 2) {
+                imu.Get_FIFO_X_Axes(acceleration);
+                count_acc_samples++; 
+            }
+            else {
+                imu.Get_FIFO_Data((uint8_t *)dummy);
+                count_dummy_samples++;
+            }
         }
         Serial.print("Acc Samples: ");
         Serial.println(count_acc_samples);
@@ -153,7 +130,6 @@ void checkFifo()
         Serial.println(count_gyro_samples);
         Serial.print("Dummy Samples: ");
         Serial.println(count_dummy_samples);
-        Serial.flush();
     }
 }
 
@@ -173,73 +149,31 @@ void setupIc2()
 
 void setupAccelerometerGyro()
 {
-    int result;
-    result = imu.begin();
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Enable_X();
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Enable_G();
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_X_FS(ACCELEROMETER_SENSITIVITY);
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_G_FS(GYROSCOPE_SENSITIVITY);
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_X_ODR(ACCELEROMETER_OUTPUT_DATA_RATE);
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_G_ODR(GYROSCOPE_OUTPUT_DATA_RATE);
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_X_BDR(ACCELEROMETER_OUTPUT_DATA_RATE);
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_G_BDR(GYROSCOPE_OUTPUT_DATA_RATE);
-     delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_Mode(LSM6DSOX_BYPASS_MODE);
-    delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    delay(10);
-    result = imu.Set_FIFO_Mode(LSM6DSOX_STREAM_MODE);
-    delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_INT1_FIFO_Full(1); // enable FIFO full interrupt on sensor INT1 pin.
-    delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_Watermark_Level(IMU_FIFO_FILL_THRESHOLD);
-    delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    result = imu.Set_FIFO_Stop_On_Fth(1); delay(10);
-    delay(10);
-    if (result != 0) Serial.println("Error in setupAccelerometerGyro");
-    delay(10);
-    if (imu.Enable_Pedometer())
-    {
-        Serial.println("Error: Enabling pedometer unsuccessful.");
-    }
+    imu.begin();
+    imu.Enable_X();
+    imu.Enable_G();
+    imu.Set_X_FS(ACCELEROMETER_SENSITIVITY);
+    imu.Set_G_FS(GYROSCOPE_SENSITIVITY);
+    imu.Set_X_ODR(ACCELEROMETER_OUTPUT_DATA_RATE);
+    imu.Set_G_ODR(GYROSCOPE_OUTPUT_DATA_RATE);
+    imu.Set_FIFO_X_BDR(ACCELEROMETER_OUTPUT_DATA_RATE);
+    imu.Set_FIFO_G_BDR(GYROSCOPE_OUTPUT_DATA_RATE);
+    imu.Set_FIFO_Mode(LSM6DSOX_BYPASS_MODE);
+    imu.Set_FIFO_Mode(LSM6DSOX_STREAM_MODE);
+    imu.Set_FIFO_INT1_FIFO_Full(1);
+    imu.Set_FIFO_Watermark_Level(IMU_FIFO_FILL_THRESHOLD);
+    imu.Set_FIFO_Stop_On_Fth(1); delay(10);
+    imu.Enable_Pedometer();
 }
 
 void feedProgramIntoImu()
 {
-    machineLearningCoreProgramPointer = (ucf_line_t *)lsm6dsox_activity_recognition_for_mobile;
-    machineLearningCoreTotalNumberOfLine = sizeof(lsm6dsox_activity_recognition_for_mobile) / sizeof(ucf_line_t);
-    if (Serial) Serial.println("Activity Recognition for LSM6DSOX MLC");
-    if (Serial) Serial.print("UCF Number Line=");
-    if (Serial) Serial.println(machineLearningCoreTotalNumberOfLine);
-    for (machineLearningCoreLineCounter=0; machineLearningCoreLineCounter<machineLearningCoreTotalNumberOfLine; machineLearningCoreLineCounter++) 
+    ucf_line_t* programPointer = (ucf_line_t *)lsm6dsox_activity_recognition_for_mobile;
+    uint32_t programSize = sizeof(lsm6dsox_activity_recognition_for_mobile) / sizeof(ucf_line_t);
+    for (uint32_t lineCounter = 0; lineCounter < programSize; lineCounter++) 
     {
-        if(imu.Write_Reg(machineLearningCoreProgramPointer[machineLearningCoreLineCounter].address, machineLearningCoreProgramPointer[machineLearningCoreLineCounter].data)) 
-        {
-            if (Serial) Serial.print("Error loading the Program to LSM6DSOX at line: ");
-            if (Serial) Serial.println(machineLearningCoreLineCounter);
-        }
+        imu.Write_Reg(programPointer[lineCounter].address, programPointer[lineCounter].data);
     }
-    if (Serial) Serial.println("Program loaded inside the LSM6DSOX MLC");
 }
 
 void setupInterrupt()
@@ -255,87 +189,12 @@ void movementDetectedCallback()
 
 void updateMovementTypeFromMLCStatus(uint8_t status) 
 {
-    switch(status) 
-    {
-        case 0:
-            currentMovementType = Stationary;
-            break;
-        case 1:
-            currentMovementType = Walking;
-            break;
-        case 4:
-            currentMovementType = Jogging;
-            break;
-        case 8:
-            currentMovementType = Biking;
-            break;
-        case 12:
-            currentMovementType = Driving;
-            break;
-        default:
-            currentMovementType = Unknown;
-            break;
-    } 
-    if (!Serial) return;
-    switch(status) 
-    {
-        case 0:
-            Serial.println("Activity: Stationary");
-            break;
-        case 1:
-            Serial.println("Activity: Walking");
-            break;
-        case 4:
-            Serial.println("Activity: Jogging");
-            break;
-        case 8:
-            Serial.println("Activity: Biking");
-            break;
-        case 12:
-            Serial.println("Activity: Driving");
-            break;
-        default:
-            Serial.println("Activity: Unknown");
-            break;
-    }   
-}
-
-void subscribeToStepDetectedEvent(void (*subscriber)()) 
-{
-  if (currentSubscriberCount < MAX_STEP_DETECTED_SUBSCRIBERS) { // Check if there is still space in the array
-    stepDetectedEventSubscribers[currentSubscriberCount] = subscriber;
-    currentSubscriberCount++;
-    printf("Subscriber added.\n");
-  } else {
-    printf("Maximum number of subscribers reached.\n");
-  }
-}
-
-void unsubscribeFromStepDetectedEvent(void (*subscriber)()) 
-{
-    for (int i = 0; i < currentSubscriberCount; i++) 
-    {
-        if (stepDetectedEventSubscribers[i] == subscriber) 
-        {
-            stepDetectedEventSubscribers[i] = NULL;
-            for (int j = i; j < currentSubscriberCount - 1; j++) 
-            {
-                stepDetectedEventSubscribers[j] = stepDetectedEventSubscribers[j + 1];
-            }
-            printf("Subscriber removed.\n");
-            return;
-        }
-    }
-    printf("Subscriber not found.\n");
-}
-
-inline void notifyStepDetectedEventSubscribers() 
-{
-    for (int i = 0; i < currentSubscriberCount; i++) 
-    {
-        if (stepDetectedEventSubscribers[i] != NULL) 
-        {
-            (*stepDetectedEventSubscribers[i])();
-        }
-    }
+    if (status != lastMovementTypeStatus) return;
+    else if (status == 0) currentMovementType = Stationary;
+    else if (status == 1) currentMovementType = Walking;
+    else if (status == 4) currentMovementType = Jogging;
+    else if (status == 8) currentMovementType = Biking;
+    else if (status == 12) currentMovementType = Driving;
+    else currentMovementType = Unknown;
+    notifyMovementDetectedEvent();  
 }

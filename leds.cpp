@@ -14,7 +14,7 @@
 #define DOUBLE_BUFFER               true
 #define PIO_CONTROLLER              pio1
 #define GAMMA                       2.6
-#define MAX_DUTY_CYCLE              65535 / 2
+#define MAX_DUTY_CYCLE              65535 / 3
 static int8_t LED_PINS[8] =         {0,1,2,3,4,5,6,7};
 
 Adafruit_NeoPXL8HDR ledDisplay(LED_COUNT_PER_PIN, LED_PINS, COLOR_ORDER);
@@ -45,11 +45,11 @@ void renderLeds()
 
 void setBrightness()
 {
-  int brightness = getAnalogBrightnessSelection();
-  if (currentBrightness != brightness)
-  {
-      ledDisplay.setBrightness(brightness << 6, GAMMA);
-  }
+  // int brightness = getAnalogBrightnessSelection();
+  // if (currentBrightness != brightness)
+  // {
+  //     ledDisplay.setBrightness(brightness << 6, GAMMA);
+  // }
 }
 
 void refreshLeds()

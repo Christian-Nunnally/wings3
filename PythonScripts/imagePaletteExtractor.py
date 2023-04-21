@@ -74,4 +74,5 @@ printPaletteCode(colors)
 print()
 print("#endif")
 
-# run with: python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ | out-file -encoding ASCII palette.h
+# run with: python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ | out-file -encoding ASCII palettes.h
+# run with: python .\PythonScripts\imagePaletteExtractor.py .\PalettesMinimal\ | out-file -encoding ASCII palettesMinimal.h
