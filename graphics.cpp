@@ -4,8 +4,8 @@
 #include "graphics.h"
 #include <pgmspace.h>
 
-//#include "palettes.h"
-#include "palettesMinimal.h"
+#include "palettes.h"
+//#include "palettesMinimal.h"
 
 uint16_t squareRoot32Bit(int input);
 inline Color fadeToBlack(Color color, float fadeValue);

@@ -8,9 +8,10 @@
 #include "time.h"
 #include "analogInput.h"
 #include "src/Observers/stepDectectedObserver.h"
+#include "src/Observers/movementDetectedObserver.h"
 
-//#include "palettes.h"
-#include "palettesMinimal.h"
+#include "palettes.h"
+//#include "palettesMinimal.h"
 
 #define MIN_CROSS_FADE_DURATION 15.0
 #define MAX_CROSS_FADE_DURATION 200.0
@@ -78,12 +79,20 @@ int *effect2Time;
 int *effect3Time;
 int *effect4Time;
 
+int effect1Time2;
+int effect1TimeMode;
+
 int currentPalette1;
 int currentPalette2;
 int currentPalette1Offset; 
 int currentPalette2Offset; 
 int *currentPalette1OffsetPointer; 
 int *currentPalette2OffsetPointer; 
+
+const byte MaxNumberOfTimeModes = 10;
+byte numberOfTimeModes = 10;
+void (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(uint32_t timeDelta);
+uint32_t timeModeCurrentTimes[MaxNumberOfTimeModes];
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -150,7 +159,7 @@ void incrementEffectFrame()
         if (currentRandom == 1)
         {
             currentPalette1 = random(TOTAL_NUMBER_OF_PALETTES);
-            currentPalette2 = random(TOTAL_NUMBER_OF_PALETTES);
+            currentPalette2 = currentPalette1;
         }
         if (currentRandom == 2)
         {
@@ -199,7 +208,7 @@ void incrementEffectFrame()
 
 void pickRandomEffects()
 {
-    int effect = random(4);
+    int effect = random(8);
     if (effect == 0)
     {
         effect = random(6);
@@ -261,8 +270,8 @@ void randomizeBlendingMode()
 {
     mixingMode = random(7);
     // mixingMode = random(8);
-    if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
-    else if (mixingMode == 1) mixingModeBlendFunction = blendColorsUsingMixing;
+    //if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
+    if (mixingMode == 1) mixingModeBlendFunction = blendColorsUsingMixing;
     else if (mixingMode == 2) mixingModeBlendFunction = blendColorsUsingAdd;
     else if (mixingMode == 3) mixingModeBlendFunction = blendColorsUsingOverlay;
     else if (mixingMode == 4) mixingModeBlendFunction = blendColorsUsingScreen;
@@ -293,17 +302,32 @@ void setupEffects()
     oldMixingModeBlendFunction = blendColorsUsingMixing;
 
     subscribeToStepDetectedEvent(handleStepDetected);
+
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[0] += timeDelta > 1};);
+}
+
+void registerTimeMode(void (*timeModeIncrementFunction))
+{
+    if (numberOfTimeModes < MaxNumberOfTimeModes)
+    {
+        timeModeIncrementFunctions[numberOfTimeModes] = timeModeIncrementFunction;
+        numberOfTimeModes++;
+    }
 }
 
 inline void incrementTime()
 {
     int lastTime = currentTime;
+    int timeDelta = currentTime - lastTime;
+
+    timeModeIncrementFunctions[effect1TimeMode](timeDelta);
+    effect1Time2 = timeModeCurrentTimes[effect1TimeMode];
+
     currentTime = getTime() >> 1;
     currentTimeHalf = currentTime >> 1;
     currentTimeFifth = currentTime / 5;
     currentTimeEighth = currentTime >> 3;
     currentTimeSixteenth = currentTime >> 4;
-    int timeDelta = currentTime - lastTime;
     if (stepResetTime < STEP_RESET_TIME_MAX) stepResetTime += timeDelta;
     audioScaledTime += getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta;
     audioScaledTimeHalf = audioScaledTime >> 1;
@@ -348,4 +372,10 @@ void handleStepDetected()
 {
     Serial.println("Step detected!");
     stepResetTime = 0;
+}
+
+void handleMovementDetected()
+{
+    Serial.println("Movement detected!");
+    Serial.println(getCurrentMovementType());
 }
