@@ -49,9 +49,11 @@ void incrementTime();
 void incrementTransition();
 Color blendIncorporatingOldMixingMode(Color color1, Color color2);
 void randomizeBlendingMode();
-int* getRandomEffectSpeed();
 void handleStepDetected();
+void handleMovementDetected();
 void pickRandomEffects();
+byte pickRandomTimeModeAndAlignCurrentTimes(byte currentTimeMode);
+void registerTimeMode(void (*timeModeIncrementFunction)(uint32_t timeDelta));
 
 Color (*effect1)(int pixel) {};
 Color (*effect1Plus)(int pixel) {};
@@ -74,13 +76,15 @@ uint8_t *effect3TransformMap2[272];
 uint8_t *effect4TransformMap1[272];
 uint8_t *effect4TransformMap2[272];
 
-int *effect1Time;
-int *effect2Time;
-int *effect3Time;
-int *effect4Time;
+int effect1Time;
+int effect2Time;
+int effect3Time;
+int effect4Time;
 
-int effect1Time2;
-int effect1TimeMode;
+byte effect1TimeMode;
+byte effect2TimeMode;
+byte effect3TimeMode;
+byte effect4TimeMode;
 
 int currentPalette1;
 int currentPalette2;
@@ -89,18 +93,13 @@ int currentPalette2Offset;
 int *currentPalette1OffsetPointer; 
 int *currentPalette2OffsetPointer; 
 
-const byte MaxNumberOfTimeModes = 10;
-byte numberOfTimeModes = 10;
+const byte MaxNumberOfTimeModes = 40;
+byte numberOfTimeModes;
 void (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(uint32_t timeDelta);
 uint32_t timeModeCurrentTimes[MaxNumberOfTimeModes];
 
 Color getLedColorForFrame(int ledIndex)
 {
-    //return starShimmer(15, 27, ledIndex, currentPalette1Offset, 65535);
-    //return starShimmer(15, 120, ledIndex, currentPalette1Offset, 65535);
-    //return meteorRain(currentTime,currentTimeHalf,ledIndex, 50, .01, normalTransformMapX, currentPalette1, 65535);
-    // return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 25, .01, normalTransformMapX, normalTopRadiusMap1, currentPalette1, 65535);
-    //return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 30, .1, normalTopRadiusMap2, normalTopRadiusMap1, currentPalette1Offset, 65535);
     if (switchMap)
     {
         Color color1 = currentAudioIntensityLevel < .98 ? effect1(ledIndex) : effect1Plus(ledIndex);
@@ -149,6 +148,7 @@ void incrementEffectFrame()
 {
     incrementTime();
     incrementTransition();
+
     currentAudioIntensityLevel = getAudioIntensityRatio();
     int nextPeak = getCurrentPeakDetectorValue();
     if (nextPeak != lastPeakDetectorValue && nextPeak == 1)
@@ -193,10 +193,10 @@ void incrementEffectFrame()
         }
         else if (currentRandom == 5)
         {
-            if (random(10) > 6) effect1Time = getRandomEffectSpeed();
-            if (random(10) > 6) effect2Time = getRandomEffectSpeed();
-            if (random(10) > 6) effect3Time = getRandomEffectSpeed();
-            if (random(10) > 6) effect4Time = getRandomEffectSpeed();
+            if (random(10) > 6) effect1TimeMode = pickRandomTimeModeAndAlignCurrentTimes(effect1TimeMode);
+            if (random(10) > 6) effect2TimeMode = pickRandomTimeModeAndAlignCurrentTimes(effect2TimeMode);
+            if (random(10) > 6) effect3TimeMode = pickRandomTimeModeAndAlignCurrentTimes(effect3TimeMode);
+            if (random(10) > 6) effect4TimeMode = pickRandomTimeModeAndAlignCurrentTimes(effect4TimeMode);
         }
         else if (currentRandom == 6)
         {
@@ -206,78 +206,69 @@ void incrementEffectFrame()
     lastPeakDetectorValue = nextPeak;
 }
 
+byte pickRandomTimeModeAndAlignCurrentTimes(byte currentTimeMode)
+{
+    byte newTimeMode = random(numberOfTimeModes);
+    timeModeCurrentTimes[newTimeMode] = timeModeCurrentTimes[currentTimeMode];
+    return newTimeMode;
+}
+
 void pickRandomEffects()
 {
     int effect = random(8);
     if (effect == 0)
     {
         effect = random(6);
-        if (effect == 0) effect1 = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
+        if (effect == 0) effect1 = [](int ledIndex) { return wavePulse(effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
         else if (effect == 1) effect1 = [](int ledIndex) { return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 30, .1, normalTopRadiusMap2, normalTopRadiusMap1, *currentPalette1OffsetPointer, 65535); };
         else if (effect == 2) effect1 = [](int ledIndex) { return meteorRain(currentTime,currentTimeHalf,ledIndex, 50, .01, normalTransformMapX, *currentPalette1OffsetPointer, 65535); };
         else if (effect == 3) effect1 = [](int ledIndex) { return starShimmer(15, 120, ledIndex, *currentPalette1OffsetPointer, 65535); };
-        else if (effect == 4) effect1 = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
+        else if (effect == 4) effect1 = [](int ledIndex) { return wavePulse(effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
         else if (effect == 5) effect1 = [](int ledIndex) { return wavePulse(audioReverseScaledTime, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
     }
     else if (effect == 1)
     {
         effect = random(6);
-        if (effect == 0) effect2 = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
+        if (effect == 0) effect2 = [](int ledIndex) { return wavePulse(effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
         else if (effect == 1) effect2 = [](int ledIndex) { return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 30, .1, normalTopRadiusMap2, normalTopRadiusMap1, *currentPalette1OffsetPointer, 65535); };
         else if (effect == 2) effect2 = [](int ledIndex) { return meteorRain(currentTime,currentTimeHalf,ledIndex, 50, .01, normalTransformMapX, *currentPalette1OffsetPointer, 65535); };
         else if (effect == 3) effect2 = [](int ledIndex) { return starShimmer(15, 120, ledIndex, *currentPalette1OffsetPointer, 65535); };
-        else if (effect == 4) effect2 = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
+        else if (effect == 4) effect2 = [](int ledIndex) { return wavePulse(effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
         else if (effect == 5) effect2 = [](int ledIndex) { return wavePulse(audioReverseScaledTime, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
     }
     else if (effect == 2)
     {
         effect = random(6);
-        if (effect == 0) effect3 = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, getAudioIntensityRatio() * 65535); };
+        if (effect == 0) effect3 = [](int ledIndex) { return wavePulse(effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, getAudioIntensityRatio() * 65535); };
         if (effect == 1) effect3 = [](int ledIndex) { return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 30, .1, normalTopRadiusMap2, normalTopRadiusMap1, *currentPalette2OffsetPointer, 65535); };
         if (effect == 2) effect3 = [](int ledIndex) { return meteorRain(currentTime,currentTimeHalf,ledIndex, 50, .01, normalTransformMapX, *currentPalette2OffsetPointer, 65535); };
         if (effect == 3) effect3 = [](int ledIndex) { return starShimmer(15, 120, ledIndex, *currentPalette2OffsetPointer, 65535); };
-        if (effect == 4) effect3 = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
+        if (effect == 4) effect3 = [](int ledIndex) { return wavePulse(effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
         if (effect == 5) effect3 = [](int ledIndex) { return wavePulse(audioReverseScaledTime, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
     }
     else if (effect == 3)
     {
         effect = random(6);
-        if (effect == 0) effect4 = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, getAudioIntensityRatio() * 65535); };
+        if (effect == 0) effect4 = [](int ledIndex) { return wavePulse(effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, getAudioIntensityRatio() * 65535); };
         else if (effect == 1) effect4 = [](int ledIndex) { return meteorRain2(currentTimeHalf,currentTimeFifth, currentTimeEighth, ledIndex, 30, .1, normalTopRadiusMap2, normalTopRadiusMap1, *currentPalette2OffsetPointer, 65535); };
         else if (effect == 2) effect4 = [](int ledIndex) { return meteorRain(currentTime,currentTimeHalf,ledIndex, 50, .01, normalTransformMapX, *currentPalette2OffsetPointer, 65535); };
         else if (effect == 3) effect4 = [](int ledIndex) { return starShimmer(15, 120, ledIndex, *currentPalette2OffsetPointer, 65535); };
-        else if (effect == 4) effect4 = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
+        else if (effect == 4) effect4 = [](int ledIndex) { return wavePulse(effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
         else if (effect == 5) effect4 = [](int ledIndex) { return wavePulse(audioReverseScaledTime, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
     }
 }
 
-int* getRandomEffectSpeed()
-{
-    byte timeMode = random(10);
-    if (timeMode == 0) return &currentTime;
-    else if (timeMode == 1) return &currentTimeHalf;
-    else if (timeMode == 2) return &currentTimeFifth;
-    else if (timeMode == 3) return &currentTimeEighth;
-    else if (timeMode == 4) return &audioReverseScaledTime;
-    else if (timeMode == 5) return &audioScaledTime;
-    else if (timeMode == 6) return &audioScaledTimeHalf;
-    else if (timeMode == 7) return &audioScaledTimeFifth;
-    else if (timeMode == 8) return &currentTimeSixteenth;
-    return &audioScaledTimeEighth;
-}
-
 void randomizeBlendingMode()
 {
-    mixingMode = random(7);
-    // mixingMode = random(8);
-    //if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
+    mixingMode = random(8);
+    if (mixingMode == 0) mixingModeBlendFunction = blendColorsUsingMixingGlitched;
     if (mixingMode == 1) mixingModeBlendFunction = blendColorsUsingMixing;
     else if (mixingMode == 2) mixingModeBlendFunction = blendColorsUsingAdd;
     else if (mixingMode == 3) mixingModeBlendFunction = blendColorsUsingOverlay;
     else if (mixingMode == 4) mixingModeBlendFunction = blendColorsUsingScreen;
     else if (mixingMode == 5) mixingModeBlendFunction = blendColorsUsingAverage;
     else if (mixingMode == 6) mixingModeBlendFunction = blendColorsUsingShimmer;
-    else mixingModeBlendFunction = blendColorsUsingSubtract;
+    else mixingModeBlendFunction = blendColorsUsingMultiply;
     mixingModeBlendCounterMax = random(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
     mixingModeBlendCounter = mixingModeBlendCounterMax;
 }
@@ -286,14 +277,14 @@ void setupEffects()
 {
     currentPalette1OffsetPointer = &currentPalette1Offset;
     currentPalette2OffsetPointer = &currentPalette2Offset;
-    effect1 = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
-    effect1Plus = [](int ledIndex) { return wavePulse(*effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect2 = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect2Plus = [](int ledIndex) { return wavePulse(*effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect3 = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
-    effect3Plus = [](int ledIndex) { return wavePulse(*effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
-    effect4 = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
-    effect4Plus = [](int ledIndex) { return wavePulse(*effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect1 = [](int ledIndex) { return wavePulse(effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, getAudioIntensityRatio() * 65535); };
+    effect1Plus = [](int ledIndex) { return wavePulse(effect1Time, audioScaledTime, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
+    effect2 = [](int ledIndex) { return wavePulse(effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
+    effect2Plus = [](int ledIndex) { return wavePulse(effect2Time, audioScaledTime, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
+    effect3 = [](int ledIndex) { return wavePulse(effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect3Plus = [](int ledIndex) { return wavePulse(effect3Time, audioScaledTime, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect4 = [](int ledIndex) { return wavePulse(effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect4Plus = [](int ledIndex) { return wavePulse(effect4Time, audioScaledTime, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
 
     *effect1TransformMap1 = normalTransformMapX;
     *effect1TransformMap2 = normalTransformMapY;
@@ -302,40 +293,72 @@ void setupEffects()
     oldMixingModeBlendFunction = blendColorsUsingMixing;
 
     subscribeToStepDetectedEvent(handleStepDetected);
+    subscribeToMovementDetectedEvent(handleMovementDetected);
 
-    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[0] += timeDelta > 1};);
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[0] += timeDelta >> 1; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[1] += timeDelta / 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[2] += timeDelta >> 2; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[3] += timeDelta / 5; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[4] += timeDelta / 7; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[5] += timeDelta >> 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[6] += timeDelta / 13; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[7] += timeDelta >> 4; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[8] += (getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[9] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[10] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[11] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[12] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 5; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[13] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 7; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[14] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[15] += (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 13; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[16] += timeDelta - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[17] += (timeDelta >> 2) - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[18] += (timeDelta >> 3) - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[19] += (timeDelta >> 4) - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[20] -= timeDelta >> 1; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[21] -= timeDelta / 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[22] -= timeDelta >> 2; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[23] -= timeDelta / 5; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[24] -= timeDelta / 7; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[25] -= timeDelta >> 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[26] -= timeDelta / 13; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[27] -= timeDelta >> 4; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[28] -= (getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[29] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[30] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[31] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[32] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 5; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[33] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 7; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[34] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 3; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[35] -= (int)(getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta) / 13; });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[36] -= timeDelta - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[37] -= (timeDelta >> 2) - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[38] -= (timeDelta >> 3) - (getAudioIntensityRatio() * 10); });
+    registerTimeMode([](uint32_t timeDelta) { timeModeCurrentTimes[39] -= (timeDelta >> 4) - (getAudioIntensityRatio() * 10); });
 }
 
-void registerTimeMode(void (*timeModeIncrementFunction))
+void registerTimeMode(void (*timeModeIncrementFunction)(uint32_t timeDelta))
 {
-    if (numberOfTimeModes < MaxNumberOfTimeModes)
-    {
-        timeModeIncrementFunctions[numberOfTimeModes] = timeModeIncrementFunction;
-        numberOfTimeModes++;
-    }
+    if (numberOfTimeModes >= MaxNumberOfTimeModes) return;
+    timeModeIncrementFunctions[numberOfTimeModes] = timeModeIncrementFunction;
+    numberOfTimeModes++;
 }
 
 inline void incrementTime()
 {
-    int lastTime = currentTime;
-    int timeDelta = currentTime - lastTime;
+    uint32_t lastTime = currentTime;
+    uint32_t timeDelta = currentTime - lastTime;
+    currentTime = getTime() >> 1;
 
     timeModeIncrementFunctions[effect1TimeMode](timeDelta);
-    effect1Time2 = timeModeCurrentTimes[effect1TimeMode];
+    if (effect1TimeMode != effect2TimeMode) timeModeIncrementFunctions[effect2TimeMode](timeDelta);
+    if (effect1TimeMode != effect3TimeMode && effect2TimeMode != effect3TimeMode) timeModeIncrementFunctions[effect3TimeMode](timeDelta);
+    if (effect1TimeMode != effect4TimeMode && effect2TimeMode != effect4TimeMode && effect3TimeMode != effect4TimeMode) timeModeIncrementFunctions[effect4TimeMode](timeDelta);
 
-    currentTime = getTime() >> 1;
-    currentTimeHalf = currentTime >> 1;
-    currentTimeFifth = currentTime / 5;
-    currentTimeEighth = currentTime >> 3;
-    currentTimeSixteenth = currentTime >> 4;
-    if (stepResetTime < STEP_RESET_TIME_MAX) stepResetTime += timeDelta;
-    audioScaledTime += getAudioIntensityRatio() * audioInfluenceFactorForAudioScaledTime * timeDelta;
-    audioScaledTimeHalf = audioScaledTime >> 1;
-    audioScaledTimeFifth = audioScaledTime / 5;
-    audioScaledTimeEighth = audioScaledTime >> 3;
-
-    audioReverseScaledTime += timeDelta;
-    audioReverseScaledTime -= getAudioIntensityRatio() / 100;;
+    effect1Time = timeModeCurrentTimes[effect1TimeMode];
+    effect2Time = timeModeCurrentTimes[effect2TimeMode];
+    effect3Time = timeModeCurrentTimes[effect3TimeMode];
+    effect4Time = timeModeCurrentTimes[effect4TimeMode];
 }
 
 inline void incrementTransition()
