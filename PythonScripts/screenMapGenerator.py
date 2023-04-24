@@ -36,7 +36,8 @@ bitmapFileNames = []
 for filename in os.listdir(bitmapFolder):
     if filename.endswith(".bmp"):
         bitmapFiles.append(bitmapFolder + filename)
-        bitmapFileNames.append(filename)
+        bitmapFileNames.append(filename.split(".")[0])
+counter = 0
 for fileName in bitmapFiles:
     image = Image.open(fileName, 'r')
     pixels = list(image.getdata())
@@ -57,5 +58,9 @@ for fileName in bitmapFiles:
                     screenValue = 3 if R > 128 and G < 128 and B < 128 else screenValue
                     screenValue = 4 if R < 128 and G < 128 and B < 128 else screenValue
                     screenMap.append(screenValue)
-
-    print(screenMap)
+    print("byte ", end="")
+    print(bitmapFileNames[counter], end="")
+    print("ScreenMap", end=" = {")
+    print(*screenMap, sep = ",")
+    print("};")
+    counter += 1
