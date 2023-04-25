@@ -12,8 +12,10 @@
 #define PEAK_DETECTOR_THRESHOLD     3.1
 #define PEAK_DETECTOR_INFLUENCE     0.9
 #define MAX_RMS_DECAY_RATE          0.0015
+#define MIN_RMS_DECAY_RATE          0.001
 #define MUSIC_DETECTION_COUNTDOWN   3000
 #define MUSIC_DETECTION_RMS_THRESHOLD 800
+#define AUDIO_INTENSITY_RATIO_THRESHOLD_BUMP 100
 
 short audioSampleBuffer[512];
 volatile int numberOfAudioSamplesRead;
@@ -24,6 +26,7 @@ int samplesRead;
 float sumOfSquaredSample;
 double currentRootMeanSquare = 1.0;
 double currentPeakRootMeanSquare = 1.0;
+double currentMinRootMeanSquare = 0.0;
 double currentFilteredAudioLevel;
 int currentPeakDetectorValue;
 bool isMusicDetectedInternal = false;
@@ -44,6 +47,7 @@ bool setupMicrophone()
 
 double getAudioIntensityRatio()
 {
+    return (currentRootMeanSquare - currentMinRootMeanSquare) / (currentPeakRootMeanSquare - currentMinRootMeanSquare + AUDIO_INTENSITY_RATIO_THRESHOLD_BUMP);
     return currentRootMeanSquare / currentPeakRootMeanSquare;
 }
 
@@ -114,11 +118,13 @@ inline void applyFiltering()
 inline void setMaxRootMeanSquare()
 {
     if (currentRootMeanSquare > currentPeakRootMeanSquare) currentPeakRootMeanSquare = currentRootMeanSquare;
+    if (currentRootMeanSquare < currentMinRootMeanSquare) currentMinRootMeanSquare = currentRootMeanSquare;
 }
 
 inline void decayMaxRootMeanSquare()
 {
     if (currentPeakRootMeanSquare > 1) currentPeakRootMeanSquare = currentPeakRootMeanSquare - (currentPeakRootMeanSquare * MAX_RMS_DECAY_RATE);
+    if (currentMinRootMeanSquare < currentPeakRootMeanSquare) currentMinRootMeanSquare = currentMinRootMeanSquare + (currentMinRootMeanSquare * MIN_RMS_DECAY_RATE);
 }
 
 inline void processSampleBatch()
