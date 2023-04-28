@@ -230,7 +230,7 @@ printMaps("swappedXY", maps)
 print(f"const int transformMapsCount = {len(globalMapList)};")
 print("const static uint8_t* transformMaps[transformMapsCount]", end=" PROGMEM = {")
 print(*globalMapList, sep=", ", end=" };")
-
+print()
 
 centerPositions = []
 for i in range(272):
@@ -253,6 +253,7 @@ for mapIndex in range(int(len(maps) / 2)):
     globalPixelRadiusMapList.append(f"radiusTransformMapForPixel{mapIndex}")
     globalPixelPolarMapList.append(f"angleTransformMapForPixel{mapIndex}")
 
+print()
 print(f"const static int pixelRadiusTransformMapsCount = {len(globalPixelRadiusMapList)};")
 print("const static uint8_t* pixelRadiusTransformMaps[pixelRadiusTransformMapsCount]", end=" = {")
 print(*globalPixelRadiusMapList, sep=", ", end=" };")
