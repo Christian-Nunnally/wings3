@@ -38,6 +38,10 @@ for filename in os.listdir(bitmapFolder):
         bitmapFiles.append(bitmapFolder + filename)
         bitmapFileNames.append(filename.split(".")[0])
 counter = 0
+
+screenMapNames = []
+print ("#include \"settings.h\"")
+print()
 for fileName in bitmapFiles:
     image = Image.open(fileName, 'r')
     pixels = list(image.getdata())
@@ -59,8 +63,15 @@ for fileName in bitmapFiles:
                     screenValue = 4 if R < 128 and G < 128 and B < 128 else screenValue
                     screenMap.append(screenValue)
     print("byte ", end="")
-    print(bitmapFileNames[counter], end="")
-    print("ScreenMap", end=" = {")
-    print(*screenMap, sep = ",")
+    screenMapName = bitmapFileNames[counter] + "ScreenMap"
+    screenMapNames.append(screenMapName)
+    print(screenMapName, end="")
+    print("[TOTAL_LEDS]", end=" = {")
+    print(*screenMap, sep = ",", end="")
     print("};")
     counter += 1
+print()
+print(f"const int screenMapsCount = {len(screenMapNames)};")
+print("byte *screenMaps[screenMapsCount]", end=" = {")
+print(*screenMapNames, sep=", ", end=" };")
+    # python .\PythonScripts\screenMapGenerator.py .\ScreenMaps\ | out-file -encoding ASCII temp.h
