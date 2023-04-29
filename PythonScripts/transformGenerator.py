@@ -238,8 +238,8 @@ for i in range(272):
         for x in range(len(originalLayout[0])):
             if (originalLayout[y][x] == i):
                 if originalLayout[y][x] != -1:
-                    xPos = x / len(originalLayout[0])
-                    yPos = y / len(originalLayout)
+                    xPos = x / (len(originalLayout[0]) - 1)
+                    yPos = y / (len(originalLayout) - 1)
                     centerPositions.append([xPos, yPos])
 maps = computeMapsAcrossAllCenters(originalLayout, 255.0, 127.0, centerPositions, True)
 
