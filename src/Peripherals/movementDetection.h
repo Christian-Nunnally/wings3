@@ -14,6 +14,18 @@ enum MovementType
 void setupImu();
 void checkForMovement();
 MovementType getCurrentMovementType();
+// int32_t getCurrentXAcceleration();
+// int32_t getCurrentYAcceleration();
+// int32_t getCurrentZAcceleration();
+// int32_t getCurrentPitchAcceleration();
+// int32_t getCurrentYawAcceleration();
+// int32_t getCurrentRollAcceleration();
+// int32_t getCurrentXPosition();
+// int32_t getCurrentYPosition();
+// int32_t getCurrentZPosition();
+// int32_t getCurrentPitchPosition();
+// int32_t getCurrentYawPosition();
+// int32_t getCurrentRollPosition();
 void subscribeToStepDetectedEvent(void (*subscriber)());
 void unsubscribeFromStepDetectedEvent(void (*subscriber)());
 

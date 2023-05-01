@@ -28,9 +28,9 @@ void loop()
   checkForMovement();
   readAnalogValues();
 
-  Serial.print("ft: ");
-  Serial.println(getTime() - lastTime);
-  lastTime = getTime();
+  // Serial.print("ft: ");
+  // Serial.println(getTime() - lastTime);
+  // lastTime = getTime();
 }
 
 void loop1() 
