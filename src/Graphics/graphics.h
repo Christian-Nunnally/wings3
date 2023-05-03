@@ -20,6 +20,8 @@ Color lightningBug(int frameDelta, int pixelIndex, int paletteOffset);
 Color colorOrb(int frameDelta, int pixelIndex, int paletteOffset, uint16_t globalBrightnessModifier);
 Color ledTest(uint32_t ledTestAnimationFrame, int pixelIndex, uint32_t colorAnimationFrame, int paletteOffset, int mod, uint16_t globalBrightnessModifier);
 
+void boostRainChance();
+
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingAdd(Color color1, Color color2, uint16_t blendFactor);

@@ -23,9 +23,9 @@ MovementType getCurrentMovementType();
 // int32_t getCurrentXPosition();
 // int32_t getCurrentYPosition();
 // int32_t getCurrentZPosition();
-// int32_t getCurrentPitchPosition();
-// int32_t getCurrentYawPosition();
-// int32_t getCurrentRollPosition();
+int getCurrentPitchPosition();
+int getCurrentYawPosition();
+int getCurrentRollPosition();
 void subscribeToStepDetectedEvent(void (*subscriber)());
 void unsubscribeFromStepDetectedEvent(void (*subscriber)());
 

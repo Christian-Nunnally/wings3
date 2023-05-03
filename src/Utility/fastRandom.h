@@ -8,5 +8,6 @@ int fastRandomInteger(int minimumValue, int maximumValue);
 int fastRandomInteger(int maximumValue);
 uint16_t fastRandomWord();
 uint8_t fastRandomByte();
+bool fastRandomBoolean();
 
 #endif

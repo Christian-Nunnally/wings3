@@ -16,27 +16,6 @@
 #include "palettes.h"
 //#include "palettesMinimal.h"
 
-#define MIN_CROSS_FADE_DURATION 100.0
-#define MAX_CROSS_FADE_DURATION 2000.0
-#define STEP_RESET_TIME_MAX 1500
-
-int currentTime;
-float audioInfluenceFactorForAudioScaledTime = 2;
-float currentAudioIntensityLevel;
-
-int transition;
-bool transitionDirection;
-int lastPeakDetectorValue;
-int mixingMode;
-int oldMixingMode;
-int mixingModeBlendCounter;
-float mixingModeBlendCounterMax = MAX_CROSS_FADE_DURATION;
-
-int switchMapBlendCounter;
-float switchMapBlendCounterMax = MAX_CROSS_FADE_DURATION;
-
-bool switchMap = false;
-
 Color blendIncorporatingOldMixingMode(Color color1, Color color2);
 void handleStepDetected();
 void handleMovementDetected();
@@ -56,6 +35,10 @@ void pickRandomTimeModes();
 void pickRandomEffects();
 void pickRandomSizeParametersForEffects();
 void pickRandomGlobalBrightnessControlModes();
+void pickRandomGlobalBrightnessControlModesOfTheSameType();
+void pickRandomGlobalBrightnessControlModesOfDifferentTypes();
+void pickRandomTransitionTime();
+void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void switchTransitionDirection();
 
 Color (*effect1)(int pixel) {};
@@ -126,14 +109,24 @@ uint16_t *effect4GlobalBrightnessPointer;
 
 const byte MaxNumberOfTimeModes = 40;
 byte numberOfTimeModes;
-int (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(int timeDelta);
+byte numberOfMovementBasedTimeModes;
+int (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(int currentTime, int timeDelta);
 
-const byte NumberOfGlobalBrightnessChangeModes = 4;
-uint16_t brightnessModeMaxBrightness = 65535;
-uint16_t brightnessModeAudioLevelBasedBrightness = 65535;
-uint16_t brightnessModeAudioLevelBasedBrightnessBrighter = 65535;
-uint16_t brightnessModeAudioLevelBasedBrightnessInverse = 65535;
-uint16_t* brightnessModes[NumberOfGlobalBrightnessChangeModes] = {&brightnessModeMaxBrightness, &brightnessModeAudioLevelBasedBrightness, &brightnessModeAudioLevelBasedBrightnessBrighter, &brightnessModeAudioLevelBasedBrightnessInverse};
+const byte NumberOfNormalGlobalBrightnessChangeModes = 3;
+const byte NumberOfMovementBasedGlobalBrightnessChangeModes = 3;
+const byte NumberOfMusicBasedGlobalBrightnessChangeModes = 3;
+uint16_t brightnessModeMaxBrightness = UINT16_MAX;
+uint16_t brightnessModeAlmostMaxBrightness = 50000;
+uint16_t brightnessModeHalfBrightness = UINT16_MAX > 1;
+uint16_t brightnessModeAudioLevelBasedBrightness;
+uint16_t brightnessModeAudioLevelBasedBrightnessBrighter;
+uint16_t brightnessModeAudioLevelBasedBrightnessInverse;
+uint16_t brightnessModePitchBasedMovement;
+uint16_t brightnessModeYawBasedMovement;
+uint16_t brightnessModeRollBasedMovement;
+uint16_t* normalBrightnessModes[NumberOfNormalGlobalBrightnessChangeModes] = {&brightnessModeMaxBrightness, &brightnessModeAlmostMaxBrightness, &brightnessModeHalfBrightness};
+uint16_t* movementBasedBrightnessModes[NumberOfMovementBasedGlobalBrightnessChangeModes] = {&brightnessModePitchBasedMovement, &brightnessModeYawBasedMovement, &brightnessModeRollBasedMovement};
+uint16_t* musicBasedBrightnessModes[NumberOfMovementBasedGlobalBrightnessChangeModes] = {&brightnessModeAudioLevelBasedBrightness, &brightnessModeAudioLevelBasedBrightnessBrighter, &brightnessModeAudioLevelBasedBrightnessInverse};
 
 Color ledColorMap[TOTAL_LEDS];
 
@@ -142,6 +135,33 @@ byte *currentScreenMap[TOTAL_LEDS];
 int meteorSize = 100;
 
 EffectSettings effectSettings;
+EffectSettings effectSettingsStationary;
+EffectSettings effectSettingsWalking;
+EffectSettings effectSettingsJogging;
+EffectSettings effectSettingsBiking;
+EffectSettings effectSettingsDriving;
+
+float effect1AudioLevelThresholdToShowMoreIntenseEffect = .9;
+float effect2AudioLevelThresholdToShowMoreIntenseEffect = .9;
+
+int currentTime;
+float audioInfluenceFactorForAudioScaledTime = 2;
+float currentAudioIntensityLevel;
+
+int transition;
+int currentTransitionIncrement;
+
+bool transitionDirection;
+int lastPeakDetectorValue;
+int mixingMode;
+int oldMixingMode;
+int mixingModeBlendCounter;
+int mixingModeBlendCounterMax = 1;
+
+int switchMapBlendCounter;
+int switchMapBlendCounterMax = 1;
+
+bool switchMap = false;
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -169,19 +189,19 @@ Color getLedColorForFrame(int ledIndex)
         frameEffect4Plus = effect2Plus;
     }
 
-    Color color1 = currentAudioIntensityLevel < .98 ? frameEffect1(ledIndex) : frameEffect1Plus(ledIndex);
-    Color color2 = currentAudioIntensityLevel < .6 ? frameEffect2(ledIndex) : frameEffect2Plus(ledIndex);
+    Color color1 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect1(ledIndex) : frameEffect1Plus(ledIndex);
+    Color color2 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect2(ledIndex) : frameEffect2Plus(ledIndex);
     Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
     if (switchMapBlendCounter)
     {
-        Color color3 = currentAudioIntensityLevel < .98 ? frameEffect3(ledIndex) : frameEffect4Plus(ledIndex);
-        Color color4 = currentAudioIntensityLevel < .6 ? frameEffect4(ledIndex) : effect4Plus(ledIndex);
+        Color color3 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect3(ledIndex) : frameEffect4Plus(ledIndex);
+        Color color4 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect4(ledIndex) : effect4Plus(ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
-        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * 65535);
+        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * UINT16_MAX);
     }
     
-    if (switchMapBlendCounter) ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, (.1 * 65535));
-    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, (.5 * 65535));
+    if (switchMapBlendCounter) ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
+    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
     return ledColorMap[ledIndex];
 }
 
@@ -200,14 +220,14 @@ void setupEffects()
     currentPalette1OffsetPointer = &currentPalette1Offset;
     currentPalette2OffsetPointer = &currentPalette2Offset;
 
-    effect1 = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect2 = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect3 = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
-    effect4 = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
-    effect1Plus = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect2Plus = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, 65535); };
-    effect3Plus = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, 65535); };
-    effect4Plus = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, 65535); };
+    effect1 = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, UINT16_MAX); };
+    effect2 = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, UINT16_MAX); };
+    effect3 = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, UINT16_MAX); };
+    effect4 = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, UINT16_MAX); };
+    effect1Plus = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, UINT16_MAX); };
+    effect2Plus = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette1OffsetPointer, UINT16_MAX); };
+    effect3Plus = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette2OffsetPointer, UINT16_MAX); };
+    effect4Plus = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, UINT16_MAX); };
 
     *effect1TransformMap1 = normalTransformMapX;
     *effect1TransformMap2 = normalTransformMapY;
@@ -224,26 +244,45 @@ void setupEffects()
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
 
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return timeDelta >> 1; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)timeDelta / 3; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)timeDelta >> 2; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return (int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -timeDelta >> 1; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)timeDelta / 3; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)timeDelta >> 2; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2; };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int timeDelta) { return -(int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + (timeDelta >> 1); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)timeDelta / 3); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)timeDelta >> 2); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - (timeDelta >> 1); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)timeDelta / 3); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)timeDelta >> 2); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 11); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 11); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentYawPosition() >> 11); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 12); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 12); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentYawPosition() >> 12); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 10); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 10); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentYawPosition() >> 10); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentRollPosition() >> 11)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentPitchPosition() >> 11)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 11)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentRollPosition() >> 12)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentPitchPosition() >> 12)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 12)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentRollPosition() >> 10)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentPitchPosition() >> 10)); };
+    timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 10)); };
 
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
@@ -264,35 +303,86 @@ void setupEffects()
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 
-    effect1GlobalBrightnessPointer = brightnessModes[0];
-    effect2GlobalBrightnessPointer = brightnessModes[1];
-    effect3GlobalBrightnessPointer = brightnessModes[2];
-    effect4GlobalBrightnessPointer = brightnessModes[3];
+    effect1GlobalBrightnessPointer = normalBrightnessModes[0];
+    effect2GlobalBrightnessPointer = normalBrightnessModes[1];
+    effect3GlobalBrightnessPointer = normalBrightnessModes[2];
+    effect4GlobalBrightnessPointer = normalBrightnessModes[3];
 
-    effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected = 50;
+    effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected = 230;
     effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero = 10;
-    effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected = 255;
-    effectSettings.LikelihoodEffectsAreRandomizedWhenStepIsDetected = 255;
-    effectSettings.LikelihoodNothingChangesWhenRandomizingEffect = 40;
-    effectSettings.LikelihoodBlendingModeChangesWhenRandomizingEffect = 20;
-    effectSettings.LikelihoodSubPaletteChangesWhenRandomizingEffect = 20;
-    effectSettings.LikelihoodSubPalettesAreDifferentWhenChangingSubPalettes = 128;
+    effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected = 10;
+    effectSettings.LikelihoodEffectsAreRandomizedWhenStepIsDetected = 230;
+    effectSettings.LikelihoodNothingChangesWhenRandomizingEffect = 50;
+    effectSettings.LikelihoodBlendingModeChangesWhenRandomizingEffect = 10;
+    effectSettings.LikelihoodSubPaletteChangesWhenRandomizingEffect = 19;
+    effectSettings.LikelihoodSubPalettesAreDifferentWhenChangingSubPalettes = 50;
     effectSettings.LikelihoodPaletteChangesWhenRandomizingEffect = 5;
     effectSettings.LikelihoodTwoPalettesAreUsedWhenPaletteChanges = 25;
-    effectSettings.LikelihoodEffectsAreSwappedWhenRandomizingEffect = 20;
-    effectSettings.LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped = 255;
+    effectSettings.LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect = 10;
+    effectSettings.LikelihoodEffectsAreSwappedWhenRandomizingEffect = 17;
+    effectSettings.LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped = 200;
     effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched = 175;
-    effectSettings.LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect = 5;
+    effectSettings.LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect = 4;
     effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized = 100;
-    effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect = 50;
+    effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect = 30;
     effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes = 100;
     effectSettings.LikelihoodEffectsAndRandomizedWhenRandomizingEffect = 15;
     effectSettings.LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect = 30;
     effectSettings.LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect = 30;
     effectSettings.LikelihoodIndividualGlobalBrightnessModesChange = 80;
-    effectSettings.LikelihoodTransitionDirectionChangesWhenRandomizingEffect = 4;
+    effectSettings.LikelihoodAllGlobalBrightnessModesAreOfTheSameType = 128;
+    effectSettings.LikelihoodTransitionDirectionChangesWhenRandomizingEffect = 10;
+    effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked = 200;
+    effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked = 128;
+    effectSettings.LikelihoodMovementBasedTimeModeIsPicked = 200;
+    effectSettings.MillisecondToMoveToNextPaletteFrame = 50;
+
+    effectSettings.MillisecondsForEffectTransitionsMinimum = 500;
+    effectSettings.MillisecondsForEffectTransitionsMaximum = 2000;
+    
+    effectSettings.MillisecondsForBlendingModeTransitionsMinimum = 100;
+    effectSettings.MillisecondsForBlendingModeTransitionsMaximum = 2000;
+
+    effectSettings.MillisecondsForBackgroundTransitionFadeMinimum = 2000;
+    effectSettings.MillisecondsForBackgroundTransitionFadeMaximum = 10000;
+
+    effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = 19660;
+    effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = 6553;
+
+    effectSettings.LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect = 9;
+    effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum = 32767;
+    effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum = 64224;
+
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[0] = 0;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[1] = 1;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[2] = 2;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[3] = 3;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[4] = 4;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[5] = 5;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[6] = 6;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[7] = 7;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[8] = 8;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[9] = 9;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[10] = 10;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[11] = 11;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[12] = 12;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[13] = 13;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[14] = 14;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[15] = 15;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[16] = 16;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[17] = 17;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[18] = 18;
+    effectSettings.AllowedEffectsAndDistributionsOfEffects[19] = 19;
+
+    effectSettingsStationary = effectSettings;
+    effectSettingsWalking = effectSettings;
+    effectSettingsJogging = effectSettings;
+    effectSettingsBiking = effectSettings;
+    effectSettingsDriving = effectSettings;
 
     for (int i = 0; i < 150; i++) randomizeEffectsNaturally();
+
+    pickRandomAudioLevelThresholdForMoreIntenseEffect();
 }
 
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
@@ -300,48 +390,80 @@ inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
     Color newColor = mixingModeBlendFunction(color1, color2, transition);
     if (oldMixingMode == mixingMode || mixingModeBlendCounter == 0) return newColor;
     Color oldColor = oldMixingModeBlendFunction(color1, color2, transition);
-    return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * 65535);
+    return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * UINT16_MAX);
 }
 
 void handleStepDetected()
 {
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenStepIsDetected) randomizeEffectsNaturally();
+    //boostRainChance();
     Serial.println("Step detected!");
 }
 
 void handleMovementDetected()
 {
-    Serial.println("Movement detected!");
-    Serial.println(getCurrentMovementType());
+    MovementType movementType = getCurrentMovementType();
+    if (movementType == Stationary) effectSettings = effectSettingsStationary;
+    if (movementType == Walking) effectSettings = effectSettingsWalking;
+    if (movementType == Jogging) effectSettings = effectSettingsJogging;
+    if (movementType == Biking) effectSettings = effectSettingsBiking;
+    if (movementType == Driving) effectSettings = effectSettingsDriving;
+    if (movementType != Stationary)
+    {
+        effect1TimeMode1 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect2TimeMode1 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect3TimeMode1 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect4TimeMode1 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect1TimeMode2 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect2TimeMode2 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect3TimeMode2 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+        effect4TimeMode2 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
+    }
+    else 
+    {
+        effect1TimeMode1 = fastRandomInteger(numberOfTimeModes);
+        effect2TimeMode1 = fastRandomInteger(numberOfTimeModes);
+        effect3TimeMode1 = fastRandomInteger(numberOfTimeModes);
+        effect4TimeMode1 = fastRandomInteger(numberOfTimeModes);
+        effect1TimeMode2 = fastRandomInteger(numberOfTimeModes);
+        effect2TimeMode2 = fastRandomInteger(numberOfTimeModes);
+        effect3TimeMode2 = fastRandomInteger(numberOfTimeModes);
+        effect4TimeMode2 = fastRandomInteger(numberOfTimeModes);
+    }
 }
 
 void incrementBrightnessModeLevels(float currentAudioIntensityLevel)
 {
-    brightnessModeAudioLevelBasedBrightness = currentAudioIntensityLevel * 65535;
+    brightnessModeAudioLevelBasedBrightness = currentAudioIntensityLevel * UINT16_MAX;
     brightnessModeAudioLevelBasedBrightnessBrighter = 32767 + 32767 * currentAudioIntensityLevel;
     brightnessModeAudioLevelBasedBrightnessInverse = 60000 - (currentAudioIntensityLevel * 60000);
+    brightnessModePitchBasedMovement = (UINT16_MAX / 256) * ((getCurrentPitchPosition() >> 19) & 0xff);
+    brightnessModeRollBasedMovement = (UINT16_MAX / 256) * ((getCurrentRollPosition() >> 19) & 0xff);
+    brightnessModeYawBasedMovement = (UINT16_MAX / 256) * ((getCurrentYawPosition() >> 19) & 0xff);
 }
 
 inline void incrementTime()
 {
+    const int TimeDeltaResolutionIncreaseFactor = 64;
     int newTime = (int)getTime();
     frameTimeDelta = (newTime - currentTime);
-    int timeDelta = frameTimeDelta * 64;
+    int timeDelta = frameTimeDelta * TimeDeltaResolutionIncreaseFactor;
     currentTime = newTime;
-    effect1Time1 += timeModeIncrementFunctions[effect1TimeMode1](timeDelta) / 64;
-    effect2Time1 += timeModeIncrementFunctions[effect2TimeMode1](timeDelta) / 64;
-    effect3Time1 += timeModeIncrementFunctions[effect3TimeMode1](timeDelta) / 64;
-    effect4Time1 += timeModeIncrementFunctions[effect4TimeMode1](timeDelta) / 64;
-    effect1Time2 += timeModeIncrementFunctions[effect1TimeMode2](timeDelta) / 64;
-    effect2Time2 += timeModeIncrementFunctions[effect2TimeMode2](timeDelta) / 64;
-    effect3Time2 += timeModeIncrementFunctions[effect3TimeMode2](timeDelta) / 64;
-    effect4Time2 += timeModeIncrementFunctions[effect4TimeMode2](timeDelta) / 64;
+    effect1Time1 = timeModeIncrementFunctions[effect1TimeMode1](effect1Time1, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect2Time1 = timeModeIncrementFunctions[effect2TimeMode1](effect2Time1, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect3Time1 = timeModeIncrementFunctions[effect3TimeMode1](effect3Time1, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect4Time1 = timeModeIncrementFunctions[effect4TimeMode1](effect4Time1, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect1Time2 = timeModeIncrementFunctions[effect1TimeMode2](effect1Time2, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect2Time2 = timeModeIncrementFunctions[effect2TimeMode2](effect2Time2, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect3Time2 = timeModeIncrementFunctions[effect3TimeMode2](effect3Time2, timeDelta) / TimeDeltaResolutionIncreaseFactor;
+    effect4Time2 = timeModeIncrementFunctions[effect4TimeMode2](effect4Time2, timeDelta) / TimeDeltaResolutionIncreaseFactor;
 }
 
 inline void incrementTransition()
 {
-    int incrementAmount = frameTimeDelta * 7;
-    if (transitionDirection && 65535 - transition > incrementAmount) transition += incrementAmount;
+    currentTransitionIncrement = UINT16_MAX / fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
+    int incrementAmount = currentTransitionIncrement * frameTimeDelta;
+    if (transitionDirection && UINT16_MAX - transition > incrementAmount) transition += incrementAmount;
     else if (transition > incrementAmount) transition -= incrementAmount;
 
     if (mixingModeBlendCounter) 
@@ -349,7 +471,8 @@ inline void incrementTransition()
         if (mixingModeBlendCounter - frameTimeDelta > 0) mixingModeBlendCounter -= frameTimeDelta;
         else mixingModeBlendCounter = 0;
     }
-    else if (oldMixingMode != mixingMode) {
+    else if (oldMixingMode != mixingMode) 
+    {
         oldMixingMode = mixingMode;
         oldMixingModeBlendFunction = mixingModeBlendFunction;
     }
@@ -358,11 +481,10 @@ inline void incrementTransition()
     else switchMapBlendCounter = 0;
 }
 
-uint32_t lastMoveColorPalettesTowardsTargetsTime;
-uint32_t moveColorPalettesTowardsTargetsTimeThreshold = 80;
 void incrementColorPalettesTowardsTargets()
 {
-    if (currentTime - lastMoveColorPalettesTowardsTargetsTime < moveColorPalettesTowardsTargetsTimeThreshold) return;
+    static int lastMoveColorPalettesTowardsTargetsTime;
+    if (currentTime - lastMoveColorPalettesTowardsTargetsTime < effectSettings.MillisecondToMoveToNextPaletteFrame) return;
     lastMoveColorPalettesTowardsTargetsTime = currentTime;
     if (currentPalette1Offset > currentPalette1OffsetTarget) currentPalette1Offset -= PALETTE_LENGTH;
     else if (currentPalette1Offset < currentPalette1OffsetTarget) currentPalette1Offset += PALETTE_LENGTH;
@@ -372,11 +494,12 @@ void incrementColorPalettesTowardsTargets()
 
 void detectBeat()
 {
+    const int PositivePeak = 1;
     int nextPeak = getCurrentPeakDetectorValue();
     if (nextPeak == lastPeakDetectorValue) return;
     lastPeakDetectorValue = nextPeak;
-    if (nextPeak == 1 && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) randomizeEffectsNaturally();
-    else if (nextPeak == 0 && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
+    if (nextPeak == PositivePeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) randomizeEffectsNaturally();
+    else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
     else if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected) randomizeEffectsNaturally();
 }
 
@@ -393,12 +516,15 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect) pickRandomSizeParametersForEffects();
     if (fastRandomByte() < effectSettings.LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect) pickRandomGlobalBrightnessControlModes();
     if (fastRandomByte() < effectSettings.LikelihoodTransitionDirectionChangesWhenRandomizingEffect) switchTransitionDirection();
+    if (fastRandomByte() < effectSettings.LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect) pickRandomTransitionTime();
+
+    if (fastRandomByte() < effectSettings.LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect) pickRandomAudioLevelThresholdForMoreIntenseEffect();
 }
 
 void pickRandomBlendingMode()
 {
     mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
-    mixingModeBlendCounterMax = fastRandomInteger(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
+    mixingModeBlendCounterMax = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
     mixingModeBlendCounter = mixingModeBlendCounterMax;
 }
 
@@ -454,80 +580,80 @@ void swapEffects()
         if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched) *effect4TransformMap1 = transformMaps[fastRandomInteger(transformMapsCount)];
         if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched) *effect4TransformMap2 = transformMaps[fastRandomInteger(transformMapsCount)];
     }
-    switchMapBlendCounterMax = fastRandomInteger(MAX_CROSS_FADE_DURATION - MIN_CROSS_FADE_DURATION) + MIN_CROSS_FADE_DURATION;
+    switchMapBlendCounterMax = fastRandomInteger(effectSettings.MillisecondsForEffectTransitionsMinimum, effectSettings.MillisecondsForEffectTransitionsMaximum);
     switchMapBlendCounter = switchMapBlendCounterMax;
 }
 
 void pickRandomTimeModes()
 {
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect1TimeMode1 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect2TimeMode1 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect3TimeMode1 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect4TimeMode1 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect1TimeMode2 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect2TimeMode2 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect3TimeMode2 = fastRandomInteger(numberOfTimeModes);
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect4TimeMode2 = fastRandomInteger(numberOfTimeModes);
+    int startIndex = 0;
+    int length = numberOfTimeModes;
+    if ((fastRandomByte() < effectSettings.LikelihoodMovementBasedTimeModeIsPicked) && (getCurrentMovementType() != Stationary))
+    {
+        startIndex = numberOfTimeModes;
+        length = numberOfMovementBasedTimeModes;
+    }
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect1TimeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect2TimeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect3TimeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect4TimeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect1TimeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect2TimeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect3TimeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes) effect4TimeMode2 = fastRandomInteger(length) + startIndex;
 }
 
 void pickRandomEffects()
 {
-    int effect = fastRandomInteger(8);
-    if (effect == 1)
+    int effectRandom = fastRandomInteger(NumberOfAllowedEffectsToPickBetween);
+    Serial.println("effectRandom: ");
+    Serial.print(effectRandom);
+    byte effectSelection = effectSettings.AllowedEffectsAndDistributionsOfEffects[effectRandom];
+    Serial.println("effectSelection: ");
+    Serial.print(effectSelection);
+    if (fastRandomInteger(2) == 0)
     {
-        effect = fastRandomInteger(12);
-        if (effect == 1) effect1 = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 1) effect1 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect1Time1, effect1Time2, effect1Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 2) effect1 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect1Time1,effect1Time2, ledIndex, meteorSize, .12, *effect1TransformMap2, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 3) effect1 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect1Time1, effect1Time2, 0, ledIndex, 50, .12, *effect1TransformMap1, *effect1TransformMap1, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 4) effect1 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 5) effect1 = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap2, *effect1TransformMap1, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 6) effect1 = [](int ledIndex) { return rainShower(frameTimeDelta, effect1Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 7) effect1 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
-        else if (effect == 8) effect1 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer); };
-        else if (fastRandomInteger(5 == 0)) effect1 = [](int ledIndex) { return ledTest(currentTime, ledIndex, effect1Time2, *currentPalette1OffsetPointer, 5, *effect1GlobalBrightnessPointer); };
+        Serial.println("Changing effects 1 and 3");
+        if (effectSelection == 0) effect1 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect1Time1, effect1Time2, effect1Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 1) effect1 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect1Time1,effect1Time2, ledIndex, meteorSize, .12, *effect1TransformMap2, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 2) effect1 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect1Time1, effect1Time2, 0, ledIndex, 50, .12, *effect1TransformMap1, *effect1TransformMap1, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 3) effect1 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 4) effect1 = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap2, *effect1TransformMap1, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 5) effect1 = [](int ledIndex) { return rainShower(frameTimeDelta, effect1Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 6) effect1 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        else if (effectSelection == 7) effect1 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer); };
+        else effect1 = [](int ledIndex) { return wavePulse(effect1Time1, effect1Time2, ledIndex, *effect1TransformMap1, *effect1TransformMap2, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer); };
+        if (effectSelection == 0) effect3 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect3Time1, effect3Time2, effect3Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 1) effect3 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect3Time1,effect3Time2, ledIndex, meteorSize, .12, *effect3TransformMap2, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 2) effect3 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect3Time1, effect3Time2, 0, ledIndex, 50, .12, *effect3TransformMap1, *effect3TransformMap1, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 3) effect3 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 4) effect3 = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap2, *effect3TransformMap1, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 5) effect3 = [](int ledIndex) { return rainShower(frameTimeDelta, effect3Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 6) effect3 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
+        else if (effectSelection == 7) effect3 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer); };
+        else effect3 = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
     }
-    if (effect == 2)
+    else
     {
-        effect = fastRandomInteger(12);
-        if (effect == 2) effect2 = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 1) effect2 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect2Time1, effect2Time2, effect2Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 2) effect2 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect2Time1,effect2Time2, ledIndex, meteorSize, .12, *effect2TransformMap2, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 3) effect2 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect2Time1, effect2Time2, 0, ledIndex, 50, .12, *effect2TransformMap1, *effect2TransformMap1, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 4) effect2 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 5) effect2 = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap2, *effect2TransformMap1, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 6) effect2 = [](int ledIndex) { return rainShower(frameTimeDelta, effect2Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 7) effect2 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
-        else if (effect == 8) effect2 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer); };
-        else if (fastRandomInteger(5 == 0)) effect2 = [](int ledIndex) { return ledTest(currentTime, ledIndex, effect2Time2, *currentPalette2OffsetPointer, 5, *effect2GlobalBrightnessPointer); };
-    }
-    if (effect == 3)
-    {
-        effect = fastRandomInteger(12);
-        if (effect == 3) effect3 = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap1, *effect3TransformMap2, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 1) effect3 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect3Time1, effect3Time2, effect3Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 2) effect3 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect3Time1,effect3Time2, ledIndex, meteorSize, .12, *effect3TransformMap2, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 3) effect3 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect3Time1, effect3Time2, 0, ledIndex, 50, .12, *effect3TransformMap1, *effect3TransformMap1, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 4) effect3 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 5) effect3 = [](int ledIndex) { return wavePulse(effect3Time1, effect3Time2, ledIndex, *effect3TransformMap2, *effect3TransformMap1, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 6) effect3 = [](int ledIndex) { return rainShower(frameTimeDelta, effect3Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 7) effect3 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer, *effect3GlobalBrightnessPointer); };
-        else if (effect == 8) effect3 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette1OffsetPointer); };
-        else if (fastRandomInteger(5 == 0)) effect3 = [](int ledIndex) { return ledTest(currentTime, ledIndex, effect3Time2, *currentPalette1OffsetPointer, 5, *effect3GlobalBrightnessPointer); };
-    }
-    if (effect == 4)
-    {
-        effect = fastRandomInteger(12);
-        if (effect == 4) effect4 = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 1) effect4 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect4Time1, effect4Time2, effect4Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 2) effect4 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect4Time1,effect4Time2, ledIndex, meteorSize, .12, *effect4TransformMap2, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 3) effect4 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect4Time1, effect4Time2, 0, ledIndex, 50, .12, *effect4TransformMap1, *effect4TransformMap1, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 4) effect4 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 5) effect4 = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap2, *effect4TransformMap1, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 6) effect4 = [](int ledIndex) { return rainShower(frameTimeDelta, effect4Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 7) effect4 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
-        else if (effect == 8) effect4 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer); };
-        else if (fastRandomInteger(5 == 0)) effect4 = [](int ledIndex) { return ledTest(currentTime, ledIndex, effect4Time2, *currentPalette2OffsetPointer, 5, *effect4GlobalBrightnessPointer); };
+        Serial.println("Changing effects 2 and 4");
+        if (effectSelection == 0) effect2 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect2Time1, effect2Time2, effect2Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 1) effect2 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect2Time1,effect2Time2, ledIndex, meteorSize, .12, *effect2TransformMap2, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 2) effect2 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect2Time1, effect2Time2, 0, ledIndex, 50, .12, *effect2TransformMap1, *effect2TransformMap1, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 3) effect2 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 4) effect2 = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap2, *effect2TransformMap1, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 5) effect2 = [](int ledIndex) { return rainShower(frameTimeDelta, effect2Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 6) effect2 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        else if (effectSelection == 7) effect2 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer); };
+        else effect2 = [](int ledIndex) { return wavePulse(effect2Time1, effect2Time2, ledIndex, *effect2TransformMap1, *effect2TransformMap2, *currentPalette2OffsetPointer, *effect2GlobalBrightnessPointer); };
+        if (effectSelection == 0) effect4 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect4Time1, effect4Time2, effect4Time2 >> 3, ledIndex, 30, .12, normalTransformMapX, normalTransformMapY, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 1) effect4 = [](int ledIndex) { return meteorRain(frameTimeDelta, effect4Time1,effect4Time2, ledIndex, meteorSize, .12, *effect4TransformMap2, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 2) effect4 = [](int ledIndex) { return meteorRain2(frameTimeDelta, effect4Time1, effect4Time2, 0, ledIndex, 50, .12, *effect4TransformMap1, *effect4TransformMap1, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 3) effect4 = [](int ledIndex) { return starShimmer(frameTimeDelta, 16, 80, ledIndex, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 4) effect4 = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap2, *effect4TransformMap1, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 5) effect4 = [](int ledIndex) { return rainShower(frameTimeDelta, effect4Time1, ledIndex, meteorSize, normalTransformMapY, normalTransformMapX, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 6) effect4 = [](int ledIndex) { return colorOrb(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
+        else if (effectSelection == 7) effect4 = [](int ledIndex) { return lightningBug(frameTimeDelta, ledIndex, *currentPalette2OffsetPointer); };
+        else effect4 = [](int ledIndex) { return wavePulse(effect4Time1, effect4Time2, ledIndex, *effect4TransformMap1, *effect4TransformMap2, *currentPalette2OffsetPointer, *effect4GlobalBrightnessPointer); };
     }
 }
 
@@ -538,13 +664,87 @@ void pickRandomSizeParametersForEffects()
 
 void pickRandomGlobalBrightnessControlModes()
 {
-    if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) effect1GlobalBrightnessPointer = brightnessModes[fastRandomInteger(4)];
-    if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) effect2GlobalBrightnessPointer = brightnessModes[fastRandomInteger(4)];
-    if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) effect3GlobalBrightnessPointer = brightnessModes[fastRandomInteger(4)];
-    if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) effect4GlobalBrightnessPointer = brightnessModes[fastRandomInteger(4)];
+    if (fastRandomByte() < effectSettings.LikelihoodAllGlobalBrightnessModesAreOfTheSameType) pickRandomGlobalBrightnessControlModesOfTheSameType();
+    else pickRandomGlobalBrightnessControlModesOfDifferentTypes();
+}
+
+void pickRandomGlobalBrightnessControlModesOfTheSameType()
+{
+    if ((fastRandomByte() < effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked) && (getCurrentMovementType() != Stationary))
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect1GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect3GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect4GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked)
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect1GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect3GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect4GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+    }
+    else 
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect1GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect4GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+    }
+}
+
+void pickRandomGlobalBrightnessControlModesOfDifferentTypes()
+{
+    if ((fastRandomByte() < effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked) && (getCurrentMovementType() != Stationary))
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect1GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked)
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect1GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect1GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+    if ((fastRandomByte() < effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked) && (getCurrentMovementType() != Stationary))
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked)
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+    if ((fastRandomByte() < effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked) && (getCurrentMovementType() != Stationary))
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect3GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked)
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect3GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect2GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+    if ((fastRandomByte() < effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked) && (getCurrentMovementType() != Stationary))
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect4GlobalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked)
+    {
+        if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect4GlobalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+    }
+    else if (fastRandomByte() < effectSettings.LikelihoodIndividualGlobalBrightnessModesChange) effect4GlobalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
+}
+
+void pickRandomTransitionTime()
+{
+    currentTransitionIncrement = UINT16_MAX / fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
 }
 
 void switchTransitionDirection()
 {
     transitionDirection = !transitionDirection;
+}
+
+void pickRandomAudioLevelThresholdForMoreIntenseEffect()
+{
+    effect1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT16_MAX;
+    effect2AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT16_MAX;
 }

@@ -34,6 +34,7 @@
         "bitset": "cpp",
         "xiosbase": "cpp",
         "functional": "cpp",
-        "cstddef": "cpp"
+        "cstddef": "cpp",
+        "cstdlib": "cpp"
     }
 }

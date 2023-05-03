@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+const int NumberOfAllowedEffectsToPickBetween = 20;
+
 typedef struct
 {
   byte LikelihoodEffectsAreRandomizedWhenBeatDetected;
@@ -17,6 +19,7 @@ typedef struct
   byte LikelihoodPaletteChangesWhenRandomizingEffect;
   byte LikelihoodTwoPalettesAreUsedWhenPaletteChanges;
 
+  byte LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect;
   byte LikelihoodEffectsAreSwappedWhenRandomizingEffect;
   byte LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped;
   byte LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched;
@@ -32,8 +35,31 @@ typedef struct
 
   byte LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect;
   byte LikelihoodIndividualGlobalBrightnessModesChange;
+  byte LikelihoodAllGlobalBrightnessModesAreOfTheSameType;
 
   byte LikelihoodTransitionDirectionChangesWhenRandomizingEffect;
+
+  byte LikelihoodMovementBasedBrightnessModeIsPicked;
+  byte LikelihoodMusicBasedBrightnessModeIsPicked;
+  byte LikelihoodMovementBasedTimeModeIsPicked;
+  
+  uint16_t MillisecondToMoveToNextPaletteFrame;
+  uint16_t MillisecondsForEffectTransitionsMinimum;
+  uint16_t MillisecondsForEffectTransitionsMaximum;
+  uint16_t MillisecondsForBlendingModeTransitionsMinimum;
+  uint16_t MillisecondsForBlendingModeTransitionsMaximum;
+
+  uint16_t MillisecondsForBackgroundTransitionFadeMinimum;
+  uint16_t MillisecondsForBackgroundTransitionFadeMaximum;
+
+  uint16_t GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps;
+  uint16_t GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps;
+
+  byte LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect;
+  uint16_t AudioLevelThresholdToShowMoreIntenseEffectMinimum;
+  uint16_t AudioLevelThresholdToShowMoreIntenseEffectMaximum;
+
+  byte AllowedEffectsAndDistributionsOfEffects[NumberOfAllowedEffectsToPickBetween];
 }
 EffectSettings;
 

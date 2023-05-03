@@ -43,3 +43,8 @@ uint8_t fastRandomByte()
 {
 	return lowByte(xorShift96());
 }
+
+bool fastRandomBoolean()
+{
+	return lowByte(xorShift96() & 0x1);
+}

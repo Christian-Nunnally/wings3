@@ -151,6 +151,7 @@ Color meteorRain2(int frameDelta, uint32_t projectionMap1Frame, uint32_t project
   return currentLedColorMap[pixelIndex];
 }
 
+int rainDropChanceBoost = 500;
 bool isRainDropAtYPosition[256];
 float rainDropXPositions[256];
 float rainDropXVelocities[256];
@@ -165,12 +166,14 @@ Color rainShower(int frameDelta, uint32_t rainAnimationFrame, int pixelIndex, by
   {
     if (!isRainDropAtYPosition[projectionMap2[pixelIndex]])
     {
-      if (fastRandomInteger(10000) < frameDelta * 2)
+      if (fastRandomInteger(5000) < frameDelta)// + (rainDropChanceBoost / 4))
       {
         isRainDropAtYPosition[projectionMap2[pixelIndex]] = true;
         rainDropXPositions[projectionMap2[pixelIndex]] = -rainLength;
         rainDropXVelocities[projectionMap2[pixelIndex]] = 0;
       }
+      if (rainDropChanceBoost != 0) rainDropChanceBoost -= frameDelta;
+      if (rainDropChanceBoost < 0) rainDropChanceBoost = 0;
     }
     else 
     {
@@ -192,7 +195,7 @@ Color rainShower(int frameDelta, uint32_t rainAnimationFrame, int pixelIndex, by
       if (isDropInLowerBound && isDropInUpperBound)
       {
         doesLedHaveWater[pixelIndex] = true;
-        return colorFromPalette(paletteOffset, 65535);
+        return colorFromPalette(paletteOffset, globalBrightnessModifier);
       }
     }
     else 
@@ -202,7 +205,7 @@ Color rainShower(int frameDelta, uint32_t rainAnimationFrame, int pixelIndex, by
       bool isDropInUpperBound = projectionMap[pixelIndex] < rainDropXPositions[projectionMap2[pixelIndex]] + rainLength ;//+ rainAnimationFrame2;
       if (isDropInLowerBound && isDropInUpperBound)
       {
-        return colorFromPalette(paletteOffset, ((65535 / rainLength) * distanceFromUpperBound));
+        return colorFromPalette(paletteOffset, ((globalBrightnessModifier / rainLength) * distanceFromUpperBound));
       }
     }
   }
@@ -220,9 +223,14 @@ Color rainShower(int frameDelta, uint32_t rainAnimationFrame, int pixelIndex, by
       }
       }
     }
-    return colorFromPalette(paletteOffset, 65535);
+    return colorFromPalette(paletteOffset, globalBrightnessModifier);
   }
   return {0,0,0};
+}
+
+void boostRainChance()
+{
+  rainDropChanceBoost = 500;
 }
 
 const byte MaxNumberOfLightningBugs = 10;

@@ -31,9 +31,6 @@ double currentFilteredAudioLevel;
 int currentPeakDetectorValue;
 bool isMusicDetectedInternal = false;
 int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
-unsigned long peakTimes[32];
-unsigned long lastTimePeakWasDetected;
-int peakTimesIndex;
 
 inline void monitorAudioLevelsToToggleMusicDetection();
 inline void incrementMusicDetectionToggle();
@@ -91,26 +88,6 @@ inline void applyFiltering()
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
     int newPeakDetectorValue = peakDetector.getPeak();
-    if (newPeakDetectorValue != currentPeakDetectorValue)
-    {
-        if (lastTimePeakWasDetected != 0 && newPeakDetectorValue == 1)
-        {
-            Serial.print("Peak: ");
-            Serial.println(newPeakDetectorValue);
-            peakTimes[peakTimesIndex] = getTime() - lastTimePeakWasDetected;
-
-            int total = 0;
-            for (int i = 0; i < 32; i++)
-            {
-                total += peakTimes[i];
-            }
-            Serial.print("average time: ");
-            Serial.println(total >> 5);
-        }
-        lastTimePeakWasDetected = getTime();
-
-        peakTimesIndex = (peakTimesIndex + 1) % 32;
-    }
     currentPeakDetectorValue = newPeakDetectorValue;
     currentFilteredAudioLevel = peakDetector.getFilt();
 }

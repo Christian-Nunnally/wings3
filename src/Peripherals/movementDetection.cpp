@@ -5,6 +5,7 @@
 #include "../Utility/time.h"
 #include "../Observers/stepDectectedObserver.h"
 #include "../Observers/movementDetectedObserver.h"
+#include <SingleEMAFilterLib.h>
 
 #define ACCELEROMETER_SENSITIVITY 2 // Available values are: 2, 4, 8, 16 (G)
 #define GYROSCOPE_SENSITIVITY 125 // Available values are: 125, 250, 500, 1000, 2000 (degrees per second)
@@ -14,6 +15,9 @@
 #define IMU_FIFO_FILL_THRESHOLD 50
 #define MAX_STEP_DETECTED_SUBSCRIBERS 10
 #define MILLISECONDS_BETWEEN_FIFO_POLL 39 
+#define MOVEMENT_EMA_FILTER_ALPHA .2
+#define ACCELERATION_SHIFT_AMOUNT 4
+#define ACCELERATION_SHIFT_AMOUNT_POST 20
 
 volatile int mems_event;
 uint8_t lastMovementTypeStatus;
@@ -26,29 +30,35 @@ unsigned long lastFifoPollTime;
 
 const int ImuErrorSamplesCount = 200;
 int accelerometerErrorSamplesRemaining = ImuErrorSamplesCount;
-float xAccelerometerError;
-float yAccelerometerError;
-float zAccelerometerError;
-float xAccelerometerValue;
-float yAccelerometerValue;
-float zAccelerometerValue;
+int xAccelerometerError;
+int yAccelerometerError;
+int zAccelerometerError;
+int xAccelerometerValue;
+int yAccelerometerValue;
+int zAccelerometerValue;
 
 int gyroscopeErrorSamplesRemaining = ImuErrorSamplesCount;
-float xGyroscopeError;
-float yGyroscopeError;
-float zGyroscopeError;
-float xGyroscopeAngle;
-float yGyroscopeAngle;
-float zGyroscopeAngle;
-float xGyroscopeAcceleration;
-float yGyroscopeAcceleration;
-float zGyroscopeAcceleration;
-float xAccelerometerAngle;
-float yAccelerometerAngle;
+int xGyroscopeError;
+int yGyroscopeError;
+int zGyroscopeError;
+int xGyroscopeAngle;
+int yGyroscopeAngle;
+int zGyroscopeAngle;
+int xGyroscopeAcceleration;
+int yGyroscopeAcceleration;
+int zGyroscopeAcceleration;
+int xAccelerometerAngle;
+int yAccelerometerAngle;
 uint32_t lastGyroscopeDataReceivedTime;
 uint32_t lastAccelerometerDataReceivedTime;
 
-float currentRoll, currentPitch, currentYaw;
+int currentRoll;
+int currentPitch;
+int currentYaw;
+
+SingleEMAFilter<int> rollEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
+SingleEMAFilter<int> pitchEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
+SingleEMAFilter<int> yawEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
 
 void setupIc2();
 void setupAccelerometerGyro();
@@ -141,31 +151,47 @@ void checkFifo()
             imu.Get_FIFO_G_Axes(rotation);
             uint32_t newGyroscopeDataReceivedTime = getTimestampOfLastFifoEvent();
             uint32_t elapsedTime = newGyroscopeDataReceivedTime - lastGyroscopeDataReceivedTime;
+            if (!lastGyroscopeDataReceivedTime)
+            {
+                lastGyroscopeDataReceivedTime = newGyroscopeDataReceivedTime;
+                continue;
+            }
+            lastGyroscopeDataReceivedTime = newGyroscopeDataReceivedTime;
 
-            xGyroscopeAcceleration = rotation[0] - xGyroscopeError;
-            yGyroscopeAcceleration = rotation[1] - yGyroscopeError;
-            zGyroscopeAcceleration = rotation[2] - zGyroscopeError;
+            xGyroscopeAcceleration = (rotation[0] >> ACCELERATION_SHIFT_AMOUNT) - xGyroscopeError;
+            yGyroscopeAcceleration = (rotation[1] >> ACCELERATION_SHIFT_AMOUNT) - yGyroscopeError;
+            zGyroscopeAcceleration = (rotation[2] >> ACCELERATION_SHIFT_AMOUNT) - zGyroscopeError;
             xGyroscopeAngle = xGyroscopeAngle + xGyroscopeAcceleration * elapsedTime;
             yGyroscopeAngle = yGyroscopeAngle + yGyroscopeAcceleration * elapsedTime;
             currentYaw = currentYaw + zGyroscopeAcceleration * elapsedTime;
             currentRoll = 0.96 * xGyroscopeAngle + 0.04 * xAccelerometerAngle;
             currentPitch = 0.96 * yGyroscopeAngle + 0.04 * yAccelerometerAngle;
-            // Serial.print(" yaw: ");
-            // Serial.print(currentYaw);
+            yawEMAFilter.AddValue(currentYaw);
+            rollEMAFilter.AddValue(currentRoll);
+            pitchEMAFilter.AddValue(currentPitch);
+            Serial.print(" y: ");
+            Serial.print((byte)(abs(currentYaw >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
             // Serial.print(" roll: ");
-            // Serial.print(currentRoll);
+            // Serial.print((byte)(abs(currentRoll >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
             // Serial.print(" pitch: ");
-            Serial.println(currentPitch);
-            lastGyroscopeDataReceivedTime = newGyroscopeDataReceivedTime;
+            // Serial.println((byte)(abs(currentPitch >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
         } 
         else if (FifoTag == 2) {
             imu.Get_FIFO_X_Axes(acceleration);
             uint32_t newAccelerometerDataReceivedTime = getTimestampOfLastFifoEvent();
-            uint32_t elapsedTime = newAccelerometerDataReceivedTime - lastAccelerometerDataReceivedTime;
-
-            xAccelerometerAngle = ((atan((acceleration[1]) / sqrt(pow((acceleration[0]), 2) + pow((acceleration[3]), 2))) * 180 / PI)) - xAccelerometerError;
-            yAccelerometerAngle = ((atan(-1 * (acceleration[0]) / sqrt(pow((acceleration[1]), 2) + pow((acceleration[3]), 2))) * 180 / PI)) - yAccelerometerError;
+            uint32_t elapsedTime = newAccelerometerDataReceivedTime - lastGyroscopeDataReceivedTime;
+            if (!lastAccelerometerDataReceivedTime)
+            {
+                lastAccelerometerDataReceivedTime = newAccelerometerDataReceivedTime;
+                continue;
+            }
             lastAccelerometerDataReceivedTime = newAccelerometerDataReceivedTime;
+
+            int accelX = acceleration[0] >> ACCELERATION_SHIFT_AMOUNT;
+            int accelY = acceleration[1] >> ACCELERATION_SHIFT_AMOUNT;
+            int accelZ = acceleration[2] >> ACCELERATION_SHIFT_AMOUNT;
+            xAccelerometerAngle = ((atan((accelY) / sqrt(pow((accelX), 2) + pow((accelZ), 2))) * 180 / PI)) - xAccelerometerError;
+            yAccelerometerAngle = ((atan(-1 * (accelX) / sqrt(pow((accelY), 2) + pow((accelZ), 2))) * 180 / PI)) - yAccelerometerError;
         }
     }
 }
@@ -181,6 +207,21 @@ uint32_t getTimestampOfLastFifoEvent()
     imu.Read_Reg(LSM6DSOX_TIMESTAMP2, &byte3);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP3, &byte4);
     return byte1 | byte2 << 8 |  byte3 << 16 | byte4 << 24; 
+}
+
+int getCurrentPitchPosition()
+{
+    return currentPitch;
+}
+
+int getCurrentYawPosition()
+{
+    return currentYaw;
+}
+
+int getCurrentRollPosition()
+{
+    return currentRoll;
 }
 
 void calibrateImu()
@@ -223,9 +264,9 @@ inline void addGyroscopeCalibrationStep()
     if (gyroscopeErrorSamplesRemaining)
     {
         gyroscopeErrorSamplesRemaining--;
-        xGyroscopeError += rotation[0];
-        yGyroscopeError += rotation[1];
-        zGyroscopeError += rotation[2];
+        xGyroscopeError += rotation[0] >> ACCELERATION_SHIFT_AMOUNT;
+        yGyroscopeError += rotation[1] >> ACCELERATION_SHIFT_AMOUNT;
+        zGyroscopeError += rotation[2] >> ACCELERATION_SHIFT_AMOUNT;
     }
 }
 
@@ -236,8 +277,11 @@ inline void addAccelerometerCalibrationStep()
     if (accelerometerErrorSamplesRemaining)
     {
         accelerometerErrorSamplesRemaining--;
-        xAccelerometerError += ((atan((acceleration[1]) / sqrt(pow((acceleration[0]), 2) + pow((acceleration[3]), 2))) * 180 / PI));
-        yAccelerometerError += ((atan(-1 * (acceleration[0]) / sqrt(pow((acceleration[1]), 2) + pow((acceleration[3]), 2))) * 180 / PI));;
+        int accelX = acceleration[0] >> ACCELERATION_SHIFT_AMOUNT;
+        int accelY = acceleration[1] >> ACCELERATION_SHIFT_AMOUNT;
+        int accelZ = acceleration[2] >> ACCELERATION_SHIFT_AMOUNT;
+        xAccelerometerError += ((atan((accelY) / sqrt(pow((accelX), 2) + pow((accelZ), 2))) * 180 / PI));
+        yAccelerometerError += ((atan(-1 * (accelX) / sqrt(pow((accelY), 2) + pow((accelZ), 2))) * 180 / PI));;
     }
 }
 
@@ -312,8 +356,8 @@ void movementDetectedCallback()
 
 void updateMovementTypeFromMLCStatus(uint8_t status) 
 {
-    if (status != lastMovementTypeStatus) return;
-    else if (status == 0) currentMovementType = Stationary;
+    lastMovementTypeStatus = status;
+    if (status == 0) currentMovementType = Stationary;
     else if (status == 1) currentMovementType = Walking;
     else if (status == 4) currentMovementType = Jogging;
     else if (status == 8) currentMovementType = Biking;
