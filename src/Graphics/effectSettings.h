@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 const int NumberOfAllowedEffectsToPickBetween = 20;
+const int NumberOfAllowedPalettesToPickBetween = 5;
 
 typedef struct
 {
@@ -20,6 +21,7 @@ typedef struct
   byte LikelihoodTwoPalettesAreUsedWhenPaletteChanges;
 
   byte LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect;
+  byte LikelihoodScreenMapChangesWhenRandomizingEffect;
   byte LikelihoodEffectsAreSwappedWhenRandomizingEffect;
   byte LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped;
   byte LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched;
@@ -59,7 +61,13 @@ typedef struct
   uint16_t AudioLevelThresholdToShowMoreIntenseEffectMinimum;
   uint16_t AudioLevelThresholdToShowMoreIntenseEffectMaximum;
 
-  byte AllowedEffectsAndDistributionsOfEffects[NumberOfAllowedEffectsToPickBetween];
+  byte AllowedEffects[NumberOfAllowedEffectsToPickBetween];
+  byte AllowedPalettes[NumberOfAllowedPalettesToPickBetween][NumberOfAllowedPalettesToPickBetween + 1];
+
+  byte MinimumEffectSize;
+  byte MaximumEffectSize;
+
+  byte LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized;
 }
 EffectSettings;
 

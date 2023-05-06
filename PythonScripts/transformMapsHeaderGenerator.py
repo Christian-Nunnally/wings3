@@ -111,7 +111,7 @@ flippedXYLayout = [
     flippedXLayout[23], flippedXLayout[24],
     ]
 
-def computeMapsAcrossAllCenters(layout, totalWidth, totalHeight, centers, onlyPolar = False):
+def computeMapsAcrossAllCenters(layout, totalWidth, totalHeight, centers, onlyPolar = False, shouldBeMirrored = False):
     maps = []
     printedXYMaps = False
     for center in centers:
@@ -119,12 +119,26 @@ def computeMapsAcrossAllCenters(layout, totalWidth, totalHeight, centers, onlyPo
         if (not printedXYMaps):
             printedXYMaps = True
             if not onlyPolar:
-                maps.append(transformMapX)
-                maps.append(transformMapY)
-        maps.append(radiusMap)
-        maps.append(angleMap)
+                if not shouldBeMirrored:
+                    maps.append(transformMapX)
+                    maps.append(transformMapY)
+                else:
+                    maps.append(mirrorTransformMap(transformMapX))
+                    maps.append(mirrorTransformMap(transformMapY))
+        if not shouldBeMirrored:
+            maps.append(radiusMap)
+            maps.append(angleMap)
+        else:
+            maps.append(mirrorTransformMap(radiusMap))
+            maps.append(mirrorTransformMap(angleMap))
     return maps
 
+def mirrorTransformMap(transformMapToMirror):
+    mirroredTransformMap = []
+    for _ in range(2):
+        for i in range(128):
+            mirroredTransformMap.append(transformMapToMirror[i])
+    return mirroredTransformMap
 
 def computeMaps(layout, totalWidth, totalHeight, centerX, centerY):
     ledsWide = 26.0 * 2 - 1
@@ -203,34 +217,46 @@ printMaps("normalLowResolution16x8", maps)
 maps = computeMapsAcrossAllCenters(flippedXLayout, 255.0, 127.0, centerPositions)
 printMaps("swappedX", maps)
 
-# maps = computeMapsAcrossAllCenters(flippedXLayout, 8.0, 4.0, centerPositions)
-# printMaps("swappedXLowResolution8x4", maps)
-
-# maps = computeMapsAcrossAllCenters(flippedXLayout, 16.0, 8.0, centerPositions)
-# printMaps("swappedXLowResolution16x8", maps)
-
 maps = computeMapsAcrossAllCenters(flippedYLayout, 255.0, 127.0, centerPositions)
 printMaps("swappedY", maps)
 
-# maps = computeMapsAcrossAllCenters(flippedXLayout, 8.0, 4.0, centerPositions)
-# printMaps("swappedYLowResolution8x4", maps)
-
-# maps = computeMapsAcrossAllCenters(flippedXLayout, 16.0, 8.0, centerPositions)
-# printMaps("swappedYLowResolution16x8", maps)
-
 maps = computeMapsAcrossAllCenters(flippedXYLayout, 255.0, 127.0, centerPositions)
 printMaps("swappedXY", maps)
-
-# maps = computeMapsAcrossAllCenters(flippedXLayout, 8.0, 4.0, centerPositions)
-# printMaps("swappedXYLowResolution8x4", maps)
-
-# maps = computeMapsAcrossAllCenters(flippedXLayout, 16.0, 8.0, centerPositions)
-# printMaps("swappedXYLowResolution16x8", maps)
 
 print(f"const int transformMapsCount = {len(globalMapList)};")
 print("const static uint8_t* transformMaps[transformMapsCount]", end=" PROGMEM = {")
 print(*globalMapList, sep=", ", end=" };")
 print()
+
+
+maps = computeMapsAcrossAllCenters(originalLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+printMaps("normalMirrored", maps)
+
+maps = computeMapsAcrossAllCenters(originalLayout, 8.0, 4.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+printMaps("normalLowResolution8x4Mirrored", maps)
+
+maps = computeMapsAcrossAllCenters(originalLayout, 16.0, 8.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+printMaps("normalLowResolution16x8Mirrored", maps)
+
+maps = computeMapsAcrossAllCenters(flippedXLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+printMaps("swappedXMirrored", maps)
+
+maps = computeMapsAcrossAllCenters(flippedYLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+printMaps("swappedYMirrored", maps)
+
+maps = computeMapsAcrossAllCenters(flippedXYLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+printMaps("swappedXYMirrored", maps)
+
+print(f"const int mirroredTransformMapsCount = {len(globalMapList)};")
+print("const static uint8_t* mirroredTransformMaps[mirroredTransformMapsCount]", end=" PROGMEM = {")
+print(*globalMapList, sep=", ", end=" };")
+print()
+
+
+
+
+
+
 
 centerPositions = []
 for i in range(272):
@@ -265,4 +291,4 @@ print()
 print()
 print("#endif")
 
-# run with: python .\PythonScripts\transformGenerator.py | out-file -encoding ASCII transformMaps.h
+# run with: python .\PythonScripts\transformMapsHeaderGenerator.py | out-file -encoding ASCII transformMaps.h
