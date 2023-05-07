@@ -2,6 +2,10 @@ from PIL import Image
 import os
 import sys
 
+print("#ifndef SCREEN_MAPS_H")
+print("#define SCREEN_MAPS_H")
+print()
+
 originalLayout = [
     [  11, -1, 10, -1,  9, -1,  8, -1,  7, -1,  6, -1,  5, -1,  4, -1,  3, -1,  2, -1,  1, -1,  0, -1, -1, -1, -1, -1,136, -1,137, -1,138, -1,139, -1,140, -1,141, -1,142, -1,143, -1,144, -1,145, -1,146, -1,147],
     [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -74,4 +78,7 @@ print()
 print(f"const int screenMapsCount = {len(screenMapNames)};")
 print("byte *screenMaps[screenMapsCount]", end=" = {")
 print(*screenMapNames, sep=", ", end=" };")
-    # python .\PythonScripts\screenMapGenerator.py .\ScreenMaps\ | out-file -encoding ASCII temp.h
+
+print()
+print("#endif")
+    # python .\PythonScripts\screenMapGenerator.py .\ScreenMaps\ | out-file -encoding ASCII screenMaps.txt

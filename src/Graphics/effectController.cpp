@@ -166,6 +166,8 @@ bool switchMap = false;
 
 Color getLedColorForFrame(int ledIndex)
 {
+    return fireworks(frameTimeDelta, effect1Time1, ledIndex, 40, *currentPalette1OffsetPointer, 65535);
+    return lightChase(effect1Time1, ledIndex, effect1Time2, *currentPalette1OffsetPointer, 5, 65535);
     //return fireAnimation(frameTimeDelta, ledIndex, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel, normalTransformMapX, normalTransformMapY, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer);
     //return fireAnimation(frameTimeDelta, ledIndex, 80, 250 * currentAudioIntensityLevel, normalTransformMapX, normalTransformMapY, *currentPalette1OffsetPointer, *effect1GlobalBrightnessPointer);
 
@@ -406,7 +408,7 @@ void setupEffects()
 
     pickRandomAudioLevelThresholdForMoreIntenseEffect();
 
-    *currentScreenMap = logoScreenMap;
+    *currentScreenMap = infinityScreenMap;
 }
 
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
