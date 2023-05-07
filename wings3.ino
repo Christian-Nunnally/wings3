@@ -27,10 +27,6 @@ void loop()
   processAudioStream();
   checkForMovement();
   readAnalogValues();
-
-  // Serial.print("ft: ");
-  // Serial.println(getTime() - lastTime);
-  // lastTime = getTime();
 }
 
 void loop1() 

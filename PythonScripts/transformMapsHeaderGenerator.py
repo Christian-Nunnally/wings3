@@ -3,7 +3,7 @@ import math
 print("#ifndef TRANSFORM_MAPS_H")
 print("#define TRANSFORM_MAPS_H")
 print()
-print("#include <Adafruit_NeoPXL8.h>")
+print("#include <Arduino.h>")
 print("#include \"settings.h\"")
 print()
 

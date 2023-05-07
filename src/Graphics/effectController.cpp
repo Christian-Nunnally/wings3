@@ -1,4 +1,4 @@
-#include <Adafruit_NeoPXL8.h>
+#include <Arduino.h>
 #include "../settings.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
@@ -7,6 +7,7 @@
 #include "../Graphics/transformMaps.h"
 #include "../Graphics/screenMaps.h"
 #include "../Graphics/effectSettings.h"
+#include "../Graphics/colorMixing.h"
 #include "../Utility/time.h"
 #include "../IO/analogInput.h"
 #include "../Observers/stepDectectedObserver.h"
