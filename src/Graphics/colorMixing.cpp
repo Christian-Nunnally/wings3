@@ -184,3 +184,11 @@ Color blendColorsUsingShimmer(Color color1, Color color2, uint16_t blendFactor)
   if (shimmerMap[index]) return color2;
   return color1;
 }
+
+Color fadeColorToBlack(Color color, float fadeValue) 
+{
+    uint16_t red = (color.red <= 10) ? 0 : color.red - (color.red * fadeValue);
+    uint16_t green = (color.green <= 10) ? 0 : color.green - (color.green * fadeValue);
+    uint16_t blue = (color.blue <= 10) ? 0 : color.blue - (color.blue * fadeValue);
+    return {red, green, blue};
+}

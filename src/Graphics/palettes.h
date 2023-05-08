@@ -2,9 +2,12 @@
 #define PALETTES_H
 
 #include <pgmspace.h>
+#include "../Graphics/color.h"
 
 #define TOTAL_NUMBER_OF_PALETTES 4
 #define PALETTE_LENGTH 256
+
+Color colorFromPalette(int index, uint16_t brightness);
 
 const static uint8_t palette[236544] PROGMEM = 
 {

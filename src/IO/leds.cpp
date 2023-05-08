@@ -2,8 +2,8 @@
 #include "../IO/leds.h"
 #include "../IO/analogInput.h"
 #include "../Peripherals/microphone.h"
-#include "../Graphics/graphics.h"
 #include "../Graphics/effectController.h"
+#include "../Graphics/color.h"
 #include "../settings.h"
 
 #define COLOR_ORDER                 NEO_GRB

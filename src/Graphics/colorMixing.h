@@ -11,6 +11,7 @@ Color blendColorsUsingOverlay(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingScreen(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingAverage(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingShimmer(Color color1, Color color2, uint16_t blendFactor);
+Color fadeColorToBlack(Color color, float fadeValue);
 
 const static uint16_t shimmerMap[] PROGMEM = 
 {
