@@ -29,7 +29,7 @@ typedef struct
   byte LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized;
 
   byte LikelihoodTimeModesRandomizeWhenRandomizingEffect;
-  byte LikelihoodAnyIndividualTimeTimeChangesWhenTimeModeRandomizes;
+  byte LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes;
 
   byte LikelihoodEffectsAndRandomizedWhenRandomizingEffect;
 
@@ -37,7 +37,6 @@ typedef struct
 
   byte LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect;
   byte LikelihoodIndividualGlobalBrightnessModesChange;
-  byte LikelihoodAllGlobalBrightnessModesAreOfTheSameType;
 
   byte LikelihoodTransitionDirectionChangesWhenRandomizingEffect;
 
