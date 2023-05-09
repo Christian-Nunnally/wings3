@@ -21,6 +21,10 @@ typedef struct
     byte timeMode2;
 
     int size;
+
+    int currentPalette;
+    int currentPaletteOffset; 
+    int currentPaletteOffsetTarget; 
 }
 Effect;
 

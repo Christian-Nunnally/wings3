@@ -16,7 +16,6 @@ typedef struct
   byte LikelihoodNothingChangesWhenRandomizingEffect;
   byte LikelihoodBlendingModeChangesWhenRandomizingEffect;
   byte LikelihoodSubPaletteChangesWhenRandomizingEffect;
-  byte LikelihoodSubPalettesAreDifferentWhenChangingSubPalettes;
   byte LikelihoodPaletteChangesWhenRandomizingEffect;
   byte LikelihoodTwoPalettesAreUsedWhenPaletteChanges;
 
