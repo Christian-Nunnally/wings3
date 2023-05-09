@@ -54,19 +54,16 @@ void pickRandomTransitionTime();
 void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void switchTransitionDirection();
 
+const float AudioInfluenceFactorForAudioScaledTime = 2.0;
+
 Effect effect1;
 Effect effect2;
 Effect effect3;
 Effect effect4;
-
-Color (*frameEffect1)(int pixel) {};
-Color (*frameEffect2)(int pixel) {};
-Color (*frameEffect3)(int pixel) {};
-Color (*frameEffect4)(int pixel) {};
-Color (*frameEffect1Plus)(int pixel) {};
-Color (*frameEffect2Plus)(int pixel) {};
-Color (*frameEffect3Plus)(int pixel) {};
-Color (*frameEffect4Plus)(int pixel) {};
+Effect currentPrimaryEffectA;
+Effect currentPrimaryEffectB;
+Effect currentSecondaryEffectA;
+Effect currentSecondaryEffectB;
 
 const int MaxNumberOfMixingModeBlendFunctions = 20;
 int numberOfMixingModeBlendFunctions;
@@ -83,11 +80,13 @@ int currentPalette2Offset;
 int currentPalette1OffsetTarget; 
 int currentPalette2OffsetTarget; 
 
+// Time Mode variables.
 const byte MaxNumberOfTimeModes = 40;
 byte numberOfTimeModes;
 byte numberOfMovementBasedTimeModes;
 int (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(int currentTime, int timeDelta);
 
+// Brightness Mode variables.
 const byte NumberOfNormalGlobalBrightnessChangeModes = 3;
 const byte NumberOfMovementBasedGlobalBrightnessChangeModes = 3;
 const byte NumberOfMusicBasedGlobalBrightnessChangeModes = 3;
@@ -104,11 +103,10 @@ uint16_t* normalBrightnessModes[NumberOfNormalGlobalBrightnessChangeModes] = {&b
 uint16_t* movementBasedBrightnessModes[NumberOfMovementBasedGlobalBrightnessChangeModes] = {&brightnessModePitchBasedMovement, &brightnessModeYawBasedMovement, &brightnessModeRollBasedMovement};
 uint16_t* musicBasedBrightnessModes[NumberOfMovementBasedGlobalBrightnessChangeModes] = {&brightnessModeAudioLevelBasedBrightness, &brightnessModeAudioLevelBasedBrightnessBrighter, &brightnessModeAudioLevelBasedBrightnessInverse};
 
+// Screen Mode variables.
+byte *currentScreenMap[TOTAL_LEDS];
 Color ledColorMap[TOTAL_LEDS];
 
-byte *currentScreenMap[TOTAL_LEDS];
-
-//int meteorSize = 100;
 
 EffectSettings effectSettings;
 EffectSettings effectSettingsStationary;
@@ -121,7 +119,6 @@ float effect1AudioLevelThresholdToShowMoreIntenseEffect = .9;
 float effect2AudioLevelThresholdToShowMoreIntenseEffect = .9;
 
 int currentTime;
-float audioInfluenceFactorForAudioScaledTime = 2;
 float currentAudioIntensityLevel;
 
 int transition;
@@ -145,34 +142,26 @@ Color getLedColorForFrame(int ledIndex)
     if (currentScreen == 4) return {0, 0, 0};
     if ((switchMap && !(currentScreen & 1)) || (!switchMap && currentScreen & 1))
     {
-        frameEffect1 = effect1.effectFunction;
-        frameEffect2 = effect2.effectFunction;
-        frameEffect3 = effect3.effectFunction;
-        frameEffect4 = effect4.effectFunction;
-        frameEffect1Plus = effect1.effectFunctionHighlight;
-        frameEffect2Plus = effect2.effectFunctionHighlight;
-        frameEffect3Plus = effect3.effectFunctionHighlight;
-        frameEffect4Plus = effect4.effectFunctionHighlight;
+        currentPrimaryEffectA = effect1;
+        currentPrimaryEffectB = effect2;
+        currentSecondaryEffectA = effect3;
+        currentSecondaryEffectB = effect4;
     }
     else 
     {
-        frameEffect1 = effect3.effectFunction;
-        frameEffect2 = effect4.effectFunction;
-        frameEffect3 = effect1.effectFunction;
-        frameEffect4 = effect2.effectFunction;
-        frameEffect1Plus = effect3.effectFunctionHighlight;
-        frameEffect2Plus = effect4.effectFunctionHighlight;
-        frameEffect3Plus = effect1.effectFunctionHighlight;
-        frameEffect4Plus = effect2.effectFunctionHighlight;
+        currentPrimaryEffectA = effect3;
+        currentPrimaryEffectB = effect4;
+        currentSecondaryEffectA = effect1;
+        currentSecondaryEffectB = effect2;
     }
 
-    Color color1 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect1(ledIndex) : frameEffect1Plus(ledIndex);
-    Color color2 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect2(ledIndex) : frameEffect2Plus(ledIndex);
+    Color color1 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentPrimaryEffectA.effectFunction(ledIndex) : currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
+    Color color2 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentPrimaryEffectB.effectFunction(ledIndex) : currentPrimaryEffectB.effectFunctionHighlight(ledIndex);
     Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
     if (switchMapBlendCounter)
     {
-        Color color3 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect3(ledIndex) : frameEffect3Plus(ledIndex);
-        Color color4 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? frameEffect4(ledIndex) : frameEffect4Plus(ledIndex);
+        Color color3 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectA.effectFunction(ledIndex) : currentSecondaryEffectA.effectFunctionHighlight(ledIndex);
+        Color color4 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectB.effectFunction(ledIndex) : currentSecondaryEffectB.effectFunctionHighlight(ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * UINT16_MAX);
     }
@@ -213,23 +202,23 @@ void setupEffects()
     timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + (timeDelta >> 1); };
     timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)timeDelta / 3); };
     timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)timeDelta >> 2); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) + ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
     timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - (timeDelta >> 1); };
     timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)timeDelta / 3); };
     timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)timeDelta >> 2); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * audioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(timeDelta * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)((timeDelta >> 1) * (audioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
+    timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return (currentTime * 64) - ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
 
     timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 11); };
     timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 11); };
@@ -603,7 +592,10 @@ void pickRandomEffects()
 
 void pickRandomSizeParametersForEffects()
 {
-    meteorSize = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effect1.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effect2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effect3.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effect4.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
 }
 
 void pickRandomGlobalBrightnessControlModes()
