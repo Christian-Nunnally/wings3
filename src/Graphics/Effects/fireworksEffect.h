@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color fireworksEffect(int frameDelta, uint32_t colorFrame, int pixelIndex, int fireworkProbability, int paletteOffset, uint16_t globalBrightnessModifier);
+Color fireworksEffect(int pixelIndex, Effect *effect, int frameDelta, int fireworkProbability);
 
 #endif

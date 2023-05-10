@@ -14,7 +14,7 @@ float fireworkStarSizes[MaxNumberOfFireworks];
 bool fireworkIsActive[MaxNumberOfFireworks];
 uint16_t fireworkCenterPixel[MaxNumberOfFireworks];
 
-Color fireworksEffect(int frameDelta, uint32_t colorFrame, int pixelIndex, int fireworkProbability, int paletteOffset, uint16_t globalBrightnessModifier)
+Color fireworksEffect(int pixelIndex, Effect *effect, int frameDelta, int fireworkProbability)
 {
   if (pixelIndex == 0)
   {
@@ -63,13 +63,13 @@ Color fireworksEffect(int frameDelta, uint32_t colorFrame, int pixelIndex, int f
     // if (angle > 128) angle -= distance / 8;
     // else angle += distance / 8;
 
-    uint8_t color8Bit = angle + (colorFrame >> 1);
+    uint8_t color8Bit = angle + (effect->time1 >> 1);
 
     if ((distance < size) && ((distance + fireworkStarSizes[firework]) > size))
     {
       if (angle % (fireworkTypes[firework]) < (fireworkTypes[firework] >> 1))
       {
-        return colorFromPalette(paletteOffset + color8Bit, globalBrightnessModifier);
+        return colorFromPalette(effect->currentPaletteOffset + color8Bit, (*effect->globalBrightnessPointer));
         return {65535, 0, 0};
       }
     }
@@ -79,7 +79,7 @@ Color fireworksEffect(int frameDelta, uint32_t colorFrame, int pixelIndex, int f
       {
         if (angle % (fireworkTypes[firework]) < (fireworkTypes[firework] >> 1))
         {
-          return colorFromPalette(paletteOffset + color8Bit, globalBrightnessModifier);
+          return colorFromPalette(effect->currentPaletteOffset + color8Bit, (*effect->globalBrightnessPointer));
           return {65535, 0, 0};
         }
       }

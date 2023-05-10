@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color fireEffect(int frameDelta, int pixelIndex, int flameDecay, int sparks, const uint8_t projectionMap[], const uint8_t projectionMap2[], int paletteOffset, uint16_t globalBrightnessModifier);
+Color fireEffect(int pixelIndex, Effect *effect, int frameDelta, int flameDecay, int sparks);
 
 #endif

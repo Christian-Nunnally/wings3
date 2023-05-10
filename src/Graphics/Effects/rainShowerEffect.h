@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color rainShowerEffect(int frameDelta, uint32_t rainAnimationFrame, int pixelIndex, byte rainLength, const uint8_t projectionMap[], const uint8_t projectionMap2[], int paletteOffset, uint16_t globalBrightnessModifier);
+Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta);
 
 #endif

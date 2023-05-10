@@ -2,6 +2,7 @@
 #include "../../Graphics/Effects/fireEffect.h"
 #include "../../Graphics/palettes.h"
 #include "../../Graphics/directionMaps.h"
+#include "../../Graphics/transformMaps.h"
 #include "../../Utility/fastRandom.h"
 #include "../../settings.h"
 
@@ -26,7 +27,7 @@ const uint32_t gamma_lut[256] = {
 
 int lastTimeFireMovedUp = 0;
 const int FireMovementFrameSpeed = 50;
-Color fireEffect(int frameDelta, int pixelIndex, int flameDecay, int sparks, const uint8_t projectionMap[], const uint8_t projectionMap2[], int paletteOffset, uint16_t globalBrightnessModifier)
+Color fireEffect(int pixelIndex, Effect *effect, int frameDelta, int flameDecay, int sparks)
 {
     static uint16_t heat1[TOTAL_LEDS];
     static uint16_t heat2[TOTAL_LEDS];
@@ -38,6 +39,9 @@ Color fireEffect(int frameDelta, int pixelIndex, int flameDecay, int sparks, con
 
     if (pixelIndex == 0)
     {
+      (*effect->transformMap1) = normalTransformMapX;
+      (*effect->transformMap2) = normalTransformMapY;
+
       if (shouldFireMoveUpThisFrame) 
       {
         shouldFireMoveUpThisFrame = false;
@@ -82,5 +86,5 @@ Color fireEffect(int frameDelta, int pixelIndex, int flameDecay, int sparks, con
       else (*heatBPointer)[pixelIndex] = (*heatAPointer)[pixelIndex];
     }
     uint16_t brightness = gamma_lut[(*heatAPointer)[pixelIndex] >> 8];
-    return colorFromPalette(((*heatAPointer)[pixelIndex] >> 10) + paletteOffset, brightness);
+    return colorFromPalette(((*heatAPointer)[pixelIndex] >> 10) + effect->currentPaletteOffset, brightness);
 }

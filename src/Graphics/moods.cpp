@@ -9,12 +9,12 @@ void setupNormalMood(EffectSettings *settings)
     settings->LikelihoodEffectsAreRandomizedWhenStepIsDetected = 230;
     settings->LikelihoodNothingChangesWhenRandomizingEffect = 50;
     settings->LikelihoodBlendingModeChangesWhenRandomizingEffect = 10;
-    settings->LikelihoodSubPaletteChangesWhenRandomizingEffect = 19;
-    settings->LikelihoodPaletteChangesWhenRandomizingEffect = 5;
-    settings->LikelihoodTwoPalettesAreUsedWhenPaletteChanges = 25;
+    settings->LikelihoodSubPaletteChangesWhenRandomizingEffect = 40;
+    settings->LikelihoodPaletteChangesWhenRandomizingEffect = 20;
+    settings->LikelihoodTwoPalettesAreUsedWhenPaletteChanges = 50;
     settings->LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect = 10;
     settings->LikelihoodScreenMapChangesWhenRandomizingEffect = 4;
-    settings->LikelihoodEffectsAreSwappedWhenRandomizingEffect = 17;
+    settings->LikelihoodEffectsAreSwappedWhenRandomizingEffect = 20;
     settings->LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped = 200;
     settings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched = 128;
     settings->LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect = 4;
@@ -36,8 +36,8 @@ void setupNormalMood(EffectSettings *settings)
     settings->MillisecondsForBlendingModeTransitionsMaximum = 2000;
     settings->MillisecondsForBackgroundTransitionFadeMinimum = 2000;
     settings->MillisecondsForBackgroundTransitionFadeMaximum = 10000;
-    settings->GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = 10000;
-    settings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = 30000;
+    settings->GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = 1000;
+    settings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = 10000;
     settings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect = 9;
     settings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = 32767;
     settings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = 64224;
@@ -53,8 +53,8 @@ void setupNormalMood(EffectSettings *settings)
     settings->AllowedEffects[7] = 7;
     settings->AllowedEffects[8] = 8;
     settings->AllowedEffects[9] = 9;
-    settings->AllowedEffects[10] = 9;
-    settings->AllowedEffects[11] = 9;
+    settings->AllowedEffects[10] = 10;
+    settings->AllowedEffects[11] = 11;
     settings->AllowedEffects[12] = 12;
     settings->AllowedEffects[13] = 13;
     settings->AllowedEffects[14] = 14;
@@ -62,7 +62,7 @@ void setupNormalMood(EffectSettings *settings)
     settings->AllowedEffects[16] = 16;
     settings->AllowedEffects[17] = 17;
     settings->AllowedEffects[18] = 18;
-    settings->AllowedEffects[19] = 19;
+    settings->AllowedEffects[19] = 9;
 
     for (int i = 0; i < NumberOfAllowedPalettesToPickBetween; i++)
     {

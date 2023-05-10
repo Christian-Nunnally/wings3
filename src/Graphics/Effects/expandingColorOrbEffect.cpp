@@ -12,7 +12,7 @@ int colorOrbs[MaxNumberOfColorOrbs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 float colorOrbFlashSpeed[MaxNumberOfColorOrbs];
 float colorOrbRadii[MaxNumberOfColorOrbs];
 int colorOrbColor[MaxNumberOfColorOrbs];
-Color expandingColorOrbEffect(int frameDelta, int pixelIndex, int paletteOffset, uint16_t globalBrightnessModifier)
+Color expandingColorOrbEffect(int pixelIndex, Effect *effect, int frameDelta)
 {
   if (fastRandomInteger(1000) < frameDelta * 2)
   {
@@ -23,7 +23,7 @@ Color expandingColorOrbEffect(int frameDelta, int pixelIndex, int paletteOffset,
         colorOrbs[i] = pixelIndex;
         colorOrbFlashSpeed[i] = 0.001 * (MinColorOrbFlashSpeed + fastRandomInteger(MaxColorOrbFlashSpeed - MinColorOrbFlashSpeed));
         colorOrbRadii[i] = 0;
-        colorOrbColor[i] = paletteOffset + fastRandomByte();
+        colorOrbColor[i] = effect->currentPaletteOffset + fastRandomByte();
       }
     }
   }
@@ -53,6 +53,6 @@ Color expandingColorOrbEffect(int frameDelta, int pixelIndex, int paletteOffset,
       }
     }
   }
-  if (closestOrb != -1) return colorFromPalette(colorOrbColor[closestOrb], globalBrightnessModifier);
+  if (closestOrb != -1) return colorFromPalette(colorOrbColor[closestOrb], (*effect->globalBrightnessPointer));
   return {0, 0, 0};
 }

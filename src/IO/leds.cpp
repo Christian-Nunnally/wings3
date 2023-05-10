@@ -34,7 +34,7 @@ void renderLeds()
   if (!isMusicDetected()) ledDisplay.fill(0, 0, 0);
   else 
   {
-    for(int pixelIndex; pixelIndex < LED_COUNT_PER_PIN; pixelIndex++) 
+    for(int pixelIndex; pixelIndex < LED_COUNT_PER_PIN * 2; pixelIndex++) 
     {
       Color color = getLedColorForFrame(pixelIndex);
       ledDisplay.set16(START_LED_OFFSET + pixelIndex, color.red, color.green, color.blue);

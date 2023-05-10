@@ -39,6 +39,8 @@ void randomizeEffectsNaturally();
 void pickRandomBlendingMode();
 void pickRandomSubPalette();
 void pickRandomPalette();
+void pickRandomPaletteForEffect(Effect *effect);
+void pickRandomSubPaletteForEffect(Effect *effect);
 int pickRandomSubPaletteFromPalette(int palette);
 void pickRandomTransformMaps();
 void pickRandomTransformMaps(Effect *effect, byte likelihood);
@@ -53,11 +55,13 @@ void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, byte likeli
 void pickRandomTransitionTime();
 void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void switchTransitionDirection();
+int getRandomEffectNumberFromAllowedEffects();
+void incrementColorPalettesTowardsTargetsForEffect(Effect *effect);
 
-Effect effect1;
-Effect effect2;
-Effect effect3;
-Effect effect4;
+static Effect effect1;
+static Effect effect2;
+static Effect effect3;
+static Effect effect4;
 Effect currentPrimaryEffectA;
 Effect currentPrimaryEffectB;
 Effect currentSecondaryEffectA;
@@ -119,8 +123,8 @@ int lastPeakDetectorValue;
 int switchMapBlendCounter;
 int switchMapBlendCounterMax = 1;
 bool switchMap = false;
-float effect1AudioLevelThresholdToShowMoreIntenseEffect = .9;
-float effect2AudioLevelThresholdToShowMoreIntenseEffect = .9;
+float effect1AudioLevelThresholdToShowMoreIntenseEffect = .98;
+float effect2AudioLevelThresholdToShowMoreIntenseEffect = .6;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
 
 Color getLedColorForFrame(int ledIndex)
@@ -153,6 +157,7 @@ Color getLedColorForFrame(int ledIndex)
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * UINT16_MAX);
     }
     
+    return resultColor1;
     if (switchMapBlendCounter) ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
     else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
     if (currentScreen & 2) return {ledColorMap[ledIndex].green, ledColorMap[ledIndex].red, ledColorMap[ledIndex].blue};
@@ -171,18 +176,13 @@ void incrementEffectFrame()
 
 void setupEffects()
 {
-    effect1.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect1.time1, effect1.time2, ledIndex, *(effect1.transformMap1), *(effect1.transformMap2), effect1.currentPaletteOffset, UINT16_MAX); };
-    effect2.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect2.time1, effect2.time2, ledIndex, *(effect2.transformMap1), *(effect2.transformMap2), effect2.currentPaletteOffset, UINT16_MAX); };
-    effect3.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect3.time1, effect3.time2, ledIndex, *(effect3.transformMap1), *(effect3.transformMap2), effect3.currentPaletteOffset, UINT16_MAX); };
-    effect4.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect4.time1, effect4.time2, ledIndex, *(effect4.transformMap1), *(effect4.transformMap2), effect4.currentPaletteOffset, UINT16_MAX); };
-    effect1.effectFunctionHighlight = effect1.effectFunction;
-    effect2.effectFunctionHighlight = effect2.effectFunction;
-    effect3.effectFunctionHighlight = effect3.effectFunction;
-    effect4.effectFunctionHighlight = effect4.effectFunction;
+    effect1.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect1); };
+    effect2.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect2); };
+    effect3.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect3); };
+    effect4.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect4); };
 
     mixingModeBlendFunction = blendColorsUsingMixing;
     oldMixingModeBlendFunction = blendColorsUsingMixing;
-
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
 
@@ -245,12 +245,13 @@ void setupEffects()
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 
-    effect1.globalBrightnessPointer = normalBrightnessModes[0];
-    effect2.globalBrightnessPointer = normalBrightnessModes[1];
-    effect3.globalBrightnessPointer = normalBrightnessModes[2];
-    effect4.globalBrightnessPointer = normalBrightnessModes[3];
-
+    // effect1.globalBrightnessPointer = normalBrightnessModes[0];
+    // effect2.globalBrightnessPointer = normalBrightnessModes[1];
+    // effect3.globalBrightnessPointer = normalBrightnessModes[2];
+    // effect4.globalBrightnessPointer = normalBrightnessModes[3];
     setupNormalMood(&effectSettings);
+    *currentScreenMap = normalScreenMap;
+    for (int i = 0; i < 500; i++) randomizeEffectsNaturally();
 
     effectSettingsStationary = effectSettings;
     effectSettingsWalking = effectSettings;
@@ -258,11 +259,6 @@ void setupEffects()
     effectSettingsBiking = effectSettings;
     effectSettingsDriving = effectSettings;
 
-    for (int i = 0; i < 150; i++) randomizeEffectsNaturally();
-
-    pickRandomAudioLevelThresholdForMoreIntenseEffect();
-
-    *currentScreenMap = infinityScreenMap;
 }
 
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
@@ -489,14 +485,14 @@ void pickRandomTransformMaps()
 
 void pickRandomTransformMaps(Effect *effect, byte likelihood)
 {
-    if (fastRandomByte() < likelihood) *(effect->transformMap1) = transformMaps[fastRandomInteger(transformMapsCount)];
-    if (fastRandomByte() < likelihood) *(effect->transformMap2) = transformMaps[fastRandomInteger(transformMapsCount)];
+    if (fastRandomByte() < likelihood) (*effect->transformMap1) = transformMaps[fastRandomInteger(transformMapsCount)];
+    if (fastRandomByte() < likelihood) (*effect->transformMap2) = transformMaps[fastRandomInteger(transformMapsCount)];
 }
 
 // void pickRandomMirroredTransformMaps(Effect *effect, byte likelihood)
 // {
-//     if (fastRandomByte() < likelihood) *(effect->transformMap1) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
-//     if (fastRandomByte() < likelihood) *(effect->transformMap2) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
+//     if (fastRandomByte() < likelihood) (*effect->transformMap1) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
+//     if (fastRandomByte() < likelihood) (*effect->transformMap2) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
 // }
 
 void swapEffects()
@@ -537,66 +533,68 @@ void pickRandomTimeModes()
 
 void pickRandomEffects()
 {
+    int effectSelection = getRandomEffectNumberFromAllowedEffects();
+    if (effectSelection == 0) effect1.effectFunction = [](int index) { return meteorRainEffect2(index, &effect1, frameTimeDelta, .12); };
+    else if (effectSelection == 1) effect1.effectFunction = [](int index) { return meteorRainEffect(index, &effect1, frameTimeDelta, .12); };
+    else if (effectSelection == 2) effect1.effectFunction = [](int index) { return meteorRainEffect2(index, &effect1, frameTimeDelta, .12); };
+    else if (effectSelection == 3) effect1.effectFunction = [](int index) { return starFieldEffect(index, &effect1, frameTimeDelta, 16, 80); };
+    else if (effectSelection == 4) effect1.effectFunction = [](int index) { return gradientWaveEffect(index, &effect1); };
+    else if (effectSelection == 5) effect1.effectFunction = [](int index) { return rainShowerEffect(index, &effect1, frameTimeDelta); };
+    else if (effectSelection == 6) effect1.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect1, frameTimeDelta); };
+    else if (effectSelection == 7) effect1.effectFunction = [](int index) { return lightningBugEffect(index, &effect1, frameTimeDelta); };
+    else if (effectSelection == 8) effect1.effectFunction = [](int index) { return fireEffect(index, &effect1, frameTimeDelta, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    else if (effectSelection == 9) effect1.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect1); };
+    else if (effectSelection == 10) effect1.effectFunction = [](int index) { return fireworksEffect(index, &effect1, frameTimeDelta, 40); };
+    else if (effectSelection == 11) effect1.effectFunction = [](int index) { return lightChaseEffect(index, &effect1, 5); };
+    else effect1.effectFunction = [](int index) { return gradientWaveEffect(index, &effect1); };
+    effectSelection = getRandomEffectNumberFromAllowedEffects();
+    if (effectSelection == 0) effect3.effectFunction = [](int index) { return meteorRainEffect2(index, &effect3, frameTimeDelta, .12); };
+    else if (effectSelection == 1) effect3.effectFunction = [](int index) { return meteorRainEffect(index, &effect3, frameTimeDelta, .12); };
+    else if (effectSelection == 2) effect3.effectFunction = [](int index) { return meteorRainEffect2(index, &effect3, frameTimeDelta, .12); };
+    else if (effectSelection == 3) effect3.effectFunction = [](int index) { return starFieldEffect(index, &effect3, frameTimeDelta, 16, 80); };
+    else if (effectSelection == 4) effect3.effectFunction = [](int index) { return gradientWaveEffect(index, &effect3); };
+    else if (effectSelection == 5) effect3.effectFunction = [](int index) { return rainShowerEffect(index, &effect3, frameTimeDelta); };
+    else if (effectSelection == 6) effect3.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect3, frameTimeDelta); };
+    else if (effectSelection == 7) effect3.effectFunction = [](int index) { return lightningBugEffect(index, &effect3, frameTimeDelta); };
+    else if (effectSelection == 8) effect3.effectFunction = [](int index) { return fireEffect(index, &effect3, frameTimeDelta, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    else if (effectSelection == 9) effect3.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect3); };
+    else if (effectSelection == 10) effect3.effectFunction = [](int index) { return fireworksEffect(index, &effect3, frameTimeDelta, 40); };
+    else if (effectSelection == 11) effect3.effectFunction = [](int index) { return lightChaseEffect(index, &effect3, 5); };
+    else effect3.effectFunction = [](int index) { return gradientWaveEffect(index, &effect3); };
+    effectSelection = getRandomEffectNumberFromAllowedEffects();
+    if (effectSelection == 0) effect2.effectFunction = [](int index) { return meteorRainEffect2(index, &effect2, frameTimeDelta, .12); };
+    else if (effectSelection == 1) effect2.effectFunction = [](int index) { return meteorRainEffect(index, &effect2, frameTimeDelta, .12); };
+    else if (effectSelection == 2) effect2.effectFunction = [](int index) { return meteorRainEffect2(index, &effect2, frameTimeDelta, .12); };
+    else if (effectSelection == 3) effect2.effectFunction = [](int index) { return starFieldEffect(index, &effect2, frameTimeDelta, 16, 80); };
+    else if (effectSelection == 4) effect2.effectFunction = [](int index) { return gradientWaveEffect(index, &effect2); };
+    else if (effectSelection == 5) effect2.effectFunction = [](int index) { return rainShowerEffect(index, &effect2, frameTimeDelta); };
+    else if (effectSelection == 6) effect2.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect2, frameTimeDelta); };
+    else if (effectSelection == 7) effect2.effectFunction = [](int index) { return lightningBugEffect(index, &effect2, frameTimeDelta); };
+    else if (effectSelection == 8) effect2.effectFunction = [](int index) { return fireEffect(index, &effect2, frameTimeDelta, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    else if (effectSelection == 9) effect2.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect2); };
+    else if (effectSelection == 10) effect2.effectFunction = [](int index) { return fireworksEffect(index, &effect2, frameTimeDelta, 40); };
+    else if (effectSelection == 11) effect2.effectFunction = [](int index) { return lightChaseEffect(index, &effect2, 5); };
+    else effect2.effectFunction = [](int index) { return gradientWaveEffect(index, &effect2); };
+    effectSelection = getRandomEffectNumberFromAllowedEffects();
+    if (effectSelection == 0) effect4.effectFunction = [](int index) { return meteorRainEffect2(index, &effect4, frameTimeDelta, .12); };
+    else if (effectSelection == 1) effect4.effectFunction = [](int index) { return meteorRainEffect(index, &effect4, frameTimeDelta, .12); };
+    else if (effectSelection == 2) effect4.effectFunction = [](int index) { return meteorRainEffect2(index, &effect4, frameTimeDelta, .12); };
+    else if (effectSelection == 3) effect4.effectFunction = [](int index) { return starFieldEffect(index, &effect4, frameTimeDelta, 16, 80); };
+    else if (effectSelection == 4) effect4.effectFunction = [](int index) { return gradientWaveEffect(index, &effect4); };
+    else if (effectSelection == 5) effect4.effectFunction = [](int index) { return rainShowerEffect(index, &effect4, frameTimeDelta); };
+    else if (effectSelection == 6) effect4.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect4, frameTimeDelta); };
+    else if (effectSelection == 7) effect4.effectFunction = [](int index) { return lightningBugEffect(index, &effect4, frameTimeDelta); };
+    else if (effectSelection == 8) effect4.effectFunction = [](int index) { return fireEffect(index, &effect4, frameTimeDelta, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    else if (effectSelection == 9) effect4.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect4); };
+    else if (effectSelection == 10) effect4.effectFunction = [](int index) { return fireworksEffect(index, &effect4, frameTimeDelta, 40); };
+    else if (effectSelection == 11) effect4.effectFunction = [](int index) { return lightChaseEffect(index, &effect4, 5); };
+    else effect4.effectFunction = [](int index) { return gradientWaveEffect(index, &effect4); };
+}
+
+int getRandomEffectNumberFromAllowedEffects()
+{
     int effectRandom = fastRandomInteger(NumberOfAllowedEffectsToPickBetween);
-    byte effectSelection = effectSettings.AllowedEffects[effectRandom];
-    if (fastRandomInteger(2) == 0)
-    {
-        if (effectSelection == 0) effect1.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect1.time1, effect1.time2, effect1.time2 >> 3, ledIndex, effect1.size, .12, normalTransformMapX, normalTransformMapY, effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 1) effect1.effectFunction = [](int ledIndex) { return meteorRainEffect(frameTimeDelta, effect1.time1,effect1.time2, ledIndex, effect1.size, .12, *(effect1.transformMap1), effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 2) effect1.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect1.time1, effect1.time2, 0, ledIndex, effect1.size, .12, *(effect1.transformMap1), *(effect1.transformMap1), effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 3) effect1.effectFunction = [](int ledIndex) { return starFieldEffect(frameTimeDelta, 16, 80, ledIndex, effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 4) effect1.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect1.time1, effect1.time2, ledIndex, *(effect1.transformMap2), *(effect1.transformMap1), effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 5) effect1.effectFunction = [](int ledIndex) { return rainShowerEffect(frameTimeDelta, effect1.time1, ledIndex, effect1.size, normalTransformMapY, normalTransformMapX, effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 6) effect1.effectFunction = [](int ledIndex) { return expandingColorOrbEffect(frameTimeDelta, ledIndex, effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 7) effect1.effectFunction = [](int ledIndex) { return lightningBugEffect(frameTimeDelta, ledIndex, effect1.currentPaletteOffset); };
-        else if (effectSelection == 8) effect1.effectFunction = [](int ledIndex) { return fireEffect(frameTimeDelta, ledIndex, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel, normalTransformMapX, normalTransformMapY, effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 9) effect1.effectFunction = [](int ledIndex) { return simpleSolidColorFillEffect(effect1.time1, effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 10) effect1.effectFunction = [](int ledIndex) { return fireworksEffect(frameTimeDelta, effect1.time2, ledIndex, 40, effect1.currentPaletteOffset, 65535); };
-        else if (effectSelection == 11) effect1.effectFunction = [](int ledIndex) { return lightChaseEffect(effect1.time2, ledIndex, effect1.time1, effect1.currentPaletteOffset, 5, 65535); };
-        else effect1.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect1.time1, effect1.time2, ledIndex, *(effect1.transformMap1), *(effect1.transformMap2), effect1.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        if (effectSelection == 0) effect3.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect3.time1, effect3.time2, effect3.time2 >> 3, ledIndex, effect3.size, .12, normalTransformMapX, normalTransformMapY, effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 1) effect3.effectFunction = [](int ledIndex) { return meteorRainEffect(frameTimeDelta, effect3.time1,effect3.time2, ledIndex, effect3.size, .12, *(effect3.transformMap2), effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 2) effect3.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect3.time1, effect3.time2, 0, ledIndex, effect3.size, .12, *(effect3.transformMap1), *(effect3.transformMap2), effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 3) effect3.effectFunction = [](int ledIndex) { return starFieldEffect(frameTimeDelta, 16, 80, ledIndex, effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 4) effect3.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect3.time1, effect3.time2, ledIndex, *(effect3.transformMap2), *(effect3.transformMap1), effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 5) effect3.effectFunction = [](int ledIndex) { return rainShowerEffect(frameTimeDelta, effect3.time1, ledIndex, effect3.size, normalTransformMapY, normalTransformMapX, effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 6) effect3.effectFunction = [](int ledIndex) { return expandingColorOrbEffect(frameTimeDelta, ledIndex, effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 7) effect3.effectFunction = [](int ledIndex) { return lightningBugEffect(frameTimeDelta, ledIndex, effect3.currentPaletteOffset); };
-        else if (effectSelection == 8) effect3.effectFunction = [](int ledIndex) { return fireEffect(frameTimeDelta, ledIndex, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel, normalTransformMapX, normalTransformMapY, effect3.currentPaletteOffset, *(effect1.globalBrightnessPointer)); };
-        else if (effectSelection == 9) effect3.effectFunction = [](int ledIndex) { return simpleSolidColorFillEffect(effect3.time1, effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-        else if (effectSelection == 10) effect3.effectFunction = [](int ledIndex) { return fireworksEffect(frameTimeDelta, effect3.time2, ledIndex, 40, effect3.currentPaletteOffset, 65535); };
-        else if (effectSelection == 11) effect3.effectFunction = [](int ledIndex) { return lightChaseEffect(effect3.time2, ledIndex, effect3.time1, effect3.currentPaletteOffset, 3, 65535); };
-        else effect3.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect3.time1, effect3.time2, ledIndex, *(effect3.transformMap1), *(effect3.transformMap2), effect3.currentPaletteOffset, *(effect3.globalBrightnessPointer)); };
-    }
-    else
-    {
-        if (effectSelection == 0) effect2.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect2.time1, effect2.time2, effect2.time2 >> 3, ledIndex, effect2.size, .12, normalTransformMapX, normalTransformMapY, effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 1) effect2.effectFunction = [](int ledIndex) { return meteorRainEffect(frameTimeDelta, effect2.time1,effect2.time2, ledIndex, effect2.size, .12, *(effect2.transformMap2), effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 2) effect2.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect2.time1, effect2.time2, 0, ledIndex, effect2.size, .12, *(effect2.transformMap1), *(effect2.transformMap1), effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 3) effect2.effectFunction = [](int ledIndex) { return starFieldEffect(frameTimeDelta, 16, 80, ledIndex, effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 4) effect2.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect2.time1, effect2.time2, ledIndex, *(effect2.transformMap2), *(effect2.transformMap1), effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 5) effect2.effectFunction = [](int ledIndex) { return rainShowerEffect(frameTimeDelta, effect2.time1, ledIndex, effect2.size, normalTransformMapY, normalTransformMapX, effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 6) effect2.effectFunction = [](int ledIndex) { return expandingColorOrbEffect(frameTimeDelta, ledIndex, effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 7) effect2.effectFunction = [](int ledIndex) { return lightningBugEffect(frameTimeDelta, ledIndex, effect2.currentPaletteOffset); };
-        else if (effectSelection == 8) effect2.effectFunction = [](int ledIndex) { return fireEffect(frameTimeDelta, ledIndex, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel, normalTransformMapX, normalTransformMapY, effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 9) effect2.effectFunction = [](int ledIndex) { return simpleSolidColorFillEffect(effect2.time1, effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        else if (effectSelection == 10) effect2.effectFunction = [](int ledIndex) { return fireworksEffect(frameTimeDelta, effect2.time2, ledIndex, 40, effect2.currentPaletteOffset, 65535); };
-        else if (effectSelection == 11) effect2.effectFunction = [](int ledIndex) { return lightChaseEffect(effect2.time2, ledIndex, effect2.time1, effect2.currentPaletteOffset, 6, 65535); };
-        else effect2.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect2.time1, effect2.time2, ledIndex, *(effect2.transformMap1), *(effect2.transformMap2), effect2.currentPaletteOffset, *(effect2.globalBrightnessPointer)); };
-        if (effectSelection == 0) effect4.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect4.time1, effect4.time2, effect4.time2 >> 3, ledIndex, effect4.size, .12, normalTransformMapX, normalTransformMapY, effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 1) effect4.effectFunction = [](int ledIndex) { return meteorRainEffect(frameTimeDelta, effect4.time1,effect4.time2, ledIndex, effect4.size, .12, *(effect4.transformMap2), effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 2) effect4.effectFunction = [](int ledIndex) { return meteorRainEffect2(frameTimeDelta, effect4.time1, effect4.time2, 0, ledIndex, effect4.size, .12, *(effect4.transformMap1), *(effect4.transformMap1), effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 3) effect4.effectFunction = [](int ledIndex) { return starFieldEffect(frameTimeDelta, 16, 80, ledIndex, effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 4) effect4.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect4.time1, effect4.time2, ledIndex, *(effect4.transformMap2), *(effect4.transformMap1), effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 5) effect4.effectFunction = [](int ledIndex) { return rainShowerEffect(frameTimeDelta, effect4.time1, ledIndex, effect4.size, normalTransformMapY, normalTransformMapX, effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 6) effect4.effectFunction = [](int ledIndex) { return expandingColorOrbEffect(frameTimeDelta, ledIndex, effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 7) effect4.effectFunction = [](int ledIndex) { return lightningBugEffect(frameTimeDelta, ledIndex, effect4.currentPaletteOffset); };
-        else if (effectSelection == 8) effect4.effectFunction = [](int ledIndex) { return fireEffect(frameTimeDelta, ledIndex, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel, normalTransformMapX, normalTransformMapY, effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 9) effect4.effectFunction = [](int ledIndex) { return simpleSolidColorFillEffect(effect4.time1, effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-        else if (effectSelection == 10) effect4.effectFunction = [](int ledIndex) { return fireworksEffect(frameTimeDelta, effect3.time2, ledIndex, 40, effect4.currentPaletteOffset, 65535); };
-        else if (effectSelection == 11) effect4.effectFunction = [](int ledIndex) { return lightChaseEffect(effect4.time2, ledIndex, effect4.time1, effect4.currentPaletteOffset, 10, 65535); };
-        else effect4.effectFunction = [](int ledIndex) { return gradientWaveEffect(effect4.time1, effect4.time2, ledIndex, *(effect4.transformMap1), *(effect4.transformMap2), effect4.currentPaletteOffset, *(effect4.globalBrightnessPointer)); };
-    }
+    return effectSettings.AllowedEffects[effectRandom];
 }
 
 void pickRandomSizeParametersForEffects()

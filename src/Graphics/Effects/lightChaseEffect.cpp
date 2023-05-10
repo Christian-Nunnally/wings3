@@ -2,9 +2,9 @@
 #include "../../Graphics/Effects/lightChaseEffect.h"
 #include "../../Graphics/palettes.h"
 
-Color lightChaseEffect(uint32_t ledTestAnimationFrame, int pixelIndex, uint32_t colorAnimationFrame, int paletteOffset, int mod, uint16_t globalBrightnessModifier)
+Color lightChaseEffect(int pixelIndex, Effect *effect, int mod)
 {
-  uint8_t colorFrame8bit = colorAnimationFrame;
-  if ((ledTestAnimationFrame >> 8) % 5 == pixelIndex % mod) return colorFromPalette(paletteOffset + colorFrame8bit, globalBrightnessModifier);
+  uint8_t colorFrame8bit = effect->time1;
+  if ((effect->time2 >> 8) % 5 == pixelIndex % mod) return colorFromPalette(effect->currentPaletteOffset + colorFrame8bit, (*effect->globalBrightnessPointer));
   return {0,0,0};
 }

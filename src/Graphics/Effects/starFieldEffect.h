@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color starFieldEffect(int frameDelta, int fadeAmount, uint16_t newStarLikelihood, int pixelIndex, int paletteOffset, uint16_t globalBrightnessModifier);
+Color starFieldEffect(int pixelIndex, Effect *effect, int frameDelta, int fadeAmount, uint16_t newStarLikelihood);
 
 #endif

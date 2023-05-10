@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color simpleSolidColorFillEffect(int colorFrame, int paletteOffset, uint16_t globalBrightnessModifier);
+Color simpleSolidColorFillEffect(int pixelIndex, Effect *effect);
 
 #endif

@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color lightningBugEffect(int frameDelta, int pixelIndex, int paletteOffset);
+Color lightningBugEffect(int pixelIndex, Effect *effect, int frameDelta);
 
 #endif

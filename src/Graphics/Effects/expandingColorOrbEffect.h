@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 #include "../../Graphics/color.h"
+#include "../../Graphics/effect.h"
 
-Color expandingColorOrbEffect(int frameDelta, int pixelIndex, int paletteOffset, uint16_t globalBrightnessModifier);
+Color expandingColorOrbEffect(int pixelIndex, Effect *effect, int frameDelta);
 
 #endif

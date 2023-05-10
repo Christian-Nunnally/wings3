@@ -17,7 +17,7 @@ uint16_t lightningBugsBrightnessTarget[MaxNumberOfLightningBugs];
 float lightningBugFlashSpeed[MaxNumberOfLightningBugs];
 float lightningBugRadii[MaxNumberOfLightningBugs];
 float lightningBugRadiiTarget[MaxNumberOfLightningBugs];
-Color lightningBugEffect(int frameDelta, int pixelIndex, int paletteOffset)
+Color lightningBugEffect(int pixelIndex, Effect *effect, int frameDelta)
 {
   if (fastRandomInteger(30000) < frameDelta * 2)
   {
@@ -58,7 +58,7 @@ Color lightningBugEffect(int frameDelta, int pixelIndex, int paletteOffset)
     if (pixelRadiusTransformMaps[lightningBugs[i]][pixelIndex] < lightningBugRadii[i])
     {
       uint16_t brightness = (float)((lightningBugRadii[i] - pixelRadiusTransformMaps[lightningBugs[i]][pixelIndex]) / lightningBugRadii[i]) * lightningBugsBrightness[i];
-      return colorFromPalette(paletteOffset, brightness);
+      return colorFromPalette(effect->currentPaletteOffset, brightness);
     }
   }
   return {0, 0, 0};

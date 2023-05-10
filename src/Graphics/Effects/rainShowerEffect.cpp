@@ -2,6 +2,7 @@
 #include "../../Graphics/Effects/rainShowerEffect.h"
 #include "../../Graphics/palettes.h"
 #include "../../Graphics/directionMaps.h"
+#include "../../Graphics/transformMaps.h"
 #include "../../Utility/fastRandom.h"
 #include "../../settings.h"
 
@@ -11,53 +12,55 @@ float rainDropXPositions[256];
 float rainDropXVelocities[256];
 bool doesLedHaveWater[TOTAL_LEDS];
 const float rainDropGravity = .0002;
-Color rainShowerEffect(int frameDelta, uint32_t rainAnimationFrame, int pixelIndex, byte rainLength, const uint8_t projectionMap[], const uint8_t projectionMap2[], int paletteOffset, uint16_t globalBrightnessModifier)
+Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta)
 {
-  int rainAnimationFrame2 = rainAnimationFrame % 512;
-  if (projectionMap[pixelIndex] == 0)
+  (*effect->transformMap1) = normalTransformMapX;
+  (*effect->transformMap2) = normalTransformMapY;
+  int rainAnimationFrame2 = effect->time1 % 512;
+  if ((*effect->transformMap1)[pixelIndex] == 0)
   {
-    if (!isRainDropAtYPosition[projectionMap2[pixelIndex]])
+    if (!isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]])
     {
       if (fastRandomInteger(5000) < frameDelta + (rainDropChanceBoost / 4))
       {
-        isRainDropAtYPosition[projectionMap2[pixelIndex]] = true;
-        rainDropXPositions[projectionMap2[pixelIndex]] = -rainLength;
-        rainDropXVelocities[projectionMap2[pixelIndex]] = 0;
+        isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]] = true;
+        rainDropXPositions[(*effect->transformMap2)[pixelIndex]] = -effect->size;
+        rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] = 0;
       }
       if (rainDropChanceBoost != 0) rainDropChanceBoost -= frameDelta;
       if (rainDropChanceBoost < 0) rainDropChanceBoost = 0;
     }
     else 
     {
-      rainDropXVelocities[projectionMap2[pixelIndex]] += rainDropGravity * frameDelta;
-      rainDropXPositions[projectionMap2[pixelIndex]] += rainDropXVelocities[projectionMap2[pixelIndex]] * frameDelta;
-      if (rainDropXPositions[projectionMap2[pixelIndex]] > 300)
+      rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] += rainDropGravity * frameDelta;
+      rainDropXPositions[(*effect->transformMap2)[pixelIndex]] += rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] * frameDelta;
+      if (rainDropXPositions[(*effect->transformMap2)[pixelIndex]] > 300)
       {
-        isRainDropAtYPosition[projectionMap2[pixelIndex]] = false;
+        isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]] = false;
       }
     }
   }
 
-  if (isRainDropAtYPosition[projectionMap2[pixelIndex]])
+  if (isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]])
   {
     if (isBottomLed[pixelIndex] != -1) 
     {
-      bool isDropInLowerBound =  projectionMap[pixelIndex] > rainDropXPositions[projectionMap2[pixelIndex]] ;//+ rainAnimationFrame2;
-      bool isDropInUpperBound = projectionMap[pixelIndex] < rainDropXPositions[projectionMap2[pixelIndex]] + rainLength ;//+ rainAnimationFrame2;
+      bool isDropInLowerBound =  (*effect->transformMap1)[pixelIndex] > rainDropXPositions[(*effect->transformMap2)[pixelIndex]] ;
+      bool isDropInUpperBound = (*effect->transformMap1)[pixelIndex] < rainDropXPositions[(*effect->transformMap2)[pixelIndex]] + effect->size ;
       if (isDropInLowerBound && isDropInUpperBound)
       {
         doesLedHaveWater[pixelIndex] = true;
-        return colorFromPalette(paletteOffset, globalBrightnessModifier);
+        return colorFromPalette(effect->currentPaletteOffset, (*effect->globalBrightnessPointer));
       }
     }
     else 
     {
-      int distanceFromUpperBound = projectionMap[pixelIndex] - rainDropXPositions[projectionMap2[pixelIndex]];
-      bool isDropInLowerBound =  projectionMap[pixelIndex] > rainDropXPositions[projectionMap2[pixelIndex]] ;//+ rainAnimationFrame2;
-      bool isDropInUpperBound = projectionMap[pixelIndex] < rainDropXPositions[projectionMap2[pixelIndex]] + rainLength ;//+ rainAnimationFrame2;
+      int distanceFromUpperBound = (*effect->transformMap1)[pixelIndex] - rainDropXPositions[(*effect->transformMap2)[pixelIndex]];
+      bool isDropInLowerBound =  (*effect->transformMap1)[pixelIndex] > rainDropXPositions[(*effect->transformMap2)[pixelIndex]] ;
+      bool isDropInUpperBound = (*effect->transformMap1)[pixelIndex] < rainDropXPositions[(*effect->transformMap2)[pixelIndex]] + effect->size ;
       if (isDropInLowerBound && isDropInUpperBound)
       {
-        return colorFromPalette(paletteOffset, ((globalBrightnessModifier / rainLength) * distanceFromUpperBound));
+        return colorFromPalette(effect->currentPaletteOffset, (((*effect->globalBrightnessPointer) / effect->size) * distanceFromUpperBound));
       }
     }
   }
@@ -75,7 +78,7 @@ Color rainShowerEffect(int frameDelta, uint32_t rainAnimationFrame, int pixelInd
       }
       }
     }
-    return colorFromPalette(paletteOffset, globalBrightnessModifier);
+    return colorFromPalette(effect->currentPaletteOffset, (*effect->globalBrightnessPointer));
   }
   return {0,0,0};
 }
