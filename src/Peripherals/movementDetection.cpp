@@ -169,8 +169,8 @@ void checkFifo()
             yawEMAFilter.AddValue(currentYaw);
             rollEMAFilter.AddValue(currentRoll);
             pitchEMAFilter.AddValue(currentPitch);
-            Serial.print(" y: ");
-            Serial.print((byte)(abs(currentYaw >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
+            // Serial.print(" y: ");
+            // Serial.print((byte)(abs(currentYaw >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
             // Serial.print(" roll: ");
             // Serial.print((byte)(abs(currentRoll >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
             // Serial.print(" pitch: ");

@@ -2,5 +2,6 @@
 #define SERIAL_H
 
 void setupSerial();
+void readSerial();
 
 #endif

@@ -6,12 +6,15 @@
 #include "src/IO/analogInput.h"
 #include "src/Graphics/effectController.h"
 #include "src/Utility/time.h"
+#include "src/settings.h"
 
 unsigned long lastTime;
 
 void setup() 
 {
+  #ifdef ENABLE_SERIAL 
   setupSerial();
+  #endif
   setupLeds();
   setupMicrophone();
   setupImu();
@@ -27,6 +30,9 @@ void loop()
   processAudioStream();
   checkForMovement();
   readAnalogValues();
+  #ifdef ENABLE_SERIAL 
+  readSerial();
+  #endif
 }
 
 void loop1() 

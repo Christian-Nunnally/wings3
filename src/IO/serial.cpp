@@ -9,3 +9,12 @@ void setupSerial()
   while (!Serial);
   Serial.println("Serial Initalized.");
 }
+
+void readSerial()
+{
+  if (Serial.available())
+  {
+    int data = Serial.read();  
+    delay(2000);
+  }
+}

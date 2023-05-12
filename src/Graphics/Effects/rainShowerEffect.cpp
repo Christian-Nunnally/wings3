@@ -14,8 +14,8 @@ bool doesLedHaveWater[TOTAL_LEDS];
 const float rainDropGravity = .0002;
 Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta)
 {
-  (*effect->transformMap1) = normalTransformMapX;
-  (*effect->transformMap2) = normalTransformMapY;
+  (*effect->transformMap1) = normalTransformMapY;
+  (*effect->transformMap2) = normalTransformMapX;
   int rainAnimationFrame2 = effect->time1 % 512;
   if ((*effect->transformMap1)[pixelIndex] == 0)
   {

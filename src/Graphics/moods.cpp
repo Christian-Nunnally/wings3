@@ -3,11 +3,11 @@
 
 void setupNormalMood(EffectSettings *settings)
 {
-    settings->LikelihoodEffectsAreRandomizedWhenBeatDetected = 230;
-    settings->LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero = 10;
-    settings->LikelihoodEffectsAreRandomizedWhenAntiBeatDetected = 10;
-    settings->LikelihoodEffectsAreRandomizedWhenStepIsDetected = 230;
-    settings->LikelihoodNothingChangesWhenRandomizingEffect = 50;
+    settings->LikelihoodEffectsAreRandomizedWhenBeatDetected = 255;
+    settings->LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero = 0;
+    settings->LikelihoodEffectsAreRandomizedWhenAntiBeatDetected = 20;
+    settings->LikelihoodEffectsAreRandomizedWhenStepIsDetected = 255;
+    settings->LikelihoodNothingChangesWhenRandomizingEffect = 0;
     settings->LikelihoodBlendingModeChangesWhenRandomizingEffect = 10;
     settings->LikelihoodSubPaletteChangesWhenRandomizingEffect = 40;
     settings->LikelihoodPaletteChangesWhenRandomizingEffect = 20;
