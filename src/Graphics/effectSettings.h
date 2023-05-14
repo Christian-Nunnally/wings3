@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#define EFFECT_NAME 0
+
 const int NumberOfAllowedEffectsToPickBetween = 20;
 const int NumberOfAllowedPalettesToPickBetween = 5;
 

@@ -29,7 +29,7 @@
 Color blendIncorporatingOldMixingMode(Color color1, Color color2);
 void handleStepDetected();
 void handleMovementDetected();
-void incrementBrightnessModeLevels(float currentAudioIntensityLevel);
+void incrementBrightnessModeLevels();
 void incrementTime();
 void incrementTime(Effect *effect, int timeDelta);  
 void incrementTransition();
@@ -121,8 +121,8 @@ int frameTimeDelta;
 int currentTime;
 float currentAudioIntensityLevel;
 int lastPeakDetectorValue;
-int switchMapBlendCounter;
-int switchMapBlendCounterMax = 1;
+int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
+int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
 bool switchMap = false;
 float effect1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effect2AudioLevelThresholdToShowMoreIntenseEffect = .6;
@@ -150,25 +150,23 @@ Color getLedColorForFrame(int ledIndex)
     Color color1 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentPrimaryEffectA.effectFunction(ledIndex) : currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
     Color color2 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentPrimaryEffectB.effectFunction(ledIndex) : currentPrimaryEffectB.effectFunctionHighlight(ledIndex);
     Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
-    if (switchMapBlendCounter)
+    if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
     {
         Color color3 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectA.effectFunction(ledIndex) : currentSecondaryEffectA.effectFunctionHighlight(ledIndex);
         Color color4 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectB.effectFunction(ledIndex) : currentSecondaryEffectB.effectFunctionHighlight(ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
-        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (switchMapBlendCounter / switchMapBlendCounterMax) * UINT16_MAX);
+        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect / millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax) * UINT16_MAX);
     }
     
     return resultColor1;
-    if (switchMapBlendCounter) ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
+    if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect) ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
     else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
-    if (currentScreen & 2) return {ledColorMap[ledIndex].green, ledColorMap[ledIndex].red, ledColorMap[ledIndex].blue};
     return ledColorMap[ledIndex];
 }
 
 void incrementEffectFrame()
 {
-    currentAudioIntensityLevel = getAudioIntensityRatio();
-    incrementBrightnessModeLevels(currentAudioIntensityLevel);
+    incrementBrightnessModeLevels();
     incrementTime();
     incrementTransition();
     incrementColorPalettesTowardsTargets();
@@ -246,11 +244,12 @@ void setupEffects()
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 
-    // effect1.globalBrightnessPointer = normalBrightnessModes[0];
-    // effect2.globalBrightnessPointer = normalBrightnessModes[1];
-    // effect3.globalBrightnessPointer = normalBrightnessModes[2];
-    // effect4.globalBrightnessPointer = normalBrightnessModes[3];
+    effect1.globalBrightnessPointer = normalBrightnessModes[0];
+    effect2.globalBrightnessPointer = normalBrightnessModes[0];
+    effect3.globalBrightnessPointer = normalBrightnessModes[0];
+    effect4.globalBrightnessPointer = normalBrightnessModes[0];
     setupNormalMood(&effectSettings);
+    //setupTestMood(&effectSettings);
     *currentScreenMap = normalScreenMap;
     for (int i = 0; i < 500; i++) randomizeEffectsNaturally();
 
@@ -265,7 +264,6 @@ void setupEffects()
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
 {
     Color newColor = mixingModeBlendFunction(color1, color2, transition);
-    //return newColor;
     if (oldMixingMode == mixingMode || mixingModeBlendCounter == 0) return newColor;
     Color oldColor = oldMixingModeBlendFunction(color1, color2, transition);
     return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * UINT16_MAX);
@@ -274,7 +272,6 @@ inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
 void handleStepDetected()
 {
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenStepIsDetected) randomizeEffectsNaturally();
-    Serial.println("Step detected!");
 }
 
 void handleMovementDetected()
@@ -311,8 +308,9 @@ void pickRandomTimeModesForEffect(Effect *effect, bool pickFromMovementBasedTime
     }
 }
 
-void incrementBrightnessModeLevels(float currentAudioIntensityLevel)
+void incrementBrightnessModeLevels()
 {
+    currentAudioIntensityLevel = getAudioIntensityRatio();
     brightnessModeAudioLevelBasedBrightness = currentAudioIntensityLevel * UINT16_MAX;
     brightnessModeAudioLevelBasedBrightnessBrighter = 32767 + 32767 * currentAudioIntensityLevel;
     brightnessModeAudioLevelBasedBrightnessInverse = 60000 - (currentAudioIntensityLevel * 60000);
@@ -321,19 +319,21 @@ void incrementBrightnessModeLevels(float currentAudioIntensityLevel)
     brightnessModeYawBasedMovement = (UINT16_MAX / 256) * ((getCurrentYawPosition() >> 19) & 0xff);
 }
 
-const float TimeDeltaResolutionIncreaseFactor = 64.0;
+const int TimeDeltaResolutionIncreaseFactor = 64;
 inline void incrementTime()
 {
     int newTime = (int)getTime();
     frameTimeDelta = (newTime - currentTime);
-    int timeDelta = frameTimeDelta * TimeDeltaResolutionIncreaseFactor;
+    int timeDelta = (frameTimeDelta * TimeDeltaResolutionIncreaseFactor) >> 1;
     currentTime = newTime;
     incrementTime(&effect1, timeDelta);
     incrementTime(&effect2, timeDelta);
     incrementTime(&effect3, timeDelta);
     incrementTime(&effect4, timeDelta);
+    #ifdef ENABLE_SERIAL
     Serial.print("ft: ");
     Serial.println(frameTimeDelta);
+    #endif
 }
 
 inline void incrementTime(Effect *effect, int timeDelta)
@@ -359,8 +359,8 @@ inline void incrementTransition()
         oldMixingModeBlendFunction = mixingModeBlendFunction;
     }
 
-    if (switchMapBlendCounter - frameTimeDelta > 0) switchMapBlendCounter -= frameTimeDelta;
-    else switchMapBlendCounter = 0;
+    if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect - frameTimeDelta > 0) millisecondsLeftInTransitionFromSecondaryToPrimaryEffect -= frameTimeDelta;
+    else millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = 0;
 }
 
 void incrementColorPalettesTowardsTargets()
@@ -513,8 +513,8 @@ void swapEffects()
         pickRandomTransformMaps(&effect3, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
         pickRandomTransformMaps(&effect4, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
     }
-    switchMapBlendCounterMax = fastRandomInteger(effectSettings.MillisecondsForEffectTransitionsMinimum, effectSettings.MillisecondsForEffectTransitionsMaximum);
-    switchMapBlendCounter = switchMapBlendCounterMax;
+    millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = fastRandomInteger(effectSettings.MillisecondsForEffectTransitionsMinimum, effectSettings.MillisecondsForEffectTransitionsMaximum);
+    millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax;
 }
 
 void pickRandomTimeModes()

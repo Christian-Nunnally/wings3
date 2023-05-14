@@ -4,7 +4,7 @@
 #include "../Peripherals/microphone.h"
 #include "../Utility/time.h"
 
-#define AUDIO_SAMPLE_BATCH_SIZE     128
+#define AUDIO_SAMPLE_BATCH_SIZE     64
 #define MICROPHONE_SAMPLE_FREQUENCY 16000
 #define MICROPHONE_CHANNELS         1
 #define EMA_FILTER_ALPHA            .25

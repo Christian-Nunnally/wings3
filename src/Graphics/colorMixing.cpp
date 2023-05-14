@@ -2,6 +2,7 @@
 #include "../Utility/fastMath.h"
 #include <Arduino.h>
 
+// time for 100k: 2131
 Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)
 {
   float blendFactorFloat = blendFactor / 65535.0;
@@ -14,12 +15,27 @@ Color blendColorsUsingMixing(Color color1, Color color2, uint16_t blendFactor)
   return {red, green, blue};
 }
 
+// Blending time for 100k: 2275
 Color blendColorsUsingMixing2(Color color1, Color color2, uint16_t blendFactor)
 {
   float blendFactorFloat = blendFactor / 65535.0;
   uint16_t red = sqrt(((1 - blendFactorFloat) * color1.red * color1.red) + (blendFactorFloat * color2.red * color2.red));
   uint16_t green = sqrt(((1 - blendFactorFloat) * color1.green * color1.green) + (blendFactorFloat * color2.green * color2.green));
   uint16_t blue = sqrt(((1 - blendFactorFloat) * color1.blue * color1.blue) + (blendFactorFloat * color2.blue * color2.blue));
+  return {red, green, blue};
+}
+
+// Blending time for 100k: 484
+Color blendColorsUsingMixing3(Color color1, Color color2, uint16_t blendFactor)
+{
+  uint8_t blendFactor8Bit = blendFactor >> 8;
+  uint8_t blendFactorInverse = 255 - blendFactor8Bit;
+  int redResult = ((blendFactorInverse * color1.red * color1.red) >> 8) + ((blendFactor8Bit * color2.red * color2.red) >> 8);
+  int greenResult = ((blendFactorInverse * color1.green * color1.green) >> 8) + ((blendFactor8Bit * color2.green * color2.green) >> 8);
+  int blueResult = ((blendFactorInverse * color1.blue * color1.blue) >> 8) + ((blendFactor8Bit * color2.blue * color2.blue) >> 8);
+  uint16_t red = fastSquareRoot32BitInput(redResult);
+  uint16_t green = fastSquareRoot32BitInput(greenResult);
+  uint16_t blue = fastSquareRoot32BitInput(blueResult);
   return {red, green, blue};
 }
 
