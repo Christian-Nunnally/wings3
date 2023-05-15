@@ -77,9 +77,9 @@ EffectSettings effectSettingsDriving;
 // Mixing Mode variables.
 const int MaxNumberOfMixingModeBlendFunctions = 20;
 int numberOfMixingModeBlendFunctions;
-Color (*mixingModeBlendFunctions[MaxNumberOfMixingModeBlendFunctions])(Color color1, Color color2, uint16_t transitionAmount);
-Color (*mixingModeBlendFunction)(Color color1, Color color2, uint16_t transitionAmount) {};
-Color (*oldMixingModeBlendFunction)(Color color1, Color color2, uint16_t transitionAmount) {};
+Color (*mixingModeBlendFunctions[MaxNumberOfMixingModeBlendFunctions])(Color color1, Color color2, uint8_t transitionAmount);
+Color (*mixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
+Color (*oldMixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
 int mixingMode;
 int oldMixingMode;
 int mixingModeBlendCounter;
@@ -155,7 +155,7 @@ Color getLedColorForFrame(int ledIndex)
         Color color3 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectA.effectFunction(ledIndex) : currentSecondaryEffectA.effectFunctionHighlight(ledIndex);
         Color color4 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectB.effectFunction(ledIndex) : currentSecondaryEffectB.effectFunctionHighlight(ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
-        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect / millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax) * UINT16_MAX);
+        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect / millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax) * UINT8_MAX);
     }
     
     return resultColor1;
@@ -345,7 +345,7 @@ inline void incrementTime(Effect *effect, int timeDelta)
 inline void incrementTransition()
 {
     int incrementAmount = currentTransitionIncrement * frameTimeDelta;
-    if (transitionDirection && UINT16_MAX - transition > incrementAmount) transition += incrementAmount;
+    if (transitionDirection && UINT8_MAX - transition > incrementAmount) transition += incrementAmount;
     else if (transition > incrementAmount) transition -= incrementAmount;
 
     if (mixingModeBlendCounter) 
@@ -628,7 +628,7 @@ void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, byte likeli
 
 void pickRandomTransitionTime()
 {
-    currentTransitionIncrement = UINT16_MAX / fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
+    currentTransitionIncrement = UINT8_MAX / fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
 }
 
 void switchTransitionDirection()

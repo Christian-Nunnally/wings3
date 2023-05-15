@@ -1,7 +1,12 @@
 
 #include "../Utility/fastMath.h"
 
-uint16_t fastSquareRoot32BitInput(int input)
+uint8_t fastSquareRoot16BitInput(uint16_t input)
 {
-    return squareRootMapFor14MsbOf32BitInputs[input >> 18];
+    return squareRootMapFor14MsbOf16BitInput[input >> 2];
+}
+
+uint8_t fastSquareRootOnlyProvide14MsbOf16BitInput(uint16_t input)
+{
+    return squareRootMapFor14MsbOf16BitInput[input];
 }

@@ -70,7 +70,6 @@ Color fireworksEffect(int pixelIndex, Effect *effect, int frameDelta, int firewo
       if (angle % (fireworkTypes[firework]) < (fireworkTypes[firework] >> 1))
       {
         return colorFromPalette(effect->currentPaletteOffset + color8Bit, (*effect->globalBrightnessPointer));
-        return {65535, 0, 0};
       }
     }
     if (size > 80)
@@ -80,7 +79,6 @@ Color fireworksEffect(int pixelIndex, Effect *effect, int frameDelta, int firewo
         if (angle % (fireworkTypes[firework]) < (fireworkTypes[firework] >> 1))
         {
           return colorFromPalette(effect->currentPaletteOffset + color8Bit, (*effect->globalBrightnessPointer));
-          return {65535, 0, 0};
         }
       }
     }
