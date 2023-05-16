@@ -27,7 +27,7 @@ const uint32_t gamma_lut[256] = {
 
 int lastTimeFireMovedUp = 0;
 const int FireMovementFrameSpeed = 50;
-Color fireEffect(int pixelIndex, Effect *effect, int frameDelta, int flameDecay, int sparks)
+Color fireEffect(int pixelIndex, Effect *effect, int flameDecay, int sparks)
 {
     static uint16_t heat1[TOTAL_LEDS];
     static uint16_t heat2[TOTAL_LEDS];
@@ -57,8 +57,8 @@ Color fireEffect(int pixelIndex, Effect *effect, int frameDelta, int flameDecay,
         }
         currentHeatBackBuffer = !currentHeatBackBuffer;
       }
-      cooldown = fastRandomInteger(flameDecay * frameDelta);
-      lastTimeFireMovedUp += frameDelta;
+      cooldown = fastRandomInteger(flameDecay * *(effect->frameTimeDelta));
+      lastTimeFireMovedUp += *(effect->frameTimeDelta);
       if (lastTimeFireMovedUp > FireMovementFrameSpeed)
       {
         lastTimeFireMovedUp = 0;
@@ -69,7 +69,7 @@ Color fireEffect(int pixelIndex, Effect *effect, int frameDelta, int flameDecay,
     if(cooldown > (*heatAPointer)[pixelIndex]) (*heatAPointer)[pixelIndex] = 0;
     else (*heatAPointer)[pixelIndex] -= cooldown;
 
-    if ((isBottomLed[pixelIndex] != -1) && fastRandomInteger(30000) < sparks * frameDelta) 
+    if ((isBottomLed[pixelIndex] != -1) && fastRandomInteger(30000) < sparks * *(effect->frameTimeDelta)) 
     {
       (*heatAPointer)[pixelIndex] = (uint16_t)fastRandomInteger(30000) + 35535;
     }

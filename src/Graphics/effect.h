@@ -12,8 +12,9 @@ typedef struct
     uint8_t const *transformMap1[272];
     uint8_t const *transformMap2[272];
 
-    uint16_t *globalBrightnessPointer;
+    uint8_t *globalBrightnessPointer;
 
+    int *frameTimeDelta;
     int time1;
     int time2;
 

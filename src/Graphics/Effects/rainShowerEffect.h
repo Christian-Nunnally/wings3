@@ -5,6 +5,6 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
-Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta);
+Color rainShowerEffect(int pixelIndex, Effect *effect);
 
 #endif

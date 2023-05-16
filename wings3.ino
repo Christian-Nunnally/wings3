@@ -29,7 +29,7 @@ void loop()
   // int time = millis();
   // for (int i = 0; i < 100000; i++)
   // {
-  //   blendColorsUsingMixing3({(uint16_t)fastRandomInteger(65536), (uint16_t)fastRandomInteger(65536), (uint16_t)fastRandomInteger(65536)}, {(uint16_t)fastRandomInteger(65536), (uint16_t)fastRandomInteger(65536), (uint16_t)fastRandomInteger(65536)}, (uint16_t)fastRandomInteger(65536));
+  //   blendColorsUsingMixing({(uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255)}, {(uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255)}, (uint8_t)fastRandomInteger(255));
   // }
   // int newTime = millis();
   // Serial.print("Blending time for 100k: ");

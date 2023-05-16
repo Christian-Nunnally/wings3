@@ -7,10 +7,10 @@
 
 Color currentLedColorMap[TOTAL_LEDS];
 
-Color meteorRainEffect(int pixelIndex, Effect *effect, int frameDelta, float meteorTrailDecay)
+Color meteorRainEffect(int pixelIndex, Effect *effect, float meteorTrailDecay)
 {
   uint32_t projectionMap1FrameWrapping = effect->time1 % (256 + effect->size * 10);
-  if (fastRandomInteger(90) < frameDelta)
+  if (fastRandomInteger(90) < *(effect->frameTimeDelta))
   {
     currentLedColorMap[pixelIndex] = fadeColorToBlack(currentLedColorMap[pixelIndex], meteorTrailDecay );        
   }
@@ -25,11 +25,11 @@ Color meteorRainEffect(int pixelIndex, Effect *effect, int frameDelta, float met
   return currentLedColorMap[pixelIndex];
 }
 
-Color meteorRainEffect2(int pixelIndex, Effect *effect, int frameDelta, float meteorTrailDecay)
+Color meteorRainEffect2(int pixelIndex, Effect *effect, float meteorTrailDecay)
 {
   uint32_t projectionMap1FrameWrapping = effect->time1 % (256 + effect->size * 10);
   uint32_t projectionMap2FrameWrapping = effect->time2 % (256 + effect->size * 10);
-  if (fastRandomInteger(90) < frameDelta)
+  if (fastRandomInteger(90) < *(effect->frameTimeDelta))
   {
     currentLedColorMap[pixelIndex] = fadeColorToBlack(currentLedColorMap[pixelIndex], meteorTrailDecay );        
   }

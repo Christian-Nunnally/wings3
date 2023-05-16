@@ -5,7 +5,7 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
-Color meteorRainEffect(int pixelIndex, Effect *effect, int frameDelta, float meteorTrailDecay);
-Color meteorRainEffect2(int pixelIndex, Effect *effect, int frameDelta, float meteorTrailDecay);
+Color meteorRainEffect(int pixelIndex, Effect *effect, float meteorTrailDecay);
+Color meteorRainEffect2(int pixelIndex, Effect *effect, float meteorTrailDecay);
 
 #endif

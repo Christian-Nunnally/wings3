@@ -5,6 +5,6 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
-Color fireEffect(int pixelIndex, Effect *effect, int frameDelta, int flameDecay, int sparks);
+Color fireEffect(int pixelIndex, Effect *effect, int flameDecay, int sparks);
 
 #endif

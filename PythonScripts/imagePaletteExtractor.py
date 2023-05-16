@@ -66,13 +66,16 @@ print("#ifndef PALETTES_H")
 print("#define PALETTES_H")
 print()
 print("#include <pgmspace.h>")
+print("#include \"../Graphics/color.h\"")
 print()
 print(f"#define TOTAL_NUMBER_OF_PALETTES {len(paletteHeights)}")
 print(f"#define PALETTE_LENGTH {paletteWidth}")
+print()
+print("Color colorFromPalette(int index, uint8_t brightness);")
 print()
 printPaletteCode(colors)
 print()
 print("#endif")
 
-# run with: python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ | out-file -encoding ASCII palettes.h
+# run with: python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ | out-file -encoding ASCII src/Graphics/palettes.h
 # run with: python .\PythonScripts\imagePaletteExtractor.py .\PalettesMinimal\ | out-file -encoding ASCII palettesMinimal.h

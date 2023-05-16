@@ -12,9 +12,9 @@ int colorOrbs[MaxNumberOfColorOrbs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 float colorOrbFlashSpeed[MaxNumberOfColorOrbs];
 float colorOrbRadii[MaxNumberOfColorOrbs];
 int colorOrbColor[MaxNumberOfColorOrbs];
-Color expandingColorOrbEffect(int pixelIndex, Effect *effect, int frameDelta)
+Color expandingColorOrbEffect(int pixelIndex, Effect *effect)
 {
-  if (fastRandomInteger(1000) < frameDelta * 2)
+  if (fastRandomInteger(1000) < *(effect->frameTimeDelta) * 2)
   {
     for (int i = 0; i < MaxNumberOfColorOrbs; i++)
     {
@@ -35,7 +35,7 @@ Color expandingColorOrbEffect(int pixelIndex, Effect *effect, int frameDelta)
     if (colorOrbs[i] == -1) continue;
     if (colorOrbs[i] == pixelIndex)
     {
-      colorOrbRadii[i] += colorOrbFlashSpeed[i] * frameDelta;
+      colorOrbRadii[i] += colorOrbFlashSpeed[i] * *(effect->frameTimeDelta);
       if (colorOrbRadii[i] > MaxColorOrbRadius)
       {
           colorOrbRadii[i] = 0;

@@ -12,7 +12,7 @@ float rainDropXPositions[256];
 float rainDropXVelocities[256];
 bool doesLedHaveWater[TOTAL_LEDS];
 const float rainDropGravity = .0002;
-Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta)
+Color rainShowerEffect(int pixelIndex, Effect *effect)
 {
   (*effect->transformMap1) = normalTransformMapY;
   (*effect->transformMap2) = normalTransformMapX;
@@ -21,19 +21,19 @@ Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta)
   {
     if (!isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]])
     {
-      if (fastRandomInteger(5000) < frameDelta + (rainDropChanceBoost / 4))
+      if (fastRandomInteger(5000) < *(effect->frameTimeDelta) + (rainDropChanceBoost / 4))
       {
         isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]] = true;
         rainDropXPositions[(*effect->transformMap2)[pixelIndex]] = -effect->size;
         rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] = 0;
       }
-      if (rainDropChanceBoost != 0) rainDropChanceBoost -= frameDelta;
+      if (rainDropChanceBoost != 0) rainDropChanceBoost -= *(effect->frameTimeDelta);
       if (rainDropChanceBoost < 0) rainDropChanceBoost = 0;
     }
     else 
     {
-      rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] += rainDropGravity * frameDelta;
-      rainDropXPositions[(*effect->transformMap2)[pixelIndex]] += rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] * frameDelta;
+      rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] += rainDropGravity * *(effect->frameTimeDelta);
+      rainDropXPositions[(*effect->transformMap2)[pixelIndex]] += rainDropXVelocities[(*effect->transformMap2)[pixelIndex]] * *(effect->frameTimeDelta);
       if (rainDropXPositions[(*effect->transformMap2)[pixelIndex]] > 300)
       {
         isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]] = false;
@@ -66,7 +66,7 @@ Color rainShowerEffect(int pixelIndex, Effect *effect, int frameDelta)
   }
   if (doesLedHaveWater[pixelIndex]) 
   {
-    if (fastRandomInteger(150) < frameDelta)
+    if (fastRandomInteger(150) < *(effect->frameTimeDelta))
     {
       doesLedHaveWater[pixelIndex] = false;
       if (fastRandomInteger(6) > 1)

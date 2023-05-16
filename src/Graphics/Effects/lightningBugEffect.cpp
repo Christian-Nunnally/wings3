@@ -17,9 +17,9 @@ uint16_t lightningBugsBrightnessTarget[MaxNumberOfLightningBugs];
 float lightningBugFlashSpeed[MaxNumberOfLightningBugs];
 float lightningBugRadii[MaxNumberOfLightningBugs];
 float lightningBugRadiiTarget[MaxNumberOfLightningBugs];
-Color lightningBugEffect(int pixelIndex, Effect *effect, int frameDelta)
+Color lightningBugEffect(int pixelIndex, Effect *effect)
 {
-  if (fastRandomInteger(30000) < frameDelta * 2)
+  if (fastRandomInteger(30000) < *(effect->frameTimeDelta) * 2)
   {
     for (int i = 0; i < MaxNumberOfLightningBugs; i++)
     {
@@ -39,8 +39,8 @@ Color lightningBugEffect(int pixelIndex, Effect *effect, int frameDelta)
     if (lightningBugs[i] == -1) continue;
     if (lightningBugs[i] == pixelIndex)
     {
-      lightningBugsBrightness[i] += (lightningBugsBrightnessTarget[i] - lightningBugsBrightness[i]) * lightningBugFlashSpeed[i] * frameDelta;
-      lightningBugRadii[i] += (lightningBugRadiiTarget[i] - lightningBugRadii[i]) * lightningBugFlashSpeed[i] * frameDelta;
+      lightningBugsBrightness[i] += (lightningBugsBrightnessTarget[i] - lightningBugsBrightness[i]) * lightningBugFlashSpeed[i] * *(effect->frameTimeDelta);
+      lightningBugRadii[i] += (lightningBugRadiiTarget[i] - lightningBugRadii[i]) * lightningBugFlashSpeed[i] * *(effect->frameTimeDelta);
       if (abs(lightningBugsBrightnessTarget[i] - lightningBugsBrightness[i]) < 3000)
       {
           if (lightningBugsBrightnessTarget[i] == 0)

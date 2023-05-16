@@ -11,11 +11,11 @@ uint16_t starShimmerColorMap[TOTAL_LEDS];
 uint16_t starShimmerTwinkleMap[TOTAL_LEDS];
 uint16_t starShimmerTwinklePersistanceMap[TOTAL_LEDS];
 bool starShimmerTwinkleDirectionMap[TOTAL_LEDS];
-Color starFieldEffect(int pixelIndex, Effect *effect, int frameDelta, int fadeAmount, uint16_t newStarLikelihood) 
+Color starFieldEffect(int pixelIndex, Effect *effect, int fadeAmount, uint16_t newStarLikelihood) 
 {
   if (pixelIndex == 0)
   {
-    if (fastRandomInteger(10000) < newStarLikelihood * frameDelta)
+    if (fastRandomInteger(10000) < newStarLikelihood * *(effect->frameTimeDelta))
     {
       int chosenLed = fastRandomInteger(TOTAL_LEDS);
       starShimmerCurrentTargetValueMap[chosenLed] = fastRandomInteger((*effect->globalBrightnessPointer));
@@ -31,9 +31,9 @@ Color starFieldEffect(int pixelIndex, Effect *effect, int frameDelta, int fadeAm
   {
     if(starShimmerMap[pixelIndex] < starShimmerCurrentTargetValueMap[pixelIndex])
     {
-      if (starShimmerMap[pixelIndex] + starShimmerSpeedMap[pixelIndex] * frameDelta < starShimmerCurrentTargetValueMap[pixelIndex])
+      if (starShimmerMap[pixelIndex] + starShimmerSpeedMap[pixelIndex] * *(effect->frameTimeDelta) < starShimmerCurrentTargetValueMap[pixelIndex])
       {
-        starShimmerMap[pixelIndex] += starShimmerSpeedMap[pixelIndex] * frameDelta;
+        starShimmerMap[pixelIndex] += starShimmerSpeedMap[pixelIndex] * *(effect->frameTimeDelta);
       }
       else 
       {
@@ -46,9 +46,9 @@ Color starFieldEffect(int pixelIndex, Effect *effect, int frameDelta, int fadeAm
     }
     else 
     {
-      if (starShimmerMap[pixelIndex] > starShimmerSpeedMap[pixelIndex] * frameDelta)
+      if (starShimmerMap[pixelIndex] > starShimmerSpeedMap[pixelIndex] * *(effect->frameTimeDelta))
       {
-        starShimmerMap[pixelIndex] -= starShimmerSpeedMap[pixelIndex] * frameDelta;
+        starShimmerMap[pixelIndex] -= starShimmerSpeedMap[pixelIndex] * *(effect->frameTimeDelta);
       }
       else 
       {

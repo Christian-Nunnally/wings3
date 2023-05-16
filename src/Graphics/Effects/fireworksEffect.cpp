@@ -14,15 +14,15 @@ float fireworkStarSizes[MaxNumberOfFireworks];
 bool fireworkIsActive[MaxNumberOfFireworks];
 uint16_t fireworkCenterPixel[MaxNumberOfFireworks];
 
-Color fireworksEffect(int pixelIndex, Effect *effect, int frameDelta, int fireworkProbability)
+Color fireworksEffect(int pixelIndex, Effect *effect, int fireworkProbability)
 {
   if (pixelIndex == 0)
   {
     for (int firework = 0; firework < MaxNumberOfFireworks; firework++)
     {
       if (!fireworkIsActive[firework]) continue;
-      fireworkSizes[firework] += (fireworkVelocities[firework] / 5000.0) * frameDelta;
-      if (fireworkVelocities[firework] > frameDelta) fireworkVelocities[firework] -= frameDelta;
+      fireworkSizes[firework] += (fireworkVelocities[firework] / 5000.0) * *(effect->frameTimeDelta);
+      if (fireworkVelocities[firework] > *(effect->frameTimeDelta)) fireworkVelocities[firework] -= *(effect->frameTimeDelta);
       else 
       {
         fireworkVelocities[firework] = 0;
@@ -31,7 +31,7 @@ Color fireworksEffect(int pixelIndex, Effect *effect, int frameDelta, int firewo
       }
     }
 
-    if (currentNumberOfFireworks < MaxNumberOfFireworks && fastRandomInteger(30000) < frameDelta * fireworkProbability)
+    if (currentNumberOfFireworks < MaxNumberOfFireworks && fastRandomInteger(30000) < *(effect->frameTimeDelta) * fireworkProbability)
     {
         int emptyIndex;
         for (int firework = 0; firework < MaxNumberOfFireworks; firework++)

@@ -2,7 +2,7 @@
 #include "../Utility/fastMath.h"
 #include <Arduino.h>
 
-// time for 100k: 2131
+// time for 100k: 600
 Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor)
 {
   uint8_t inverseBlendFactor = UINT8_MAX - blendFactor;

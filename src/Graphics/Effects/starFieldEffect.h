@@ -5,6 +5,6 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
-Color starFieldEffect(int pixelIndex, Effect *effect, int frameDelta, int fadeAmount, uint16_t newStarLikelihood);
+Color starFieldEffect(int pixelIndex, Effect *effect, int fadeAmount, uint16_t newStarLikelihood);
 
 #endif

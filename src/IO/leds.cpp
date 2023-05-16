@@ -13,8 +13,8 @@
 #define TEMPORAL_DITHERING_AMOUNT   4
 #define DOUBLE_BUFFER               true
 #define PIO_CONTROLLER              pio1
-#define GAMMA                       2.6
-#define MAX_DUTY_CYCLE              65535
+#define GAMMA                       2
+#define MAX_DUTY_CYCLE              65535 / 2
 static int8_t LED_PINS[8] =         {0,1,2,3,4,5,6,7};
 
 Adafruit_NeoPXL8HDR ledDisplay(LED_COUNT_PER_PIN, LED_PINS, COLOR_ORDER);
@@ -38,14 +38,12 @@ void renderLeds()
     for(; pixelIndex < LED_COUNT_PER_PIN; pixelIndex++) 
     {
       Color color = getLedColorForFrame(pixelIndex);
-      //ledDisplay.set16(START_LED_OFFSET + pixelIndex, color.green, color.blue, color.red);
-      ledDisplay.setPixelColor(START_LED_OFFSET + pixelIndex, color.green >> 8, color.blue >> 8, color.red >> 8);
+      ledDisplay.setPixelColor(START_LED_OFFSET + pixelIndex, color.green, color.blue, color.red);
     }
     for(; pixelIndex < LED_COUNT_PER_PIN * 2; pixelIndex++) 
     {
       Color color = getLedColorForFrame(pixelIndex - LED_COUNT_PER_PIN);
-      //ledDisplay.set16(START_LED_OFFSET + pixelIndex, color.red, color.green, color.blue);
-      ledDisplay.setPixelColor(START_LED_OFFSET + pixelIndex, color.red >> 8, color.green >> 8, color.blue >> 8);
+      ledDisplay.setPixelColor(START_LED_OFFSET + pixelIndex, color.red, color.green, color.blue);
     }
   }
   ledDisplay.show();
