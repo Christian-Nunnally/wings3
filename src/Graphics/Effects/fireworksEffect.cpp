@@ -14,45 +14,45 @@ float fireworkStarSizes[MaxNumberOfFireworks];
 bool fireworkIsActive[MaxNumberOfFireworks];
 uint16_t fireworkCenterPixel[MaxNumberOfFireworks];
 
-Color fireworksEffect(int pixelIndex, Effect *effect, int fireworkProbability)
+void incrementFireworksEffect(Effect *effect, int fireworkProbability)
 {
-  if (pixelIndex == 0)
+  for (int firework = 0; firework < MaxNumberOfFireworks; firework++)
   {
-    for (int firework = 0; firework < MaxNumberOfFireworks; firework++)
+    if (!fireworkIsActive[firework]) continue;
+    fireworkSizes[firework] += (fireworkVelocities[firework] / 5000.0) * *(effect->frameTimeDelta);
+    if (fireworkVelocities[firework] > *(effect->frameTimeDelta)) fireworkVelocities[firework] -= *(effect->frameTimeDelta);
+    else 
     {
-      if (!fireworkIsActive[firework]) continue;
-      fireworkSizes[firework] += (fireworkVelocities[firework] / 5000.0) * *(effect->frameTimeDelta);
-      if (fireworkVelocities[firework] > *(effect->frameTimeDelta)) fireworkVelocities[firework] -= *(effect->frameTimeDelta);
-      else 
-      {
-        fireworkVelocities[firework] = 0;
-        fireworkIsActive[firework] = false;
-        currentNumberOfFireworks--;
-      }
-    }
-
-    if (currentNumberOfFireworks < MaxNumberOfFireworks && fastRandomInteger(30000) < *(effect->frameTimeDelta) * fireworkProbability)
-    {
-        int emptyIndex;
-        for (int firework = 0; firework < MaxNumberOfFireworks; firework++)
-        {
-          if (!fireworkIsActive[firework])
-          {
-            emptyIndex = firework;
-            break;
-          }
-        }
-
-        fireworkIsActive[emptyIndex] = true;
-        fireworkSizes[emptyIndex] = 0;
-        fireworkTypes[emptyIndex] = 20;
-        fireworkCenterPixel[emptyIndex] = fastRandomInteger(TOTAL_LEDS);
-        fireworkVelocities[emptyIndex] = 1000;
-        fireworkStarSizes[emptyIndex] = fastRandomInteger(25) + 5;
-        currentNumberOfFireworks++;
+      fireworkVelocities[firework] = 0;
+      fireworkIsActive[firework] = false;
+      currentNumberOfFireworks--;
     }
   }
 
+  if (currentNumberOfFireworks < MaxNumberOfFireworks && fastRandomInteger(30000) < *(effect->frameTimeDelta) * fireworkProbability)
+  {
+      int emptyIndex;
+      for (int firework = 0; firework < MaxNumberOfFireworks; firework++)
+      {
+        if (!fireworkIsActive[firework])
+        {
+          emptyIndex = firework;
+          break;
+        }
+      }
+
+      fireworkIsActive[emptyIndex] = true;
+      fireworkSizes[emptyIndex] = 0;
+      fireworkTypes[emptyIndex] = 20;
+      fireworkCenterPixel[emptyIndex] = fastRandomInteger(TOTAL_LEDS);
+      fireworkVelocities[emptyIndex] = 1000;
+      fireworkStarSizes[emptyIndex] = fastRandomInteger(25) + 5;
+      currentNumberOfFireworks++;
+  }
+}
+
+Color fireworksEffect(int pixelIndex, Effect *effect)
+{
   for (int firework = 0; firework < MaxNumberOfFireworks; firework++)
   {
     if (!fireworkIsActive[firework]) continue;

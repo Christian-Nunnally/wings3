@@ -5,6 +5,7 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
+void incrementExpandingColorOrbEffect(Effect *effect);
 Color expandingColorOrbEffect(int pixelIndex, Effect *effect);
 
 #endif

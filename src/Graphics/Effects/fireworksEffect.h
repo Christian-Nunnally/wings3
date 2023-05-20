@@ -5,6 +5,7 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
-Color fireworksEffect(int pixelIndex, Effect *effect, int fireworkProbability);
+void incrementFireworksEffect(Effect *effect, int fireworkProbability);
+Color fireworksEffect(int pixelIndex, Effect *effect);
 
 #endif

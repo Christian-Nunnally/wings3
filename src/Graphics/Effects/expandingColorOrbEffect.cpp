@@ -12,22 +12,26 @@ int colorOrbs[MaxNumberOfColorOrbs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 float colorOrbFlashSpeed[MaxNumberOfColorOrbs];
 float colorOrbRadii[MaxNumberOfColorOrbs];
 int colorOrbColor[MaxNumberOfColorOrbs];
-Color expandingColorOrbEffect(int pixelIndex, Effect *effect)
+
+void incrementExpandingColorOrbEffect(Effect *effect)
 {
-  if (fastRandomInteger(1000) < *(effect->frameTimeDelta) * 2)
+  if (fastRandomInteger(100) < *(effect->frameTimeDelta))
   {
     for (int i = 0; i < MaxNumberOfColorOrbs; i++)
     {
       if (colorOrbs[i] == -1)
       {
-        colorOrbs[i] = pixelIndex;
+        colorOrbs[i] = fastRandomInteger(TOTAL_LEDS);
         colorOrbFlashSpeed[i] = 0.001 * (MinColorOrbFlashSpeed + fastRandomInteger(MaxColorOrbFlashSpeed - MinColorOrbFlashSpeed));
         colorOrbRadii[i] = 0;
         colorOrbColor[i] = effect->currentPaletteOffset + fastRandomByte();
       }
     }
   }
+}
 
+Color expandingColorOrbEffect(int pixelIndex, Effect *effect)
+{
   int closestOrb = -1;
   int closestDistance = 300;
   for (int i = 0; i < MaxNumberOfColorOrbs; i++)

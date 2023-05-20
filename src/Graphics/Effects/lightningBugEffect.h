@@ -5,6 +5,7 @@
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 
+void incrementLightningBugEffect(Effect *effect);
 Color lightningBugEffect(int pixelIndex, Effect *effect);
 
 #endif

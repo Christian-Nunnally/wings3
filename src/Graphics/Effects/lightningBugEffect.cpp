@@ -17,23 +17,26 @@ uint16_t lightningBugsBrightnessTarget[MaxNumberOfLightningBugs];
 float lightningBugFlashSpeed[MaxNumberOfLightningBugs];
 float lightningBugRadii[MaxNumberOfLightningBugs];
 float lightningBugRadiiTarget[MaxNumberOfLightningBugs];
-Color lightningBugEffect(int pixelIndex, Effect *effect)
+void incrementLightningBugEffect(Effect *effect)
 {
-  if (fastRandomInteger(30000) < *(effect->frameTimeDelta) * 2)
+  if (fastRandomInteger(120) < *(effect->frameTimeDelta))
   {
     for (int i = 0; i < MaxNumberOfLightningBugs; i++)
     {
       if (lightningBugs[i] == -1)
       {
-        lightningBugs[i] = pixelIndex;
+        lightningBugs[i] = fastRandomInteger(TOTAL_LEDS);
         lightningBugsBrightnessTarget[i] = MinLightningBugBrightnessTarget + fastRandomInteger(MaxLightningBugBrightnessTarget - MinLightningBugBrightnessTarget);
         lightningBugRadiiTarget[i] = MinLightningBugRadius + fastRandomInteger(MaxLightningBugRadius - MinLightningBugRadius);
         lightningBugFlashSpeed[i] = 0.001 * (MinLightningBugFlashSpeed + fastRandomInteger(MaxLightningBugFlashSpeed - MinLightningBugFlashSpeed));
         lightningBugRadii[i] = fastRandomInteger(lightningBugRadiiTarget[i] / 2);
       }
     }
-  }
+  }  
+}
 
+Color lightningBugEffect(int pixelIndex, Effect *effect)
+{
   for (int i = 0; i < MaxNumberOfLightningBugs; i++)
   {
     if (lightningBugs[i] == -1) continue;

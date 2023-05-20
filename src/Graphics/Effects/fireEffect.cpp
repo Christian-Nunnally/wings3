@@ -27,45 +27,45 @@ const uint32_t gamma_lut[256] = {
 
 int lastTimeFireMovedUp = 0;
 const int FireMovementFrameSpeed = 50;
-Color fireEffect(int pixelIndex, Effect *effect, int flameDecay, int sparks)
+static uint16_t heat1[TOTAL_LEDS];
+static uint16_t heat2[TOTAL_LEDS];
+static uint16_t* heatAPointer[TOTAL_LEDS];
+static uint16_t* heatBPointer[TOTAL_LEDS];
+static int cooldown;
+static bool shouldFireMoveUpThisFrame;
+static bool currentHeatBackBuffer;
+
+void incrementFireEffect(Effect *effect, int flameDecay)
 {
-    static uint16_t heat1[TOTAL_LEDS];
-    static uint16_t heat2[TOTAL_LEDS];
-    static uint16_t* heatAPointer[TOTAL_LEDS];
-    static uint16_t* heatBPointer[TOTAL_LEDS];
-    static int cooldown;
-    static bool shouldFireMoveUpThisFrame;
-    static bool currentHeatBackBuffer;
+  (*effect->transformMap1) = normalTransformMapX;
+  (*effect->transformMap2) = normalTransformMapY;
 
-    if (pixelIndex == 0)
+  if (shouldFireMoveUpThisFrame) 
+  {
+    shouldFireMoveUpThisFrame = false;
+    if (currentHeatBackBuffer)
     {
-      (*effect->transformMap1) = normalTransformMapX;
-      (*effect->transformMap2) = normalTransformMapY;
-
-      if (shouldFireMoveUpThisFrame) 
-      {
-        shouldFireMoveUpThisFrame = false;
-        if (currentHeatBackBuffer)
-        {
-          *heatAPointer = heat1;
-          *heatBPointer = heat2;
-        }
-        else 
-        {
-          *heatAPointer = heat2;
-          *heatBPointer = heat1;
-        }
-        currentHeatBackBuffer = !currentHeatBackBuffer;
-      }
-      cooldown = fastRandomInteger(flameDecay * *(effect->frameTimeDelta));
-      lastTimeFireMovedUp += *(effect->frameTimeDelta);
-      if (lastTimeFireMovedUp > FireMovementFrameSpeed)
-      {
-        lastTimeFireMovedUp = 0;
-        shouldFireMoveUpThisFrame = true;
-      }
+      *heatAPointer = heat1;
+      *heatBPointer = heat2;
     }
+    else 
+    {
+      *heatAPointer = heat2;
+      *heatBPointer = heat1;
+    }
+    currentHeatBackBuffer = !currentHeatBackBuffer;
+  }
+  cooldown = fastRandomInteger(flameDecay * *(effect->frameTimeDelta));
+  lastTimeFireMovedUp += *(effect->frameTimeDelta);
+  if (lastTimeFireMovedUp > FireMovementFrameSpeed)
+  {
+    lastTimeFireMovedUp = 0;
+    shouldFireMoveUpThisFrame = true;
+  }
+}
 
+Color fireEffect(int pixelIndex, Effect *effect, int sparks)
+{
     if(cooldown > (*heatAPointer)[pixelIndex]) (*heatAPointer)[pixelIndex] = 0;
     else (*heatAPointer)[pixelIndex] -= cooldown;
 

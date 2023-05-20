@@ -13,10 +13,10 @@
 
 int getRandomEffectNumberFromAllowedEffects();
 
-Effect effect1;
-Effect effect2;
-Effect effect3;
-Effect effect4;
+Effect effectA1;
+Effect effectB1;
+Effect effectA2;
+Effect effectB2;
 
 EffectSettings effectSettings;
 
@@ -27,66 +27,272 @@ void setAudioIntensityLevel(float level)
     currentAudioIntensityLevel = level;
 }
 
-void pickRandomEffects()
-{
-    int effectSelection = getRandomEffectNumberFromAllowedEffects();
-    if (effectSelection == 0) effect1.effectFunction = [](int index) { return meteorRainEffect2(index, &effect1, .12); };
-    else if (effectSelection == 1) effect1.effectFunction = [](int index) { return meteorRainEffect(index, &effect1, .12); };
-    else if (effectSelection == 2) effect1.effectFunction = [](int index) { return meteorRainEffect2(index, &effect1, .12); };
-    else if (effectSelection == 3) effect1.effectFunction = [](int index) { return starFieldEffect(index, &effect1, 20, 200); };
-    else if (effectSelection == 4) effect1.effectFunction = [](int index) { return gradientWaveEffect(index, &effect1); };
-    else if (effectSelection == 5) effect1.effectFunction = [](int index) { return rainShowerEffect(index, &effect1); };
-    else if (effectSelection == 6) effect1.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect1); };
-    else if (effectSelection == 7) effect1.effectFunction = [](int index) { return lightningBugEffect(index, &effect1); };
-    else if (effectSelection == 8) effect1.effectFunction = [](int index) { return fireEffect(index, &effect1, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
-    else if (effectSelection == 9) effect1.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect1); };
-    else if (effectSelection == 10) effect1.effectFunction = [](int index) { return fireworksEffect(index, &effect1, 40); };
-    else if (effectSelection == 11) effect1.effectFunction = [](int index) { return lightChaseEffect(index, &effect1, 5); };
-    else effect1.effectFunction = [](int index) { return gradientWaveEffect(index, &effect1); };
-    if (effectSelection == 0) effect3.effectFunction = [](int index) { return meteorRainEffect2(index, &effect3, .12); };
-    else if (effectSelection == 1) effect3.effectFunction = [](int index) { return meteorRainEffect(index, &effect3, .12); };
-    else if (effectSelection == 2) effect3.effectFunction = [](int index) { return meteorRainEffect2(index, &effect3, .12); };
-    else if (effectSelection == 3) effect3.effectFunction = [](int index) { return starFieldEffect(index, &effect3, 16, 120); };
-    else if (effectSelection == 4) effect3.effectFunction = [](int index) { return gradientWaveEffect(index, &effect3); };
-    else if (effectSelection == 5) effect3.effectFunction = [](int index) { return rainShowerEffect(index, &effect3); };
-    else if (effectSelection == 6) effect3.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect3); };
-    else if (effectSelection == 7) effect3.effectFunction = [](int index) { return lightningBugEffect(index, &effect3); };
-    else if (effectSelection == 8) effect3.effectFunction = [](int index) { return fireEffect(index, &effect3, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
-    else if (effectSelection == 9) effect3.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect3); };
-    else if (effectSelection == 10) effect3.effectFunction = [](int index) { return fireworksEffect(index, &effect3, 40); };
-    else if (effectSelection == 11) effect3.effectFunction = [](int index) { return lightChaseEffect(index, &effect3, 4); };
-    else effect3.effectFunction = [](int index) { return gradientWaveEffect(index, &effect3); };
-    effectSelection = getRandomEffectNumberFromAllowedEffects();
-    if (effectSelection == 0) effect2.effectFunction = [](int index) { return meteorRainEffect2(index, &effect2, .12); };
-    else if (effectSelection == 1) effect2.effectFunction = [](int index) { return meteorRainEffect(index, &effect2, .12); };
-    else if (effectSelection == 2) effect2.effectFunction = [](int index) { return meteorRainEffect2(index, &effect2, .12); };
-    else if (effectSelection == 3) effect2.effectFunction = [](int index) { return starFieldEffect(index, &effect2, 16, 180); };
-    else if (effectSelection == 4) effect2.effectFunction = [](int index) { return gradientWaveEffect(index, &effect2); };
-    else if (effectSelection == 5) effect2.effectFunction = [](int index) { return rainShowerEffect(index, &effect2); };
-    else if (effectSelection == 6) effect2.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect2); };
-    else if (effectSelection == 7) effect2.effectFunction = [](int index) { return lightningBugEffect(index, &effect2); };
-    else if (effectSelection == 8) effect2.effectFunction = [](int index) { return fireEffect(index, &effect2, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
-    else if (effectSelection == 9) effect2.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect2); };
-    else if (effectSelection == 10) effect2.effectFunction = [](int index) { return fireworksEffect(index, &effect2, 40); };
-    else if (effectSelection == 11) effect2.effectFunction = [](int index) { return lightChaseEffect(index, &effect2, 3); };
-    else effect2.effectFunction = [](int index) { return gradientWaveEffect(index, &effect2); };
-    if (effectSelection == 0) effect4.effectFunction = [](int index) { return meteorRainEffect2(index, &effect4, .12); };
-    else if (effectSelection == 1) effect4.effectFunction = [](int index) { return meteorRainEffect(index, &effect4, .12); };
-    else if (effectSelection == 2) effect4.effectFunction = [](int index) { return meteorRainEffect2(index, &effect4, .12); };
-    else if (effectSelection == 3) effect4.effectFunction = [](int index) { return starFieldEffect(index, &effect4, 20, 400); };
-    else if (effectSelection == 4) effect4.effectFunction = [](int index) { return gradientWaveEffect(index, &effect4); };
-    else if (effectSelection == 5) effect4.effectFunction = [](int index) { return rainShowerEffect(index, &effect4); };
-    else if (effectSelection == 6) effect4.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effect4); };
-    else if (effectSelection == 7) effect4.effectFunction = [](int index) { return lightningBugEffect(index, &effect4); };
-    else if (effectSelection == 8) effect4.effectFunction = [](int index) { return fireEffect(index, &effect4, 100 - (currentAudioIntensityLevel * 100), 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
-    else if (effectSelection == 9) effect4.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effect4); };
-    else if (effectSelection == 10) effect4.effectFunction = [](int index) { return fireworksEffect(index, &effect4, 40); };
-    else if (effectSelection == 11) effect4.effectFunction = [](int index) { return lightChaseEffect(index, &effect4, 7); };
-    else effect4.effectFunction = [](int index) { return gradientWaveEffect(index, &effect4); };
-}
-
 int getRandomEffectNumberFromAllowedEffects()
 {
     int effectRandom = fastRandomInteger(NumberOfAllowedEffectsToPickBetween);
     return effectSettings.AllowedEffects[effectRandom];
+}
+
+/// ---------------------------------------------------------------------------------------------------------------
+
+void setEffectAToMeteorRainEffect()
+{
+    effectA1.effectFunction = [](int index) { return meteorRainEffect(index, &effectA1, .12); };
+    effectA2.effectFunction = [](int index) { return meteorRainEffect(index, &effectA2, .12); };
+    effectA1.effectFunctionIncrement = []() { };
+    effectA2.effectFunctionIncrement = []() { };
+    effectA1.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_INDEX;
+}
+
+void setEffectAToMeteorRainEffect2()
+{
+    effectA1.effectFunction = [](int index) { return meteorRainEffect2(index, &effectA1, .12); };
+    effectA2.effectFunction = [](int index) { return meteorRainEffect2(index, &effectA2, .12); };
+    effectA1.effectFunctionIncrement = []() { };
+    effectA2.effectFunctionIncrement = []() { };
+    effectA1.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_2_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_2_INDEX;
+}
+
+void setEffectAToStarFieldEffect()
+{
+    effectA1.effectFunction = [](int index) { return starFieldEffect(index, &effectA1, 20); };
+    effectA2.effectFunction = [](int index) { return starFieldEffect(index, &effectA2, 20); };
+    effectA1.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectA1, 20, 200); };
+    effectA2.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectA1, 20, 200); };
+    effectA1.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
+}
+
+void setEffectAToGradientWaveEffect()
+{
+    effectA1.effectFunction = [](int index) { return gradientWaveEffect(index, &effectA1); };
+    effectA2.effectFunction = [](int index) { return gradientWaveEffect(index, &effectA2); };
+    effectA1.effectFunctionIncrement = []() { };
+    effectA2.effectFunctionIncrement = []() { };
+    effectA1.effectFunctionIncrementUniqueId = GRADIENT_WAVE_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = GRADIENT_WAVE_EFFECT_INDEX;
+}
+
+void setEffectAToRainShowerEffect()
+{
+    effectA1.effectFunction = [](int index) { return rainShowerEffect(index, &effectA1); };
+    effectA2.effectFunction = [](int index) { return rainShowerEffect(index, &effectA2); };
+    effectA1.effectFunctionIncrement = []() { };
+    effectA2.effectFunctionIncrement = []() { };
+    effectA1.effectFunctionIncrementUniqueId = RAIN_SHOWER_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = RAIN_SHOWER_EFFECT_INDEX;
+}
+
+void setEffectAToExpandingColorOrbEffect()
+{
+    effectA1.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effectA1); };
+    effectA2.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effectA2); };
+    effectA1.effectFunctionIncrement = []() { incrementExpandingColorOrbEffect(&effectA1); };
+    effectA2.effectFunctionIncrement = []() { incrementExpandingColorOrbEffect(&effectA1); };
+    effectA1.effectFunctionIncrementUniqueId = EXPANDING_COLOR_ORB_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = EXPANDING_COLOR_ORB_EFFECT_INDEX;
+}
+
+void setEffectAToLightningBugEffect()
+{
+    effectA1.effectFunction = [](int index) { return lightningBugEffect(index, &effectA1); };
+    effectA2.effectFunction = [](int index) { return lightningBugEffect(index, &effectA2); };
+    effectA1.effectFunctionIncrement = []() { incrementLightningBugEffect(&effectA1); };
+    effectA2.effectFunctionIncrement = []() { incrementLightningBugEffect(&effectA1); };
+    effectA1.effectFunctionIncrementUniqueId = LIGHTNING_BUG_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = LIGHTNING_BUG_EFFECT_INDEX;
+}
+
+void setEffectAToFireEffect()
+{
+    effectA1.effectFunction = [](int index) { return fireEffect(index, &effectA1, 100 - (currentAudioIntensityLevel * 100)); };
+    effectA2.effectFunction = [](int index) { return fireEffect(index, &effectA2, 100 - (currentAudioIntensityLevel * 100)); };
+    effectA1.effectFunctionIncrement = []() { incrementFireEffect(&effectA1, 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    effectA2.effectFunctionIncrement = []() { incrementFireEffect(&effectA1, 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    effectA1.effectFunctionIncrementUniqueId = FIRE_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = FIRE_EFFECT_INDEX;
+}
+
+void setEffectAToSimpleSolidColorFillEffect()
+{
+    effectA1.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effectA1); };
+    effectA2.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effectA2); };
+    effectA1.effectFunctionIncrement = []() { };
+    effectA2.effectFunctionIncrement = []() { };
+    effectA1.effectFunctionIncrementUniqueId = SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX;
+}
+
+void setEffectAToFireworksEffect()
+{
+    effectA1.effectFunction = [](int index) { return fireworksEffect(index, &effectA1); };
+    effectA2.effectFunction = [](int index) { return fireworksEffect(index, &effectA2); };
+    effectA1.effectFunctionIncrement = []() { incrementFireworksEffect(&effectA1, 40); };
+    effectA2.effectFunctionIncrement = []() { incrementFireworksEffect(&effectA2, 40); };
+    effectA1.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
+}
+
+void setEffectAToLightChaseEffect()
+{
+    effectA1.effectFunction = [](int index) { return lightChaseEffect(index, &effectA1, 7); };
+    effectA2.effectFunction = [](int index) { return lightChaseEffect(index, &effectA2, 7); };
+    effectA1.effectFunctionIncrement = []() { };
+    effectA2.effectFunctionIncrement = []() { };
+    effectA1.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
+    effectA2.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
+}
+
+/// ---------------------------------------------------------------------------------------------------------------
+
+void setEffectBToMeteorRainEffect()
+{
+    effectB1.effectFunction = [](int index) { return meteorRainEffect(index, &effectB1, .12); };
+    effectB2.effectFunction = [](int index) { return meteorRainEffect(index, &effectB2, .12); };
+    effectB1.effectFunctionIncrement = []() { };
+    effectB2.effectFunctionIncrement = []() { };
+    effectB1.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_INDEX;
+}
+
+void setEffectBToMeteorRainEffect2()
+{
+    effectB1.effectFunction = [](int index) { return meteorRainEffect2(index, &effectB1, .12); };
+    effectB2.effectFunction = [](int index) { return meteorRainEffect2(index, &effectB2, .12); };
+    effectB1.effectFunctionIncrement = []() { };
+    effectB2.effectFunctionIncrement = []() { };
+    effectB1.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_2_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = METEOR_RAIN_EFFECT_2_INDEX;
+}
+
+void setEffectBToStarFieldEffect()
+{
+    effectB1.effectFunction = [](int index) { return starFieldEffect(index, &effectB1, 20); };
+    effectB2.effectFunction = [](int index) { return starFieldEffect(index, &effectB2, 20); };
+    effectB1.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectB1, 20, 200); };
+    effectB2.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectB1, 20, 200); };
+    effectB1.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
+}
+
+void setEffectBToGradientWaveEffect()
+{
+    effectB1.effectFunction = [](int index) { return gradientWaveEffect(index, &effectB1); };
+    effectB2.effectFunction = [](int index) { return gradientWaveEffect(index, &effectB2); };
+    effectB1.effectFunctionIncrement = []() { };
+    effectB2.effectFunctionIncrement = []() { };
+    effectB1.effectFunctionIncrementUniqueId = GRADIENT_WAVE_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = GRADIENT_WAVE_EFFECT_INDEX;
+}
+
+void setEffectBToRainShowerEffect()
+{
+    effectB1.effectFunction = [](int index) { return rainShowerEffect(index, &effectB1); };
+    effectB2.effectFunction = [](int index) { return rainShowerEffect(index, &effectB2); };
+    effectB1.effectFunctionIncrement = []() { };
+    effectB2.effectFunctionIncrement = []() { };
+    effectB1.effectFunctionIncrementUniqueId = RAIN_SHOWER_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = RAIN_SHOWER_EFFECT_INDEX;
+}
+
+void setEffectBToExpandingColorOrbEffect()
+{
+    effectB1.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effectB1); };
+    effectB2.effectFunction = [](int index) { return expandingColorOrbEffect(index, &effectB2); };
+    effectB1.effectFunctionIncrement = []() { incrementExpandingColorOrbEffect(&effectB1); };
+    effectB2.effectFunctionIncrement = []() { incrementExpandingColorOrbEffect(&effectB1); };
+    effectB1.effectFunctionIncrementUniqueId = EXPANDING_COLOR_ORB_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = EXPANDING_COLOR_ORB_EFFECT_INDEX;
+}
+
+void setEffectBToLightningBugEffect()
+{
+    effectB1.effectFunction = [](int index) { return lightningBugEffect(index, &effectB1); };
+    effectB2.effectFunction = [](int index) { return lightningBugEffect(index, &effectB2); };
+    effectB1.effectFunctionIncrement = []() { incrementLightningBugEffect(&effectB1); };
+    effectB2.effectFunctionIncrement = []() { incrementLightningBugEffect(&effectB1); };
+    effectB1.effectFunctionIncrementUniqueId = LIGHTNING_BUG_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = LIGHTNING_BUG_EFFECT_INDEX;
+}
+
+void setEffectBToFireEffect()
+{
+    effectB1.effectFunction = [](int index) { return fireEffect(index, &effectB1, 100 - (currentAudioIntensityLevel * 100)); };
+    effectB2.effectFunction = [](int index) { return fireEffect(index, &effectB2, 100 - (currentAudioIntensityLevel * 100)); };
+    effectB1.effectFunctionIncrement = []() { incrementFireEffect(&effectB1, 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    effectB2.effectFunctionIncrement = []() { incrementFireEffect(&effectB1, 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    effectB1.effectFunctionIncrementUniqueId = FIRE_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = FIRE_EFFECT_INDEX;
+}
+
+void setEffectBToSimpleSolidColorFillEffect()
+{
+    effectB1.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effectB1); };
+    effectB2.effectFunction = [](int index) { return simpleSolidColorFillEffect(index, &effectB2); };
+    effectB1.effectFunctionIncrement = []() { };
+    effectB2.effectFunctionIncrement = []() { };
+    effectB1.effectFunctionIncrementUniqueId = SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX;
+}
+
+void setEffectBToFireworksEffect()
+{
+    effectB1.effectFunction = [](int index) { return fireworksEffect(index, &effectB1); };
+    effectB2.effectFunction = [](int index) { return fireworksEffect(index, &effectB2); };
+    effectB1.effectFunctionIncrement = []() { incrementFireworksEffect(&effectB1, 40); };
+    effectB2.effectFunctionIncrement = []() { incrementFireworksEffect(&effectB2, 40); };
+    effectB1.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
+}
+
+void setEffectBToLightChaseEffect()
+{
+    effectB1.effectFunction = [](int index) { return lightChaseEffect(index, &effectB1, 7); };
+    effectB2.effectFunction = [](int index) { return lightChaseEffect(index, &effectB2, 7); };
+    effectB1.effectFunctionIncrement = []() { };
+    effectB2.effectFunctionIncrement = []() { };
+    effectB1.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
+    effectB2.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
+}
+
+/// ---------------------------------------------------------------------------------------------------------------
+
+void pickRandomEffectA()
+{
+    int effectSelection = getRandomEffectNumberFromAllowedEffects();
+    if (effectSelection == METEOR_RAIN_EFFECT_INDEX) setEffectAToMeteorRainEffect();
+    else if (effectSelection == METEOR_RAIN_EFFECT_2_INDEX) setEffectAToMeteorRainEffect2();
+    else if (effectSelection == STAR_FIELD_EFFECT_INDEX) setEffectAToStarFieldEffect();
+    else if (effectSelection == GRADIENT_WAVE_EFFECT_INDEX) setEffectAToGradientWaveEffect();
+    else if (effectSelection == RAIN_SHOWER_EFFECT_INDEX) setEffectAToRainShowerEffect();
+    else if (effectSelection == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectAToExpandingColorOrbEffect();
+    else if (effectSelection == LIGHTNING_BUG_EFFECT_INDEX) setEffectAToLightningBugEffect();
+    else if (effectSelection == FIRE_EFFECT_INDEX) setEffectAToFireEffect();
+    else if (effectSelection == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectAToSimpleSolidColorFillEffect();
+    else if (effectSelection == FIREWORKS_EFFECT_INDEX) setEffectAToFireworksEffect();
+    else if (effectSelection == LIGHT_CHASE_EFFECT_INDEX) setEffectAToLightChaseEffect();
+}
+
+void pickRandomEffectB()
+{
+    int effectSelection = getRandomEffectNumberFromAllowedEffects();
+    if (effectSelection == METEOR_RAIN_EFFECT_INDEX) setEffectBToMeteorRainEffect();
+    else if (effectSelection == METEOR_RAIN_EFFECT_2_INDEX) setEffectBToMeteorRainEffect2();
+    else if (effectSelection == STAR_FIELD_EFFECT_INDEX) setEffectBToStarFieldEffect();
+    else if (effectSelection == GRADIENT_WAVE_EFFECT_INDEX) setEffectBToGradientWaveEffect();
+    else if (effectSelection == RAIN_SHOWER_EFFECT_INDEX) setEffectBToRainShowerEffect();
+    else if (effectSelection == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectBToExpandingColorOrbEffect();
+    else if (effectSelection == LIGHTNING_BUG_EFFECT_INDEX) setEffectBToLightningBugEffect();
+    else if (effectSelection == FIRE_EFFECT_INDEX) setEffectBToFireEffect();
+    else if (effectSelection == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectBToSimpleSolidColorFillEffect();
+    else if (effectSelection == FIREWORKS_EFFECT_INDEX) setEffectBToFireworksEffect();
+    else if (effectSelection == LIGHT_CHASE_EFFECT_INDEX) setEffectBToLightChaseEffect();
+}
+
+void pickRandomEffects()
+{
+    pickRandomEffectA();
+    pickRandomEffectB();
 }

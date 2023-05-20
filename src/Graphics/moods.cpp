@@ -1,10 +1,11 @@
 
 #include "../Graphics/moods.h"
+#include "../Graphics/effects.h"
 
 void setupNormalMood(EffectSettings *settings)
 {
     settings->LikelihoodEffectsAreRandomizedWhenBeatDetected = 255;
-    settings->LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero = 0;
+    settings->LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero = 20;
     settings->LikelihoodEffectsAreRandomizedWhenAntiBeatDetected = 20;
     settings->LikelihoodEffectsAreRandomizedWhenStepIsDetected = 255;
     settings->LikelihoodNothingChangesWhenRandomizingEffect = 0;
@@ -14,20 +15,20 @@ void setupNormalMood(EffectSettings *settings)
     settings->LikelihoodTwoPalettesAreUsedWhenPaletteChanges = 50;
     settings->LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect = 10;
     settings->LikelihoodScreenMapChangesWhenRandomizingEffect = 4;
-    settings->LikelihoodEffectsAreSwappedWhenRandomizingEffect = 20;
-    settings->LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped = 200;
+    settings->LikelihoodEffectsAreSwappedWhenRandomizingEffect = 15;
+    settings->LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped = 180;
     settings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched = 128;
     settings->LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect = 4;
     settings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized = 100;
     settings->LikelihoodTimeModesRandomizeWhenRandomizingEffect = 30;
     settings->LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes = 100;
-    settings->LikelihoodEffectsAndRandomizedWhenRandomizingEffect = 15;
+    settings->LikelihoodEffectsAndRandomizedWhenRandomizingEffect = 10;
     settings->LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect = 30;
     settings->LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect = 30;
     settings->LikelihoodIndividualGlobalBrightnessModesChange = 128;
     settings->LikelihoodTransitionDirectionChangesWhenRandomizingEffect = 15;
     settings->LikelihoodMovementBasedBrightnessModeIsPicked = 200;
-    settings->LikelihoodMusicBasedBrightnessModeIsPicked = 100;
+    settings->LikelihoodMusicBasedBrightnessModeIsPicked = 80;
     settings->LikelihoodMovementBasedTimeModeIsPicked = 200;
     settings->MillisecondToMoveToNextPaletteFrame = 50;
     settings->MillisecondsForEffectTransitionsMinimum = 10;
@@ -39,30 +40,30 @@ void setupNormalMood(EffectSettings *settings)
     settings->GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = 250;
     settings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = 220;
     settings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect = 9;
-    settings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = 32767;
-    settings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = 64224;
-    settings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized = 128;
+    settings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = 80;
+    settings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = 255;
+    settings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized = 200;
 
-    settings->AllowedEffects[0] = 0;
-    settings->AllowedEffects[1] = 1;
-    settings->AllowedEffects[2] = 2;
-    settings->AllowedEffects[3] = 3;
-    settings->AllowedEffects[4] = 4;
-    settings->AllowedEffects[5] = 5;
-    settings->AllowedEffects[6] = 6;
-    settings->AllowedEffects[7] = 7;
-    settings->AllowedEffects[8] = 8;
-    settings->AllowedEffects[9] = 9;
-    settings->AllowedEffects[10] = 10;
-    settings->AllowedEffects[11] = 11;
-    settings->AllowedEffects[12] = 12;
-    settings->AllowedEffects[13] = 13;
-    settings->AllowedEffects[14] = 14;
-    settings->AllowedEffects[15] = 15;
-    settings->AllowedEffects[16] = 16;
-    settings->AllowedEffects[17] = 17;
-    settings->AllowedEffects[18] = 18;
-    settings->AllowedEffects[19] = 9;
+    settings->AllowedEffects[0] = METEOR_RAIN_EFFECT_INDEX;
+    settings->AllowedEffects[1] = METEOR_RAIN_EFFECT_2_INDEX;
+    settings->AllowedEffects[2] = STAR_FIELD_EFFECT_INDEX;
+    settings->AllowedEffects[3] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[4] = RAIN_SHOWER_EFFECT_INDEX;
+    settings->AllowedEffects[5] = EXPANDING_COLOR_ORB_EFFECT_INDEX;
+    settings->AllowedEffects[6] = LIGHTNING_BUG_EFFECT_INDEX;
+    settings->AllowedEffects[7] = FIRE_EFFECT_INDEX;
+    settings->AllowedEffects[8] = SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX;
+    settings->AllowedEffects[9] = FIREWORKS_EFFECT_INDEX;
+    settings->AllowedEffects[10] = LIGHT_CHASE_EFFECT_INDEX;
+    settings->AllowedEffects[11] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[12] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[13] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[14] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[15] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[16] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[17] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[18] = GRADIENT_WAVE_EFFECT_INDEX;
+    settings->AllowedEffects[19] = GRADIENT_WAVE_EFFECT_INDEX;
 
     for (int i = 0; i < NumberOfAllowedPalettesToPickBetween; i++)
     {

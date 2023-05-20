@@ -10,40 +10,40 @@ const int NumberOfAllowedPalettesToPickBetween = 5;
 
 typedef struct
 {
-  byte LikelihoodEffectsAreRandomizedWhenBeatDetected;
-  byte LikelihoodEffectsAreRandomizedWhenAntiBeatDetected;
-  byte LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero;
-  byte LikelihoodEffectsAreRandomizedWhenStepIsDetected;
+  uint8_t LikelihoodEffectsAreRandomizedWhenBeatDetected;
+  uint8_t LikelihoodEffectsAreRandomizedWhenAntiBeatDetected;
+  uint8_t LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero;
+  uint8_t LikelihoodEffectsAreRandomizedWhenStepIsDetected;
 
-  byte LikelihoodNothingChangesWhenRandomizingEffect;
-  byte LikelihoodBlendingModeChangesWhenRandomizingEffect;
-  byte LikelihoodSubPaletteChangesWhenRandomizingEffect;
-  byte LikelihoodPaletteChangesWhenRandomizingEffect;
-  byte LikelihoodTwoPalettesAreUsedWhenPaletteChanges;
+  uint8_t LikelihoodNothingChangesWhenRandomizingEffect;
+  uint8_t LikelihoodBlendingModeChangesWhenRandomizingEffect;
+  uint8_t LikelihoodSubPaletteChangesWhenRandomizingEffect;
+  uint8_t LikelihoodPaletteChangesWhenRandomizingEffect;
+  uint8_t LikelihoodTwoPalettesAreUsedWhenPaletteChanges;
 
-  byte LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect;
-  byte LikelihoodScreenMapChangesWhenRandomizingEffect;
-  byte LikelihoodEffectsAreSwappedWhenRandomizingEffect;
-  byte LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped;
-  byte LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched;
-  byte LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect;
-  byte LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized;
+  uint8_t LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect;
+  uint8_t LikelihoodScreenMapChangesWhenRandomizingEffect;
+  uint8_t LikelihoodEffectsAreSwappedWhenRandomizingEffect;
+  uint8_t LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped;
+  uint8_t LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched;
+  uint8_t LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect;
+  uint8_t LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized;
 
-  byte LikelihoodTimeModesRandomizeWhenRandomizingEffect;
-  byte LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes;
+  uint8_t LikelihoodTimeModesRandomizeWhenRandomizingEffect;
+  uint8_t LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes;
 
-  byte LikelihoodEffectsAndRandomizedWhenRandomizingEffect;
+  uint8_t LikelihoodEffectsAndRandomizedWhenRandomizingEffect;
 
-  byte LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect;
+  uint8_t LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect;
 
-  byte LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect;
-  byte LikelihoodIndividualGlobalBrightnessModesChange;
+  uint8_t LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect;
+  uint8_t LikelihoodIndividualGlobalBrightnessModesChange;
 
-  byte LikelihoodTransitionDirectionChangesWhenRandomizingEffect;
+  uint8_t LikelihoodTransitionDirectionChangesWhenRandomizingEffect;
 
-  byte LikelihoodMovementBasedBrightnessModeIsPicked;
-  byte LikelihoodMusicBasedBrightnessModeIsPicked;
-  byte LikelihoodMovementBasedTimeModeIsPicked;
+  uint8_t LikelihoodMovementBasedBrightnessModeIsPicked;
+  uint8_t LikelihoodMusicBasedBrightnessModeIsPicked;
+  uint8_t LikelihoodMovementBasedTimeModeIsPicked;
   
   uint16_t MillisecondToMoveToNextPaletteFrame;
   uint16_t MillisecondsForEffectTransitionsMinimum;
@@ -54,20 +54,20 @@ typedef struct
   uint16_t MillisecondsForBackgroundTransitionFadeMinimum;
   uint16_t MillisecondsForBackgroundTransitionFadeMaximum;
 
-  uint16_t GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps;
-  uint16_t GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps;
+  uint8_t GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps;
+  uint8_t GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps;
 
-  byte LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect;
-  uint16_t AudioLevelThresholdToShowMoreIntenseEffectMinimum;
-  uint16_t AudioLevelThresholdToShowMoreIntenseEffectMaximum;
+  uint8_t LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect;
+  uint8_t AudioLevelThresholdToShowMoreIntenseEffectMinimum;
+  uint8_t AudioLevelThresholdToShowMoreIntenseEffectMaximum;
 
-  byte AllowedEffects[NumberOfAllowedEffectsToPickBetween];
-  byte AllowedPalettes[NumberOfAllowedPalettesToPickBetween][NumberOfAllowedPalettesToPickBetween + 1];
+  uint8_t AllowedEffects[NumberOfAllowedEffectsToPickBetween];
+  uint8_t AllowedPalettes[NumberOfAllowedPalettesToPickBetween][NumberOfAllowedPalettesToPickBetween + 1];
 
-  byte MinimumEffectSize;
-  byte MaximumEffectSize;
+  uint8_t MinimumEffectSize;
+  uint8_t MaximumEffectSize;
 
-  byte LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized;
+  uint8_t LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized;
 }
 EffectSettings;
 

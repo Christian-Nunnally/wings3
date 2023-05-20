@@ -48,6 +48,8 @@ void pickRandomTransitionTime();
 void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void switchTransitionDirection();
 void incrementColorPalettesTowardsTargetsForEffect(Effect *effect);
+void incrementEffects();
+inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index);
 
 Effect currentPrimaryEffectA;
 Effect currentPrimaryEffectB;
@@ -98,7 +100,9 @@ byte *currentScreenMap[TOTAL_LEDS];
 Color ledColorMap[TOTAL_LEDS];
 
 // Transition variables.
-uint8_t percentOfEffectBToShow;
+uint16_t percentOfEffectBToShow;
+uint8_t percentOfEffectBToShow8Bit;
+uint8_t percentOfOldMixingModeToMixIn8Bit;
 uint8_t percentOfSecondaryEffectToShow;
 int currentTransitionIncrement;
 bool transitionDirection;
@@ -109,33 +113,34 @@ int lastPeakDetectorValue;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
 bool primaryEffectToggle = false;
-float effect1AudioLevelThresholdToShowMoreIntenseEffect = .98;
-float effect2AudioLevelThresholdToShowMoreIntenseEffect = .6;
+float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
+float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
 
 Color getLedColorForFrame(int ledIndex)
 {
     byte currentScreen = (*currentScreenMap)[ledIndex];
     if (currentScreen == 4) return {0, 0, 0};
-    //else if (currentScreen & 1) return effect1.effectFunctionHighlight(ledIndex); // TODO: Make this a another effect for speed and so its always different.
+    else if (currentScreen & 1) return effectA1.effectFunctionHighlight(ledIndex);
     
-    Color color1 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentPrimaryEffectA.effectFunction(ledIndex) : currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
-    Color color2 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentPrimaryEffectB.effectFunction(ledIndex) : currentPrimaryEffectB.effectFunctionHighlight(ledIndex);
+    Color color1 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
+    Color color2 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
     Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
     if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
     {
-        Color color3 = currentAudioIntensityLevel < effect1AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectA.effectFunction(ledIndex) : currentSecondaryEffectA.effectFunctionHighlight(ledIndex);
-        Color color4 = currentAudioIntensityLevel < effect2AudioLevelThresholdToShowMoreIntenseEffect ? currentSecondaryEffectB.effectFunction(ledIndex) : currentSecondaryEffectB.effectFunctionHighlight(ledIndex);
+        Color color3 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
+        Color color4 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, percentOfSecondaryEffectToShow);
         ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
     }
-    else 
-    {
-        ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
-    }
-    
+    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
     return ledColorMap[ledIndex];
+}
+
+inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index)
+{
+    return currentAudioIntensityLevel < threshold ? effect->effectFunction(index) : effect->effectFunctionHighlight(index);
 }
 
 void incrementEffectFrame()
@@ -145,23 +150,23 @@ void incrementEffectFrame()
     incrementTransition();
     incrementColorPalettesTowardsTargets();
     detectBeat();
-    // TODO: Increment active effects (like rain);
+    incrementEffects();
 }
 
 void setupEffects()
 {
-    currentPrimaryEffectA = effect1;
-    currentPrimaryEffectB = effect2;
-    currentSecondaryEffectA = effect3;
-    currentSecondaryEffectB = effect4;
-    effect1.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect1); };
-    effect2.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect2); };
-    effect3.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect3); };
-    effect4.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effect4); };
-    effect1.frameTimeDelta = &frameTimeDelta;
-    effect2.frameTimeDelta = &frameTimeDelta;
-    effect3.frameTimeDelta = &frameTimeDelta;
-    effect4.frameTimeDelta = &frameTimeDelta;
+    currentPrimaryEffectA = effectA1;
+    currentPrimaryEffectB = effectB1;
+    currentSecondaryEffectA = effectA2;
+    currentSecondaryEffectB = effectB2;
+    effectA1.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA1); };
+    effectB1.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB1); };
+    effectA2.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA2); };
+    effectB2.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB2); };
+    effectA1.frameTimeDelta = &frameTimeDelta;
+    effectB1.frameTimeDelta = &frameTimeDelta;
+    effectA2.frameTimeDelta = &frameTimeDelta;
+    effectB2.frameTimeDelta = &frameTimeDelta;
 
     mixingModeBlendFunction = blendColorsUsingMixing;
     oldMixingModeBlendFunction = blendColorsUsingMixing;
@@ -209,23 +214,22 @@ void setupEffects()
     timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 10)); };
 
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
+    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 
     setupNormalMood(&effectSettings);
     //setupTestMood(&effectSettings);
@@ -242,10 +246,10 @@ void setupEffects()
 
 inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
 {
-    Color newColor = mixingModeBlendFunction(color1, color2, percentOfEffectBToShow);
+    Color newColor = mixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
     if (oldMixingMode == mixingMode || mixingModeBlendCounter == 0) return newColor;
-    Color oldColor = oldMixingModeBlendFunction(color1, color2, percentOfEffectBToShow);
-    return blendColorsUsingMixing(newColor, oldColor, (mixingModeBlendCounter / mixingModeBlendCounterMax) * UINT16_MAX);
+    Color oldColor = oldMixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
+    return blendColorsUsingMixing(newColor, oldColor, percentOfOldMixingModeToMixIn8Bit);
 }
 
 void handleStepDetected()
@@ -262,10 +266,10 @@ void handleMovementDetected()
     if (movementType == Biking) effectSettings = effectSettingsBiking;
     if (movementType == Driving) effectSettings = effectSettingsDriving;
 
-    pickRandomTimeModesForEffect(&effect1, movementType != Stationary, movementType == Stationary);
-    pickRandomTimeModesForEffect(&effect2, movementType != Stationary, movementType == Stationary);
-    pickRandomTimeModesForEffect(&effect3, movementType != Stationary, movementType == Stationary);
-    pickRandomTimeModesForEffect(&effect4, movementType != Stationary, movementType == Stationary);
+    pickRandomTimeModesForEffect(&effectA1, movementType != Stationary, movementType == Stationary);
+    pickRandomTimeModesForEffect(&effectB1, movementType != Stationary, movementType == Stationary);
+    pickRandomTimeModesForEffect(&effectA2, movementType != Stationary, movementType == Stationary);
+    pickRandomTimeModesForEffect(&effectB2, movementType != Stationary, movementType == Stationary);
 }
 
 void pickRandomTimeModesForEffect(Effect *effect, bool pickFromMovementBasedTimeModes, bool pickFromNonMovementBasedTimeModes)
@@ -304,12 +308,12 @@ inline void incrementTime()
 {
     int newTime = (int)getTime();
     frameTimeDelta = (newTime - currentTime);
-    int timeDelta = (frameTimeDelta * TimeDeltaResolutionIncreaseFactor) >> 1;
+    int timeDelta = (frameTimeDelta * TimeDeltaResolutionIncreaseFactor);
     currentTime = newTime;
-    incrementTime(&effect1, timeDelta);
-    incrementTime(&effect2, timeDelta);
-    incrementTime(&effect3, timeDelta);
-    incrementTime(&effect4, timeDelta);
+    incrementTime(&effectA1, timeDelta);
+    incrementTime(&effectB1, timeDelta);
+    incrementTime(&effectA2, timeDelta);
+    incrementTime(&effectB2, timeDelta);
     #ifdef ENABLE_SERIAL
     Serial.print("ft: ");
     Serial.println(frameTimeDelta);
@@ -325,13 +329,36 @@ inline void incrementTime(Effect *effect, int timeDelta)
 inline void incrementTransition()
 {
     int incrementAmount = currentTransitionIncrement * frameTimeDelta;
-    if (transitionDirection && UINT8_MAX - percentOfEffectBToShow > incrementAmount) percentOfEffectBToShow += incrementAmount;
-    else if (percentOfEffectBToShow > incrementAmount) percentOfEffectBToShow -= incrementAmount;
+
+    if (transitionDirection)
+    {
+        if (UINT16_MAX - percentOfEffectBToShow > incrementAmount)
+        {
+            percentOfEffectBToShow += incrementAmount;
+        }
+        else 
+        {
+            percentOfEffectBToShow = UINT16_MAX;
+        }
+    }
+    else 
+    {
+        if (percentOfEffectBToShow > incrementAmount)
+        {
+            percentOfEffectBToShow -= incrementAmount;
+        }
+        else 
+        {
+            percentOfEffectBToShow = 0;
+        }
+    }
+    percentOfEffectBToShow8Bit = percentOfEffectBToShow >> 8;
 
     if (mixingModeBlendCounter) 
     {
         if (mixingModeBlendCounter - frameTimeDelta > 0) mixingModeBlendCounter -= frameTimeDelta;
         else mixingModeBlendCounter = 0;
+        percentOfOldMixingModeToMixIn8Bit = (mixingModeBlendCounter / mixingModeBlendCounterMax) * UINT8_MAX;
     }
     else if (oldMixingMode != mixingMode) 
     {
@@ -349,16 +376,22 @@ void incrementColorPalettesTowardsTargets()
     static int lastMoveColorPalettesTowardsTargetsTime;
     if (currentTime - lastMoveColorPalettesTowardsTargetsTime < effectSettings.MillisecondToMoveToNextPaletteFrame) return;
     lastMoveColorPalettesTowardsTargetsTime = currentTime;
-    incrementColorPalettesTowardsTargetsForEffect(&effect1);
-    incrementColorPalettesTowardsTargetsForEffect(&effect2);
-    incrementColorPalettesTowardsTargetsForEffect(&effect3);
-    incrementColorPalettesTowardsTargetsForEffect(&effect4);
+    incrementColorPalettesTowardsTargetsForEffect(&effectA1);
+    incrementColorPalettesTowardsTargetsForEffect(&effectB1);
+    incrementColorPalettesTowardsTargetsForEffect(&effectA2);
+    incrementColorPalettesTowardsTargetsForEffect(&effectB2);
 }
 
 void incrementColorPalettesTowardsTargetsForEffect(Effect *effect)
 {
     if (effect->currentPaletteOffset > effect->currentPaletteOffsetTarget) effect->currentPaletteOffset -= PALETTE_LENGTH;
     else if (effect->currentPaletteOffset < effect->currentPaletteOffsetTarget) effect->currentPaletteOffset += PALETTE_LENGTH;
+}
+
+void incrementEffects()
+{
+    effectA1.effectFunctionIncrement();
+    if (effectA1.effectFunctionIncrementUniqueId != effectB1.effectFunctionIncrementUniqueId) effectB1.effectFunctionIncrement();
 }
 
 void detectBeat()
@@ -406,10 +439,10 @@ void pickRandomBlendingMode()
 
 void pickRandomSubPalette()
 {
-    pickRandomSubPaletteForEffect(&effect1);
-    pickRandomSubPaletteForEffect(&effect2);
-    pickRandomSubPaletteForEffect(&effect3);
-    pickRandomSubPaletteForEffect(&effect4);
+    pickRandomSubPaletteForEffect(&effectA1);
+    pickRandomSubPaletteForEffect(&effectB1);
+    pickRandomSubPaletteForEffect(&effectA2);
+    pickRandomSubPaletteForEffect(&effectB2);
 }
 
 void pickRandomSubPaletteForEffect(Effect *effect)
@@ -419,23 +452,19 @@ void pickRandomSubPaletteForEffect(Effect *effect)
 
 void pickRandomPalette()
 {
-    pickRandomPaletteForEffect(&effect1);
+    pickRandomPaletteForEffect(&effectA1);
     if (fastRandomByte() < effectSettings.LikelihoodTwoPalettesAreUsedWhenPaletteChanges) 
     {
-        pickRandomPaletteForEffect(&effect2);
-        pickRandomPaletteForEffect(&effect3);
-        pickRandomPaletteForEffect(&effect4);
+        pickRandomPaletteForEffect(&effectB1);
+        pickRandomPaletteForEffect(&effectA2);
+        pickRandomPaletteForEffect(&effectB2);
     }
     else
     {
-        effect2.currentPalette = effect1.currentPalette;
-        effect3.currentPalette = effect1.currentPalette;
-        effect4.currentPalette = effect1.currentPalette;
+        effectB1.currentPalette = effectA1.currentPalette;
+        effectA2.currentPalette = effectA1.currentPalette;
+        effectB2.currentPalette = effectA1.currentPalette;
     }
-    pickRandomSubPaletteForEffect(&effect1);
-    pickRandomSubPaletteForEffect(&effect2);
-    pickRandomSubPaletteForEffect(&effect3);
-    pickRandomSubPaletteForEffect(&effect4);
 }
 
 void pickRandomPaletteForEffect(Effect *effect)
@@ -456,17 +485,17 @@ void pickRandomTransformMaps()
 {
     if (fastRandomByte() < effectSettings.LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized)
     {
-        pickRandomMirroredTransformMaps(&effect1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
-        pickRandomMirroredTransformMaps(&effect2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
-        pickRandomMirroredTransformMaps(&effect3, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
-        pickRandomMirroredTransformMaps(&effect4, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomMirroredTransformMaps(&effectA1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomMirroredTransformMaps(&effectB1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomMirroredTransformMaps(&effectA2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomMirroredTransformMaps(&effectB2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
     }
     else 
     {
-        pickRandomTransformMaps(&effect1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
-        pickRandomTransformMaps(&effect2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
-        pickRandomTransformMaps(&effect3, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
-        pickRandomTransformMaps(&effect4, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomTransformMaps(&effectA1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomTransformMaps(&effectB1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomTransformMaps(&effectA2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
+        pickRandomTransformMaps(&effectB2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized);
     }
 }
 
@@ -487,28 +516,28 @@ void swapEffects()
     primaryEffectToggle = !primaryEffectToggle;
     if (primaryEffectToggle)
     {
-        currentPrimaryEffectA = effect1;
-        currentPrimaryEffectB = effect2;
-        currentSecondaryEffectA = effect3;
-        currentSecondaryEffectB = effect4;
+        currentPrimaryEffectA = effectA1;
+        currentPrimaryEffectB = effectB1;
+        currentSecondaryEffectA = effectA2;
+        currentSecondaryEffectB = effectB2;
     }
     else 
     {
-        currentPrimaryEffectA = effect3;
-        currentPrimaryEffectB = effect4;
-        currentSecondaryEffectA = effect1;
-        currentSecondaryEffectB = effect2;
+        currentPrimaryEffectA = effectA2;
+        currentPrimaryEffectB = effectB2;
+        currentSecondaryEffectA = effectA1;
+        currentSecondaryEffectB = effectB1;
     }
 
     if (primaryEffectToggle)
     {
-        pickRandomTransformMaps(&effect1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
-        pickRandomTransformMaps(&effect2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        pickRandomTransformMaps(&effectA1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        pickRandomTransformMaps(&effectB1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
     }
     else
     {
-        pickRandomTransformMaps(&effect3, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
-        pickRandomTransformMaps(&effect4, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        pickRandomTransformMaps(&effectA2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        pickRandomTransformMaps(&effectB2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
     }
     millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = fastRandomInteger(effectSettings.MillisecondsForEffectTransitionsMinimum, effectSettings.MillisecondsForEffectTransitionsMaximum);
     millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax;
@@ -523,30 +552,30 @@ void pickRandomTimeModes()
         startIndex = numberOfTimeModes;
         length = numberOfMovementBasedTimeModes;
     }
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect1.timeMode1 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect2.timeMode1 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect3.timeMode1 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect4.timeMode1 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect1.timeMode2 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect2.timeMode2 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect3.timeMode2 = fastRandomInteger(length) + startIndex;
-    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effect4.timeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectA1.timeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectB1.timeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectA2.timeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectB2.timeMode1 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectA1.timeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectB1.timeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectA2.timeMode2 = fastRandomInteger(length) + startIndex;
+    if (fastRandomByte() < effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes) effectB2.timeMode2 = fastRandomInteger(length) + startIndex;
 }
 
 void pickRandomSizeParametersForEffects()
 {
-    effect1.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
-    effect2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
-    effect3.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
-    effect4.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effectA1.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effectB1.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effectA2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    effectB2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
 }
 
 void pickRandomGlobalBrightnessControlModes()
 {
-    pickRandomGlobalBrightnessControlModesForEffect(&effect1, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
-    pickRandomGlobalBrightnessControlModesForEffect(&effect2, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
-    pickRandomGlobalBrightnessControlModesForEffect(&effect3, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
-    pickRandomGlobalBrightnessControlModesForEffect(&effect4, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
+    pickRandomGlobalBrightnessControlModesForEffect(&effectA1, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
+    pickRandomGlobalBrightnessControlModesForEffect(&effectB1, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
+    pickRandomGlobalBrightnessControlModesForEffect(&effectA2, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
+    pickRandomGlobalBrightnessControlModesForEffect(&effectB2, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange);
 }
 
 void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, byte likelihood)
@@ -559,7 +588,7 @@ void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, byte likeli
 
 void pickRandomTransitionTime()
 {
-    currentTransitionIncrement = UINT8_MAX / fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
+    currentTransitionIncrement = UINT16_MAX / fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
 }
 
 void switchTransitionDirection()
@@ -569,6 +598,6 @@ void switchTransitionDirection()
 
 void pickRandomAudioLevelThresholdForMoreIntenseEffect()
 {
-    effect1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT16_MAX;
-    effect2AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT16_MAX;
+    effectA1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
+    effectB1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
 }
