@@ -12,6 +12,7 @@
 #include "../Graphics/effects.h"
 #include "../Graphics/moods.h"
 #include "../Graphics/timeModes.h"
+#include "../Graphics/mixingModes.h"
 #include "../Graphics/brightnessControlModes.h"
 #include "../Graphics/Effects/gradientWaveEffect.h"
 #include "../Utility/time.h"
@@ -24,12 +25,10 @@ Color blendIncorporatingOldMixingMode(Color color1, Color color2);
 void handleStepDetected();
 void handleMovementDetected();
 void incrementTime();
-void incrementTime(Effect *effect, int timeDelta);  
 void incrementTransition();
 void incrementColorPalettesTowardsTargets();
 void detectBeat();
 void randomizeEffectsNaturally();
-void pickRandomBlendingMode();
 void pickRandomSubPalette();
 void pickRandomPalette();
 void pickRandomPaletteForEffect(Effect *effect);
@@ -41,7 +40,6 @@ void pickRandomMirroredTransformMaps(Effect *effect, byte likelihood);
 void swapEffects();
 void pickRandomScreenMap();
 void pickRandomTimeModes();
-void pickRandomTimeModesForEffect(Effect *effect, bool pickFromMovementBasedTimeModes, bool pickFromNonMovementBasedTimeModes);
 void pickRandomSizeParametersForEffects();
 void pickRandomGlobalBrightnessControlModes();
 void pickRandomTransitionTime();
@@ -49,6 +47,7 @@ void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void switchTransitionDirection();
 void incrementColorPalettesTowardsTargetsForEffect(Effect *effect);
 inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index);
+inline void incrementTransitionFromSecondaryToPrimaryEffect();
 
 Effect currentPrimaryEffectA;
 Effect currentPrimaryEffectB;
@@ -57,21 +56,15 @@ Effect currentSecondaryEffectB;
 EffectSettings effectSettingsStationary;
 EffectSettings effectSettingsMoving;
 
-// Mixing Mode variables.
-const int MaxNumberOfMixingModeBlendFunctions = 20;
-int numberOfMixingModeBlendFunctions;
-Color (*mixingModeBlendFunctions[MaxNumberOfMixingModeBlendFunctions])(Color color1, Color color2, uint8_t transitionAmount);
-Color (*mixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
-Color (*oldMixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
-int mixingMode;
-int millisecondsLeftInMixingModeBlend;
-int millisecondsLeftInMixingModeBlendTotalDuration = 1;
-
-// Time Mode variables.
-// const byte MaxNumberOfTimeModes = 40;
-// byte numberOfTimeModes;
-// byte numberOfMovementBasedTimeModes;
-// int (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(int currentTime, int timeDelta);
+// // Mixing Mode variables.
+// const int MaxNumberOfMixingModeBlendFunctions = 20;
+// int numberOfMixingModeBlendFunctions;
+// Color (*mixingModeBlendFunctions[MaxNumberOfMixingModeBlendFunctions])(Color color1, Color color2, uint8_t transitionAmount);
+// Color (*mixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
+// Color (*oldMixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
+// int mixingMode;
+// int millisecondsLeftInMixingModeBlend;
+// int millisecondsLeftInMixingModeBlendTotalDuration = 1;
 
 // Screen Mode variables.
 byte *currentScreenMap[TOTAL_LEDS];
@@ -80,7 +73,7 @@ Color ledColorMap[TOTAL_LEDS];
 // Transition variables.
 uint16_t percentOfEffectBToShow;
 uint8_t percentOfEffectBToShow8Bit;
-uint8_t percentOfOldMixingModeToMixIn8Bit;
+// uint8_t percentOfOldMixingModeToMixIn8Bit;
 uint8_t percentOfSecondaryEffectToShow;
 int currentTransitionIncrement;
 bool transitionDirection;
@@ -93,7 +86,6 @@ int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
 bool primaryEffectToggle = false;
 float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
-// const float AudioInfluenceFactorForAudioScaledTime = 2.0;
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -103,12 +95,12 @@ Color getLedColorForFrame(int ledIndex)
     
     Color color1 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
     Color color2 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
-    Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2);
+    Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2, percentOfEffectBToShow8Bit);
     if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
     {
         Color color3 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
         Color color4 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
-        Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4);
+        Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, percentOfSecondaryEffectToShow);
         ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
     }
@@ -126,7 +118,7 @@ void incrementEffectFrame()
     incrementBrightnessModeLevels();
     incrementTime();
     incrementTransition();
-    incrementMixingModeBlend();
+    incrementMixingModeBlend(frameTimeDelta);
     incrementTransitionFromSecondaryToPrimaryEffect();
     incrementColorPalettesTowardsTargets();
     detectBeat();
@@ -148,68 +140,32 @@ void setupEffects()
     effectA2.frameTimeDelta = &frameTimeDelta;
     effectB2.frameTimeDelta = &frameTimeDelta;
 
-    mixingModeBlendFunction = blendColorsUsingMixing;
-    oldMixingModeBlendFunction = blendColorsUsingMixing;
+    setupMixingModes();
+    setupTimeModes();
+
+    // mixingModeBlendFunction = blendColorsUsingMixing;
+    // oldMixingModeBlendFunction = blendColorsUsingMixing;
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
 
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + (timeDelta >> 1); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)timeDelta / 3); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)timeDelta >> 2); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime + ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - (timeDelta >> 1); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)timeDelta / 3); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)timeDelta >> 2); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 1); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) / 3); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)(currentAudioIntensityLevel * AudioInfluenceFactorForAudioScaledTime * timeDelta) >> 2); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)(timeDelta * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .5)))); };
-    // timeModeIncrementFunctions[numberOfTimeModes++] = [](int currentTime, int timeDelta) { return currentTime - ((int)((timeDelta >> 1) * (AudioInfluenceFactorForAudioScaledTime * (currentAudioIntensityLevel - .4)))); };
 
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 11); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 11); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentYawPosition() >> 11); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 12); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 12); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentYawPosition() >> 12); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentRollPosition() >> 10); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentPitchPosition() >> 10); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return (int)(getCurrentYawPosition() >> 10); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentRollPosition() >> 11)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentPitchPosition() >> 11)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 11)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentRollPosition() >> 12)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentPitchPosition() >> 12)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 12)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentRollPosition() >> 10)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentPitchPosition() >> 10)); };
-    // timeModeIncrementFunctions[numberOfTimeModes + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 10)); };
-
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
-    mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
+    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 
     setupNormalMood(&effectSettings);
     *currentScreenMap = normalScreenMap;
@@ -220,13 +176,13 @@ void setupEffects()
 
 }
 
-inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
-{
-    Color newColor = mixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
-    if (!millisecondsLeftInMixingModeBlend) return newColor;
-    Color oldColor = oldMixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
-    return blendColorsUsingMixing(newColor, oldColor, percentOfOldMixingModeToMixIn8Bit);
-}
+// inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
+// {
+//     Color newColor = mixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
+//     if (!millisecondsLeftInMixingModeBlend) return newColor;
+//     Color oldColor = oldMixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
+//     return blendColorsUsingMixing(newColor, oldColor, percentOfOldMixingModeToMixIn8Bit);
+// }
 
 void handleStepDetected()
 {
@@ -245,48 +201,16 @@ void handleMovementDetected()
     pickRandomTimeModesForEffect(&effectB2, movementType != Stationary, movementType == Stationary);
 }
 
-// void pickRandomTimeModesForEffect(Effect *effect, bool pickFromMovementBasedTimeModes, bool pickFromNonMovementBasedTimeModes)
-// {
-//     if (pickFromMovementBasedTimeModes && pickFromNonMovementBasedTimeModes)
-//     {
-//         effect->timeMode1 = fastRandomInteger(numberOfMovementBasedTimeModes + numberOfTimeModes);
-//         effect->timeMode2 = fastRandomInteger(numberOfMovementBasedTimeModes + numberOfTimeModes);
-//     }
-//     else if (pickFromMovementBasedTimeModes)
-//     {
-//         effect->timeMode1 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
-//         effect->timeMode2 = fastRandomInteger(numberOfMovementBasedTimeModes) + numberOfTimeModes;
-//     }
-//     else 
-//     {
-//         effect->timeMode1 = fastRandomInteger(numberOfTimeModes);
-//         effect->timeMode2 = fastRandomInteger(numberOfTimeModes);
-//     }
-// }
-
-const int TimeDeltaResolutionIncreaseFactor = 64;
 inline void incrementTime()
 {
     int newTime = (int)getTime();
-    frameTimeDelta = (newTime - currentTime);
-    int timeDelta = (frameTimeDelta * TimeDeltaResolutionIncreaseFactor);
+    frameTimeDelta = newTime - currentTime;
     currentTime = newTime;
-    incrementTime(&effectA1, frameTimeDelta);
-    incrementTime(&effectB1, frameTimeDelta);
-    incrementTime(&effectA2, frameTimeDelta);
-    incrementTime(&effectB2, frameTimeDelta);
-    #ifdef ENABLE_SERIAL
-    Serial.print("ft: ");
-    Serial.println(frameTimeDelta);
-    #endif
+    incrementTimesForEffect(&effectA1, frameTimeDelta);
+    incrementTimesForEffect(&effectB1, frameTimeDelta);
+    incrementTimesForEffect(&effectA2, frameTimeDelta);
+    incrementTimesForEffect(&effectB2, frameTimeDelta);
 }
-
-// inline void incrementTime(Effect *effect, int timeDelta)
-// {
-//     int increasedResolutionTimeDelta = (timeDelta * TimeDeltaResolutionIncreaseFactor);
-//     effect->time1 = timeModeIncrementFunctions[effect->timeMode1](effect->time1 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
-//     effect->time2 = timeModeIncrementFunctions[effect->timeMode1](effect->time1 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
-// }
 
 inline void incrementTransition()
 {
@@ -296,12 +220,12 @@ inline void incrementTransition()
     percentOfEffectBToShow8Bit = percentOfEffectBToShow >> 8;
 }
 
-inline void incrementMixingModeBlend()
-{
-    if (!millisecondsLeftInMixingModeBlend) return;
-    millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlend > frameTimeDelta ? millisecondsLeftInMixingModeBlend - frameTimeDelta : 0;
-    percentOfOldMixingModeToMixIn8Bit = (millisecondsLeftInMixingModeBlend / millisecondsLeftInMixingModeBlendTotalDuration) * UINT8_MAX;
-}
+// inline void incrementMixingModeBlend()
+// {
+//     if (!millisecondsLeftInMixingModeBlend) return;
+//     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlend > frameTimeDelta ? millisecondsLeftInMixingModeBlend - frameTimeDelta : 0;
+//     percentOfOldMixingModeToMixIn8Bit = (millisecondsLeftInMixingModeBlend / millisecondsLeftInMixingModeBlendTotalDuration) * UINT8_MAX;
+// }
 
 inline void incrementTransitionFromSecondaryToPrimaryEffect()
 {
@@ -341,12 +265,12 @@ void detectBeat()
 void randomizeEffectsNaturally()
 {
     if (fastRandomByte() < effectSettings.LikelihoodNothingChangesWhenRandomizingEffect) return;
-    if (fastRandomByte() < effectSettings.LikelihoodBlendingModeChangesWhenRandomizingEffect) pickRandomBlendingMode();
+    if (fastRandomByte() < effectSettings.LikelihoodBlendingModeChangesWhenRandomizingEffect) pickRandomMixingMode(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
     if (fastRandomByte() < effectSettings.LikelihoodSubPaletteChangesWhenRandomizingEffect) pickRandomSubPalette();
     if (fastRandomByte() < effectSettings.LikelihoodPaletteChangesWhenRandomizingEffect) pickRandomPalette();
     if (fastRandomByte() < effectSettings.LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect) pickRandomTransformMaps();
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreSwappedWhenRandomizingEffect) swapEffects();
-    if (fastRandomByte() < effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect) pickRandomTimeModes();
+    if (fastRandomByte() < effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect) pickRandomTimeModesForAllEffects(&effectA1, &effectB1, &effectA2, &effectB2, effectSettings.LikelihoodMovementBasedTimeModeIsPicked, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAndRandomizedWhenRandomizingEffect) pickRandomEffects();
     if (fastRandomByte() < effectSettings.LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect) pickRandomSizeParametersForEffects();
     if (fastRandomByte() < effectSettings.LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect) pickRandomGlobalBrightnessControlModes();
@@ -361,12 +285,12 @@ void pickRandomScreenMap()
     *currentScreenMap = screenMaps[fastRandomInteger(screenMapsCount)];
 }
 
-void pickRandomBlendingMode()
-{
-    mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
-    millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
-    millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
-}
+// void pickRandomBlendingMode()
+// {
+//     mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
+//     millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
+//     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
+// }
 
 void pickRandomSubPalette()
 {
@@ -478,11 +402,6 @@ void swapEffects()
     }
     millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = fastRandomInteger(effectSettings.MillisecondsForEffectTransitionsMinimum, effectSettings.MillisecondsForEffectTransitionsMaximum);
     millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax;
-}
-
-void pickRandomTimeModes()
-{
-    pickRandomTimeModesForAllEffects(&effectA1, &effectB1, &effectA2, &effectB2, effectSettings.LikelihoodMovementBasedTimeModeIsPicked, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
 }
 
 void pickRandomSizeParametersForEffects()

@@ -1,5 +1,5 @@
-#ifndef SERIAL_H
-#define SERIAL_H
+#ifndef TIME_MODES_H
+#define TIME_MODES_H
 
 #include <Arduino.h>
 #include "../Graphics/effect.h"

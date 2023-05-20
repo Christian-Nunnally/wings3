@@ -26,15 +26,6 @@ void setup()
 
 void loop() 
 {
-  // int time = millis();
-  // for (int i = 0; i < 100000; i++)
-  // {
-  //   blendColorsUsingMixing({(uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255)}, {(uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255), (uint8_t)fastRandomInteger(255)}, (uint8_t)fastRandomInteger(255));
-  // }
-  // int newTime = millis();
-  // Serial.print("Blending time for 100k: ");
-  // Serial.println(newTime - time);
-
   setTime(millis());
   incrementEffectFrame();
   renderLeds();
