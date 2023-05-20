@@ -33,6 +33,28 @@ int getRandomEffectNumberFromAllowedEffects()
     return effectSettings.AllowedEffects[effectRandom];
 }
 
+void syncEffects(Effect *syncFrom, Effect *syncTo)
+{
+    *syncTo->transformMap1 = *syncFrom->transformMap1;
+    *syncTo->transformMap2 = *syncFrom->transformMap2;
+    *syncTo->globalBrightnessPointer = *syncFrom->globalBrightnessPointer;
+    *syncTo->frameTimeDelta = *syncFrom->frameTimeDelta;
+    syncTo->time1 = syncFrom->time1;
+    syncTo->time2 = syncFrom->time2;
+    syncTo->timeMode1 = syncFrom->timeMode1;
+    syncTo->timeMode2 = syncFrom->timeMode2;
+    syncTo->size = syncFrom->size;
+    syncTo->currentPalette = syncFrom->currentPalette;
+    syncTo->currentPaletteOffset = syncFrom->currentPaletteOffset;
+    syncTo->currentPaletteOffsetTarget = syncFrom->currentPaletteOffsetTarget;
+}
+
+void incrementEffects()
+{
+    effectA1.effectFunctionIncrement();
+    if (effectA1.effectFunctionIncrementUniqueId != effectB1.effectFunctionIncrementUniqueId) effectB1.effectFunctionIncrement();
+}
+
 /// ---------------------------------------------------------------------------------------------------------------
 
 void setEffectAToMeteorRainEffect()

@@ -33,7 +33,7 @@ void setupNormalMood(EffectSettings *settings)
     settings->MillisecondToMoveToNextPaletteFrame = 50;
     settings->MillisecondsForEffectTransitionsMinimum = 10;
     settings->MillisecondsForEffectTransitionsMaximum = 2000;
-    settings->MillisecondsForBlendingModeTransitionsMinimum = 50;
+    settings->MillisecondsForBlendingModeTransitionsMinimum = 200;
     settings->MillisecondsForBlendingModeTransitionsMaximum = 2000;
     settings->MillisecondsForBackgroundTransitionFadeMinimum = 50;
     settings->MillisecondsForBackgroundTransitionFadeMaximum = 10000;

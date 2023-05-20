@@ -18,6 +18,8 @@
 
 void setAudioIntensityLevel(float level);
 void pickRandomEffects();
+void syncEffects(Effect *syncFrom, Effect *syncTo);
+void incrementEffects();
 
 extern Effect effectA1;
 extern Effect effectB1;
