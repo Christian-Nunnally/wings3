@@ -10,8 +10,6 @@
 #include "src/Utility/fastRandom.h"
 #include "src/settings.h"
 
-unsigned long lastTime;
-
 void setup() 
 {
   #ifdef ENABLE_SERIAL 

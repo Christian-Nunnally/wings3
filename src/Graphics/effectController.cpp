@@ -70,7 +70,7 @@ int currentTime;
 int lastPeakDetectorValue;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
-bool primaryEffectToggle = false;
+bool primaryEffectToggle;
 float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
 
@@ -133,7 +133,8 @@ void setupEffects()
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
 
-    setupNormalMood(&effectSettings);
+    //setupNormalMood(&effectSettings);
+    setupTestMood(&effectSettings);
     *currentScreenMap = normalScreenMap;
     for (int i = 0; i < 500; i++) randomizeEffectsNaturally();
 
@@ -317,7 +318,6 @@ void swapEffects()
     {
         syncEffects(&effectA2, &effectA1);
         syncEffects(&effectB2, &effectB1);
-
         currentPrimaryEffectA = effectA1;
         currentPrimaryEffectB = effectB1;
         currentSecondaryEffectA = effectA2;
@@ -327,7 +327,6 @@ void swapEffects()
     {
         syncEffects(&effectA1, &effectA2);
         syncEffects(&effectB1, &effectB2);
-
         currentPrimaryEffectA = effectA2;
         currentPrimaryEffectB = effectB2;
         currentSecondaryEffectA = effectA1;
@@ -366,7 +365,7 @@ void pickRandomGlobalBrightnessControlModes()
 
 void pickRandomTransitionTime()
 {
-    int desiredMillisecondTransitionDuration = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum); 
+    int desiredMillisecondTransitionDuration = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum) + 1; 
     currentTransitionIncrement = UINT16_MAX / desiredMillisecondTransitionDuration;
 }
 

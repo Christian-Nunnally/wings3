@@ -54,6 +54,6 @@ void incrementMixingModeBlend(int frameTimeDelta)
 void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMillisecondsForTransition)
 {
     mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
-    millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(minimumMillisecondsForTransition, maximumMillisecondsForTransition);
+    millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(minimumMillisecondsForTransition, maximumMillisecondsForTransition) + 1;
     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
 }
