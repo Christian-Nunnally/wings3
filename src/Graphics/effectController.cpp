@@ -21,33 +21,31 @@
 #include "../Observers/movementDetectedObserver.h"
 #include "../Utility/fastRandom.h"
 
-Color blendIncorporatingOldMixingMode(Color color1, Color color2);
+inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index);
 void handleStepDetected();
 void handleMovementDetected();
 void incrementTime();
 void incrementTransition();
+inline void incrementTransitionFromSecondaryToPrimaryEffect();
 void incrementColorPalettesTowardsTargets();
+void incrementColorPalettesTowardsTargetsForEffect(Effect *effect);
 void detectBeat();
 void randomizeEffectsNaturally();
-void pickRandomSubPalette();
+void pickRandomScreenMap();
 void pickRandomPalette();
 void pickRandomPaletteForEffect(Effect *effect);
+void pickRandomSubPalette();
 void pickRandomSubPaletteForEffect(Effect *effect);
 int pickRandomSubPaletteFromPalette(int palette);
 void pickRandomTransformMaps();
 void pickRandomTransformMaps(Effect *effect, byte likelihood);
 void pickRandomMirroredTransformMaps(Effect *effect, byte likelihood);
 void swapEffects();
-void pickRandomScreenMap();
-void pickRandomTimeModes();
 void pickRandomSizeParametersForEffects();
 void pickRandomGlobalBrightnessControlModes();
 void pickRandomTransitionTime();
-void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void switchTransitionDirection();
-void incrementColorPalettesTowardsTargetsForEffect(Effect *effect);
-inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index);
-inline void incrementTransitionFromSecondaryToPrimaryEffect();
+void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 
 Effect currentPrimaryEffectA;
 Effect currentPrimaryEffectB;
@@ -56,16 +54,6 @@ Effect currentSecondaryEffectB;
 EffectSettings effectSettingsStationary;
 EffectSettings effectSettingsMoving;
 
-// // Mixing Mode variables.
-// const int MaxNumberOfMixingModeBlendFunctions = 20;
-// int numberOfMixingModeBlendFunctions;
-// Color (*mixingModeBlendFunctions[MaxNumberOfMixingModeBlendFunctions])(Color color1, Color color2, uint8_t transitionAmount);
-// Color (*mixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
-// Color (*oldMixingModeBlendFunction)(Color color1, Color color2, uint8_t transitionAmount) {};
-// int mixingMode;
-// int millisecondsLeftInMixingModeBlend;
-// int millisecondsLeftInMixingModeBlendTotalDuration = 1;
-
 // Screen Mode variables.
 byte *currentScreenMap[TOTAL_LEDS];
 Color ledColorMap[TOTAL_LEDS];
@@ -73,7 +61,6 @@ Color ledColorMap[TOTAL_LEDS];
 // Transition variables.
 uint16_t percentOfEffectBToShow;
 uint8_t percentOfEffectBToShow8Bit;
-// uint8_t percentOfOldMixingModeToMixIn8Bit;
 uint8_t percentOfSecondaryEffectToShow;
 int currentTransitionIncrement;
 bool transitionDirection;
@@ -143,29 +130,8 @@ void setupEffects()
     setupMixingModes();
     setupTimeModes();
 
-    // mixingModeBlendFunction = blendColorsUsingMixing;
-    // oldMixingModeBlendFunction = blendColorsUsingMixing;
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
-
-
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixingGlitched;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingMixing;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAdd;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingScreen;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingAverage;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingShimmer;
-    // mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 
     setupNormalMood(&effectSettings);
     *currentScreenMap = normalScreenMap;
@@ -175,14 +141,6 @@ void setupEffects()
     effectSettingsMoving = effectSettings;
 
 }
-
-// inline Color blendIncorporatingOldMixingMode(Color color1, Color color2)
-// {
-//     Color newColor = mixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
-//     if (!millisecondsLeftInMixingModeBlend) return newColor;
-//     Color oldColor = oldMixingModeBlendFunction(color1, color2, percentOfEffectBToShow8Bit);
-//     return blendColorsUsingMixing(newColor, oldColor, percentOfOldMixingModeToMixIn8Bit);
-// }
 
 void handleStepDetected()
 {
@@ -219,13 +177,6 @@ inline void incrementTransition()
     else percentOfEffectBToShow = (percentOfEffectBToShow > incrementAmount) ? percentOfEffectBToShow - incrementAmount : 0; 
     percentOfEffectBToShow8Bit = percentOfEffectBToShow >> 8;
 }
-
-// inline void incrementMixingModeBlend()
-// {
-//     if (!millisecondsLeftInMixingModeBlend) return;
-//     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlend > frameTimeDelta ? millisecondsLeftInMixingModeBlend - frameTimeDelta : 0;
-//     percentOfOldMixingModeToMixIn8Bit = (millisecondsLeftInMixingModeBlend / millisecondsLeftInMixingModeBlendTotalDuration) * UINT8_MAX;
-// }
 
 inline void incrementTransitionFromSecondaryToPrimaryEffect()
 {
@@ -284,13 +235,6 @@ void pickRandomScreenMap()
 {
     *currentScreenMap = screenMaps[fastRandomInteger(screenMapsCount)];
 }
-
-// void pickRandomBlendingMode()
-// {
-//     mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
-//     millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum);
-//     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
-// }
 
 void pickRandomSubPalette()
 {
