@@ -32,7 +32,7 @@ typedef struct
   uint8_t LikelihoodTimeModesRandomizeWhenRandomizingEffect;
   uint8_t LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes;
 
-  uint8_t LikelihoodEffectsAndRandomizedWhenRandomizingEffect;
+  uint8_t LikelihoodEffectsAreRandomizedWhenRandomizingEffect;
 
   uint8_t LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect;
 
@@ -50,9 +50,6 @@ typedef struct
   uint16_t MillisecondsForEffectTransitionsMaximum;
   uint16_t MillisecondsForBlendingModeTransitionsMinimum;
   uint16_t MillisecondsForBlendingModeTransitionsMaximum;
-
-  uint16_t MillisecondsForBackgroundTransitionFadeMinimum;
-  uint16_t MillisecondsForBackgroundTransitionFadeMaximum;
 
   uint8_t GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps;
   uint8_t GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps;

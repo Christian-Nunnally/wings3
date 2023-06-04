@@ -46,6 +46,7 @@ void pickRandomGlobalBrightnessControlModes();
 void pickRandomTransitionTime();
 void switchTransitionDirection();
 void pickRandomAudioLevelThresholdForMoreIntenseEffect();
+void handleBeatDetected();
 
 Effect currentPrimaryEffectA;
 Effect currentPrimaryEffectB;
@@ -78,7 +79,7 @@ Color getLedColorForFrame(int ledIndex)
 {
     byte currentScreen = (*currentScreenMap)[ledIndex];
     if (currentScreen == 4) return {0, 0, 0};
-    else if (currentScreen & 1) return effectA1.effectFunctionHighlight(ledIndex);
+    else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
     
     Color color1 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
     Color color2 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
@@ -90,7 +91,7 @@ Color getLedColorForFrame(int ledIndex)
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, percentOfSecondaryEffectToShow);
         ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
-    }
+    } 
     else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
     return ledColorMap[ledIndex];
 }
@@ -108,39 +109,26 @@ void incrementEffectFrame()
     incrementMixingModeBlend(frameTimeDelta);
     incrementTransitionFromSecondaryToPrimaryEffect();
     incrementColorPalettesTowardsTargets();
+    setAudioIntensityLevel(getAudioIntensityRatio());
     detectBeat();
     incrementEffects();
 }
 
 void setupEffects()
 {
-    currentPrimaryEffectA = effectA1;
-    currentPrimaryEffectB = effectB1;
-    currentSecondaryEffectA = effectA2;
-    currentSecondaryEffectB = effectB2;
-    effectA1.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA1); };
-    effectB1.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB1); };
-    effectA2.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA2); };
-    effectB2.effectFunctionHighlight = [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB2); };
-    effectA1.frameTimeDelta = &frameTimeDelta;
-    effectB1.frameTimeDelta = &frameTimeDelta;
-    effectA2.frameTimeDelta = &frameTimeDelta;
-    effectB2.frameTimeDelta = &frameTimeDelta;
-
+    initializeEffect(&effectA1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA1); });
+    initializeEffect(&effectB1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB1); });
+    initializeEffect(&effectA2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA2); });
+    initializeEffect(&effectB2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB2); });
+    swapEffects();
     setupMixingModes();
     setupTimeModes();
-
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
-
-    //setupNormalMood(&effectSettings);
-    setupTestMood(&effectSettings);
     *currentScreenMap = normalScreenMap;
-    for (int i = 0; i < 500; i++) randomizeEffectsNaturally();
-
     effectSettingsStationary = effectSettings;
     effectSettingsMoving = effectSettings;
-
+    setupNormalMood(&effectSettings);
 }
 
 void handleStepDetected()
@@ -209,9 +197,16 @@ void detectBeat()
     int nextPeak = getCurrentPeakDetectorValue();
     if (nextPeak == lastPeakDetectorValue) return;
     lastPeakDetectorValue = nextPeak;
-    if (nextPeak == PositivePeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) randomizeEffectsNaturally();
+    if (nextPeak == PositivePeak) handleBeatDetected();
     else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
     else if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected) randomizeEffectsNaturally();
+}
+
+void handleBeatDetected()
+{
+    if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) randomizeEffectsNaturally();
+    effectA1.effectFunctionBonusTrigger();
+    if (effectA1.effectFunctionIncrementUniqueId != effectB1.effectFunctionIncrementUniqueId) effectB1.effectFunctionBonusTrigger();
 }
 
 void randomizeEffectsNaturally()
@@ -223,7 +218,7 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect) pickRandomTransformMaps();
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreSwappedWhenRandomizingEffect) swapEffects();
     if (fastRandomByte() < effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect) pickRandomTimeModesForAllEffects(&effectA1, &effectB1, &effectA2, &effectB2, effectSettings.LikelihoodMovementBasedTimeModeIsPicked, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
-    if (fastRandomByte() < effectSettings.LikelihoodEffectsAndRandomizedWhenRandomizingEffect) pickRandomEffects();
+    if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenRandomizingEffect) pickRandomEffects();
     if (fastRandomByte() < effectSettings.LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect) pickRandomSizeParametersForEffects();
     if (fastRandomByte() < effectSettings.LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect) pickRandomGlobalBrightnessControlModes();
     if (fastRandomByte() < effectSettings.LikelihoodTransitionDirectionChangesWhenRandomizingEffect) switchTransitionDirection();
@@ -333,15 +328,18 @@ void swapEffects()
         currentSecondaryEffectB = effectB1;
     }
 
-    if (primaryEffectToggle)
+    if (fastRandomByte() < effectSettings.LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped)
     {
-        pickRandomTransformMaps(&effectA1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
-        pickRandomTransformMaps(&effectB1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
-    }
-    else
-    {
-        pickRandomTransformMaps(&effectA2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
-        pickRandomTransformMaps(&effectB2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        if (primaryEffectToggle)
+        {
+            pickRandomTransformMaps(&effectA1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+            pickRandomTransformMaps(&effectB1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        }
+        else
+        {
+            pickRandomTransformMaps(&effectA2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+            pickRandomTransformMaps(&effectB2, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
+        }
     }
     millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = fastRandomInteger(effectSettings.MillisecondsForEffectTransitionsMinimum, effectSettings.MillisecondsForEffectTransitionsMaximum);
     millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax;
@@ -378,4 +376,8 @@ void pickRandomAudioLevelThresholdForMoreIntenseEffect()
 {
     effectA1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
     effectB1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
+    // Serial.println("effectA1AudioLevelThresholdToShowMoreIntenseEffect");
+    // Serial.println(effectA1AudioLevelThresholdToShowMoreIntenseEffect);
+    // Serial.println("effectB1AudioLevelThresholdToShowMoreIntenseEffect");
+    // Serial.println(effectB1AudioLevelThresholdToShowMoreIntenseEffect);
 }

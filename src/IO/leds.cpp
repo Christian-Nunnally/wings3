@@ -16,12 +16,12 @@
 #define TEMPORAL_DITHERING_AMOUNT   4
 #define DOUBLE_BUFFER               true
 #define PIO_CONTROLLER              pio1
-#define GAMMA                       2.8
-#define MAX_DUTY_CYCLE              65535 / 2
+#define GAMMA                       2.2
+#define MAX_DUTY_CYCLE              65535 / 3
 
 #define USE_SPECIAL_LED_ORDER_FOR_WINGS
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
-#define SPECIAL_LED_ORDER_OFFSET    33
+#define SPECIAL_LED_ORDER_OFFSET    63
 inline void specialLedOrderForWings();
 #endif
 
@@ -31,11 +31,15 @@ byte currentBrightness;
 
 inline void normalLedOrder();
 
-bool setupLeds()
+void setupLeds()
 {
-    if (!ledDisplay.begin(BLEND_FRAMES, TEMPORAL_DITHERING_AMOUNT, DOUBLE_BUFFER, PIO_CONTROLLER)) return false;
-    setGlobalLedBrightness(currentBrightness);
-    return true;
+    if (ledDisplay.begin(BLEND_FRAMES, TEMPORAL_DITHERING_AMOUNT, DOUBLE_BUFFER, PIO_CONTROLLER)) 
+    {
+      setGlobalLedBrightness(currentBrightness);
+      #ifdef ENABLE_SERIAL 
+      Serial.println("Leds Initalized.");
+      #endif
+    }
 }
 
 void renderLeds()
@@ -66,6 +70,24 @@ void refreshLeds()
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
 inline void specialLedOrderForWings()
 {
+//   int pixelIndex = 0;
+//   int offsetPixelIndex = START_LED_OFFSET;
+//   for(; pixelIndex < LED_COUNT_PER_PIN;) 
+//   {
+//     Color color = getLedColorForFrame(pixelIndex++);
+//     ledDisplay.setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
+//   }
+//   for(; pixelIndex < LED_COUNT_PER_PIN + SPECIAL_LED_ORDER_OFFSET;) 
+//   {
+//     Color color = getLedColorForFrame(pixelIndex++);
+//     ledDisplay.setPixelColor(offsetPixelIndex++, color.green, color.red, color.blue);
+//   }
+//   for(; offsetPixelIndex < END_LED_OFFSET;) 
+//   {
+//     Color color = getLedColorForFrame(pixelIndex++);
+//     ledDisplay.setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
+//   }
+// }
   int pixelIndex = 0;
   int offsetPixelIndex = START_LED_OFFSET;
   for(; pixelIndex < LED_COUNT_PER_PIN;) 
@@ -76,12 +98,12 @@ inline void specialLedOrderForWings()
   for(; pixelIndex < LED_COUNT_PER_PIN + SPECIAL_LED_ORDER_OFFSET;) 
   {
     Color color = getLedColorForFrame(pixelIndex++);
-    ledDisplay.setPixelColor(offsetPixelIndex++, color.green, color.red, color.blue);
+    ledDisplay.setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
   }
   for(; offsetPixelIndex < END_LED_OFFSET;) 
   {
     Color color = getLedColorForFrame(pixelIndex++);
-    ledDisplay.setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
+    ledDisplay.setPixelColor(offsetPixelIndex++, color.green, color.red, color.blue);
   }
 }
 #endif

@@ -60,7 +60,7 @@ Color rainShowerEffect(int pixelIndex, Effect *effect)
       bool isDropInUpperBound = (*effect->transformMap1)[pixelIndex] < rainDropXPositions[(*effect->transformMap2)[pixelIndex]] + effect->size ;
       if (isDropInLowerBound && isDropInUpperBound)
       {
-        return colorFromPalette(effect->currentPaletteOffset, (((*effect->globalBrightnessPointer) / effect->size) * distanceFromUpperBound));
+        return colorFromPalette(effect->currentPaletteOffset, ((((*effect->globalBrightnessPointer) + 1) / (effect->size + 1)) * distanceFromUpperBound));
       }
     }
   }

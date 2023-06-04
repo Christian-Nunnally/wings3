@@ -60,7 +60,7 @@ Color lightningBugEffect(int pixelIndex, Effect *effect)
 
     if (pixelRadiusTransformMaps[lightningBugs[i]][pixelIndex] < lightningBugRadii[i])
     {
-      uint16_t brightness = (float)((lightningBugRadii[i] - pixelRadiusTransformMaps[lightningBugs[i]][pixelIndex]) / lightningBugRadii[i]) * lightningBugsBrightness[i];
+      uint16_t brightness = (float)((lightningBugRadii[i] - pixelRadiusTransformMaps[lightningBugs[i]][pixelIndex]) / lightningBugRadii[i]) * (lightningBugsBrightness[i] >> 8);
       return colorFromPalette(effect->currentPaletteOffset, brightness);
     }
   }

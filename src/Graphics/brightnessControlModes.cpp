@@ -9,6 +9,7 @@ const byte NumberOfNormalGlobalBrightnessChangeModes = 3;
 const byte NumberOfMovementBasedGlobalBrightnessChangeModes = 3;
 const byte NumberOfMusicBasedGlobalBrightnessChangeModes = 3;
 uint8_t brightnessModeMaxBrightness = UINT8_MAX;
+// TODO: remove these or anything too dim.
 uint8_t brightnessModeAlmostMaxBrightness = 200;
 uint8_t brightnessModeHalfBrightness = UINT8_MAX / 2;
 uint8_t brightnessModeAudioLevelBasedBrightness;

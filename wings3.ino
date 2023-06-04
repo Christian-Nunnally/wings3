@@ -17,7 +17,7 @@ void setup()
   #endif
   setupLeds();
   setupMicrophone();
-  setupImu();
+  //setupImu();
   setupEffects();
   setupAnalogInputs();
 }
@@ -28,7 +28,7 @@ void loop()
   incrementEffectFrame();
   renderLeds();
   processAudioStream();
-  checkForMovement();
+  //checkForMovement();
   readAnalogValues();
   #ifdef ENABLE_SERIAL 
   readSerial();

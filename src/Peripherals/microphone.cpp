@@ -3,6 +3,7 @@
 #include <PDM.h>
 #include "../Peripherals/microphone.h"
 #include "../Utility/time.h"
+#include "../settings.h"
 
 #define AUDIO_SAMPLE_BATCH_SIZE     64
 #define MICROPHONE_SAMPLE_FREQUENCY 16000
@@ -39,7 +40,11 @@ bool setupMicrophone()
 {
     PDM.onReceive(onAudioDataReceived);
     peakDetector.begin(PEAK_DETECTOR_LAG, PEAK_DETECTOR_THRESHOLD, PEAK_DETECTOR_INFLUENCE); 
-    return PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
+    bool result = PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
+    #ifdef ENABLE_SERIAL 
+    if (result) Serial.println("Microphone Initalized.");
+    #endif
+    return result;
 }
 
 double getAudioIntensityRatio()

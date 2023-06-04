@@ -3,8 +3,6 @@
 
 #include "../Graphics/color.h"
 
-// Color blendColorsUsingMixing3(Color color1, Color color2, uint16_t blendFactor);
-// Color blendColorsUsingMixing2(Color color1, Color color2, uint16_t blendFactor);
 Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor);
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint8_t blendFactor);
 Color blendColorsUsingAdd(Color color1, Color color2, uint8_t blendFactor);

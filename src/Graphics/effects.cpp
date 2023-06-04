@@ -155,6 +155,8 @@ void setEffectAToFireworksEffect()
     effectA2.effectFunctionIncrement = []() { incrementFireworksEffect(&effectA2, 40); };
     effectA1.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
     effectA2.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
+    effectA1.effectFunctionBonusTrigger = triggerFirework;
+    effectA2.effectFunctionBonusTrigger = triggerFirework;
 }
 
 void setEffectAToLightChaseEffect()
@@ -267,6 +269,8 @@ void setEffectBToFireworksEffect()
     effectB2.effectFunctionIncrement = []() { incrementFireworksEffect(&effectB2, 40); };
     effectB1.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
     effectB2.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
+    effectB1.effectFunctionBonusTrigger = triggerFirework;
+    effectB2.effectFunctionBonusTrigger = triggerFirework;
 }
 
 void setEffectBToLightChaseEffect()

@@ -7,7 +7,12 @@
 void setupSerial()
 {
   Serial.begin(SERIAL_BAUD_RATE);
-  while (!Serial);
+  unsigned long startTime = millis(); 
+  while (!Serial)
+  {
+    if (millis() - startTime > 20000) break;
+    delay(10);
+  }
   Serial.println("Serial Initalized.");
 }
 
@@ -19,11 +24,11 @@ void readSerial()
     int data = Serial.read();
     if (templol)
     {
-      setGlobalLedBrightness(UINT16_MAX);
+      //setGlobalLedBrightness(UINT16_MAX);
     }
     else 
     {
-      setGlobalLedBrightness(0);
+      //setGlobalLedBrightness(0);
     }
     templol = !templol;
   }

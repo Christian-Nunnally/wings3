@@ -9,6 +9,7 @@ typedef struct
     Color (*effectFunction)(int pixel) {};
     Color (*effectFunctionHighlight)(int pixel) {};
     void (*effectFunctionIncrement)() {};
+    void (*effectFunctionBonusTrigger)() {};
     int effectFunctionIncrementUniqueId;
 
     uint8_t const *transformMap1[272];
@@ -30,5 +31,7 @@ typedef struct
     int currentPaletteOffsetTarget; 
 }
 Effect;
+
+void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int));
 
 #endif

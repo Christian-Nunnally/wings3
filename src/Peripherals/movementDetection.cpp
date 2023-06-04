@@ -5,6 +5,7 @@
 #include "../Utility/time.h"
 #include "../Observers/stepDectectedObserver.h"
 #include "../Observers/movementDetectedObserver.h"
+#include "../settings.h"
 #include <SingleEMAFilterLib.h>
 
 #define ACCELEROMETER_SENSITIVITY 2 // Available values are: 2, 4, 8, 16 (G)
@@ -81,12 +82,30 @@ uint32_t getTimestampOfLastFifoEvent();
 
 void setupImu() 
 {
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Begin IMU Initialization.");
+    #endif
     setupIc2();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Ic2 Initialized.");
+    #endif
     feedProgramIntoImu();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Program fed to MLC.");
+    #endif
     setupAccelerometerGyro();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Accel/Gyro Initialized");
+    #endif
     setupInterrupt();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Interrupt Initialized");
+    #endif
     delay(1000);
     calibrateImu();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("IMU Initalized.");
+    #endif
 }
 
 void checkForMovement() 

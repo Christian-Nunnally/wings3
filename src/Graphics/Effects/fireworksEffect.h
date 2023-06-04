@@ -7,5 +7,6 @@
 
 void incrementFireworksEffect(Effect *effect, int fireworkProbability);
 Color fireworksEffect(int pixelIndex, Effect *effect);
+void triggerFirework();
 
 #endif

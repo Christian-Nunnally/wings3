@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-bool setupLeds();
+void setupLeds();
 void refreshLeds();
 void renderLeds();
 void setGlobalLedBrightness(uint16_t brightness);
