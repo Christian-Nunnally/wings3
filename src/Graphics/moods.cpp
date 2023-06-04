@@ -1,6 +1,7 @@
 
 #include "../Graphics/moods.h"
 #include "../Graphics/effects.h"
+#include "../Graphics/palettes.h"
 
 void setupNormalMood(EffectSettings *settings)
 {
@@ -70,7 +71,7 @@ void setupNormalMood(EffectSettings *settings)
         settings->AllowedPalettes[i][0] = NumberOfAllowedPalettesToPickBetween;
         for (int j = 0; j < NumberOfAllowedPalettesToPickBetween; j++)
         {
-            settings->AllowedPalettes[i][j + 1] = j;
+            settings->AllowedPalettes[i][j + 1] = j % TOTAL_NUMBER_OF_PALETTES;
         }
     }
 }

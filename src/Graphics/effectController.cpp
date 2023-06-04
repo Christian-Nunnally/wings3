@@ -376,8 +376,4 @@ void pickRandomAudioLevelThresholdForMoreIntenseEffect()
 {
     effectA1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
     effectB1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
-    // Serial.println("effectA1AudioLevelThresholdToShowMoreIntenseEffect");
-    // Serial.println(effectA1AudioLevelThresholdToShowMoreIntenseEffect);
-    // Serial.println("effectB1AudioLevelThresholdToShowMoreIntenseEffect");
-    // Serial.println(effectB1AudioLevelThresholdToShowMoreIntenseEffect);
 }

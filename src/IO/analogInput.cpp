@@ -4,19 +4,16 @@
 
 #define MAX_ANALOG_INPUT_SUBSCRIBERS 10
 
-#define BRIGHTNESS_ANALOG_INPUT_PIN (uint8_t)26U
-#define SPEED_ANALOG_INPUT_PIN (uint8_t)27U
-#define COLOR_ANALOG_INPUT_PIN (uint8_t)28U
-#define MODE_ANALOG_INPUT_PIN (uint8_t)29U
+#define BRIGHTNESS_ANALOG_INPUT_PIN (uint8_t)27U // This is dial 1
+#define MODE_ANALOG_INPUT_PIN (uint8_t)28U // This is dial 2
 #define ANALOG_INPUT_REFRESH_FREQUENCY 500
+#define ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT 4
 
 void (*brightnessAnalogInputChangedEventSubscribers[MAX_ANALOG_INPUT_SUBSCRIBERS])();
 byte currentBrightnessAnalogInputChangedEventSubscribersCount = 0;
 
-int lastBrightnessAnalogValue;
-int lastSpeedAnalogValue;
-int lastColorAnalogValue;
-int lastModeAnalogValue;
+int lastBrightnessAnalogValue; // Global brightness setting
+int lastModeAnalogValue; // global mode selection
 
 int currentBrightnessAnalogValue;
 int currentSpeedAnalogValue;
@@ -28,9 +25,8 @@ inline void notifyBrightnessAnalogInputChanged();
 
 void setupAnalogInputs()
 {
+    analogReadResolution(8);
     pinMode(BRIGHTNESS_ANALOG_INPUT_PIN, INPUT);
-    pinMode(SPEED_ANALOG_INPUT_PIN, INPUT);
-    pinMode(COLOR_ANALOG_INPUT_PIN, INPUT);
     pinMode(MODE_ANALOG_INPUT_PIN, INPUT);
 }
 
@@ -40,20 +36,25 @@ void readAnalogValues()
     lastInputPollTime = getTime();
 
     currentBrightnessAnalogValue = analogRead(BRIGHTNESS_ANALOG_INPUT_PIN);
-    if (lastBrightnessAnalogValue != currentBrightnessAnalogValue)
+    if (abs(lastBrightnessAnalogValue - currentBrightnessAnalogValue) > ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT)
     {
         lastBrightnessAnalogValue = currentBrightnessAnalogValue;
+        Serial.print("Brightness: ");
+        Serial.println(currentBrightnessAnalogValue);
         notifyBrightnessAnalogInputChanged();
     }
 
-    currentSpeedAnalogValue = analogRead(SPEED_ANALOG_INPUT_PIN);
-    currentColorAnalogValue = analogRead(COLOR_ANALOG_INPUT_PIN);
     currentModeAnalogValue = analogRead(MODE_ANALOG_INPUT_PIN);
+    if (abs(lastModeAnalogValue - currentModeAnalogValue) > ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT)
+    {
+        lastModeAnalogValue = currentModeAnalogValue;
+        Serial.print("Mode: ");
+        Serial.println(currentModeAnalogValue);
+    }
 }
 
 int getAnalogBrightnessSelection()
 {
-    return 200;
     return currentBrightnessAnalogValue;
 }
 

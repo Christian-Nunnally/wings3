@@ -6,6 +6,6 @@
 void setupLeds();
 void refreshLeds();
 void renderLeds();
-void setGlobalLedBrightness(uint16_t brightness);
+void setGlobalLedBrightness(uint8_t brightness);
 
 #endif

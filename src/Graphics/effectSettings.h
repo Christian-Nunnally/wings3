@@ -2,11 +2,12 @@
 #define EFFECT_SETTINGS_H
 
 #include <Arduino.h>
+#include "../Graphics/palettes.h"
 
 #define EFFECT_NAME 0
 
 const int NumberOfAllowedEffectsToPickBetween = 20;
-const int NumberOfAllowedPalettesToPickBetween = 5;
+const int NumberOfAllowedPalettesToPickBetween = TOTAL_NUMBER_OF_PALETTES * 5;
 
 typedef struct
 {

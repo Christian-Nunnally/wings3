@@ -16,8 +16,8 @@ void setTime(unsigned long time)
 {
     currentCachedTime = time;
     #ifdef ENABLE_SERIAL
-    Serial.print(currentCachedTime - lastCurrentCachedTime);
-    Serial.println("ms");
-    lastCurrentCachedTime = currentCachedTime;
+    // Serial.print(currentCachedTime - lastCurrentCachedTime);
+    // Serial.println("ms");
+    // lastCurrentCachedTime = currentCachedTime;
     #endif
 }

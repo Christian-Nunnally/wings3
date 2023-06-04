@@ -17,7 +17,7 @@
 #define DOUBLE_BUFFER               true
 #define PIO_CONTROLLER              pio1
 #define GAMMA                       2.2
-#define MAX_DUTY_CYCLE              65535 / 3
+#define MAX_DUTY_CYCLE              128
 
 #define USE_SPECIAL_LED_ORDER_FOR_WINGS
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
@@ -30,11 +30,14 @@ Adafruit_NeoPXL8HDR ledDisplay(LED_COUNT_PER_PIN, LED_PINS, COLOR_ORDER);
 byte currentBrightness;
 
 inline void normalLedOrder();
+void analogBrightnessChangedHandler();
 
 void setupLeds()
 {
     if (ledDisplay.begin(BLEND_FRAMES, TEMPORAL_DITHERING_AMOUNT, DOUBLE_BUFFER, PIO_CONTROLLER)) 
     {
+      subscribeToBrightnessAnalogInputChangedEvent(analogBrightnessChangedHandler);
+      currentBrightness = MAX_DUTY_CYCLE;
       setGlobalLedBrightness(currentBrightness);
       #ifdef ENABLE_SERIAL 
       Serial.println("Leds Initalized.");
@@ -52,16 +55,20 @@ void renderLeds()
   ledDisplay.show();
 }
 
-void setGlobalLedBrightness(uint16_t brightness)
+void analogBrightnessChangedHandler()
 {
-  brightness = MAX_DUTY_CYCLE ;//(MAX_DUTY_CYCLE * brightness) >> 8;
+  uint8_t brightness = getAnalogBrightnessSelection();
+  setGlobalLedBrightness(brightness);
+}
+
+void setGlobalLedBrightness(uint8_t brightness)
+{
   if (currentBrightness != brightness)
   {
       currentBrightness = brightness;
-      ledDisplay.setBrightness(brightness, GAMMA);
+      ledDisplay.setBrightness(brightness << 8, GAMMA);
   }
 }
-
 void refreshLeds()
 {
     ledDisplay.refresh();
@@ -70,24 +77,6 @@ void refreshLeds()
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
 inline void specialLedOrderForWings()
 {
-//   int pixelIndex = 0;
-//   int offsetPixelIndex = START_LED_OFFSET;
-//   for(; pixelIndex < LED_COUNT_PER_PIN;) 
-//   {
-//     Color color = getLedColorForFrame(pixelIndex++);
-//     ledDisplay.setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
-//   }
-//   for(; pixelIndex < LED_COUNT_PER_PIN + SPECIAL_LED_ORDER_OFFSET;) 
-//   {
-//     Color color = getLedColorForFrame(pixelIndex++);
-//     ledDisplay.setPixelColor(offsetPixelIndex++, color.green, color.red, color.blue);
-//   }
-//   for(; offsetPixelIndex < END_LED_OFFSET;) 
-//   {
-//     Color color = getLedColorForFrame(pixelIndex++);
-//     ledDisplay.setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
-//   }
-// }
   int pixelIndex = 0;
   int offsetPixelIndex = START_LED_OFFSET;
   for(; pixelIndex < LED_COUNT_PER_PIN;) 
