@@ -15,21 +15,21 @@ void setup()
   #ifdef ENABLE_SERIAL 
   setupSerial();
   #endif
-  setupLeds();
-  setupMicrophone();
+  // setupLeds();
+  //setupMicrophone();
   //setupImu();
-  setupEffects();
-  setupAnalogInputs();
+  // setupEffects();
+  // setupAnalogInputs();
 }
 
 void loop() 
 {
   setTime(millis());
-  incrementEffectFrame();
-  renderLeds();
-  processAudioStream();
+  // incrementEffectFrame();
+  // renderLeds();
+  //processAudioStream();
   //checkForMovement();
-  readAnalogValues();
+  // readAnalogValues();
   #ifdef ENABLE_SERIAL 
   readSerial();
   #endif
@@ -37,5 +37,5 @@ void loop()
 
 void loop1() 
 {
-  refreshLeds();
+  // refreshLeds();
 }

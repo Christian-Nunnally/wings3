@@ -26,7 +26,7 @@ void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, byte likeli
 {
     if (fastRandomByte() > likelihood) return;
     if ((fastRandomByte() < likelihoodMovementBasedMode) && (getCurrentMovementType() != Stationary)) effect->globalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];
-    else if (fastRandomByte() < likelihoodMusicBasedMode) effect->globalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
+    else if (fastRandomByte() < likelihoodMusicBasedMode && isMusicDetected()) effect->globalBrightnessPointer = musicBasedBrightnessModes[fastRandomInteger(NumberOfMusicBasedGlobalBrightnessChangeModes)];
     else effect->globalBrightnessPointer = normalBrightnessModes[fastRandomInteger(NumberOfNormalGlobalBrightnessChangeModes)];
 }
 

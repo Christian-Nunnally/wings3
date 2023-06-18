@@ -22,7 +22,7 @@
 
 volatile int mems_event;
 uint8_t lastMovementTypeStatus;
-MovementType currentMovementType;
+MovementType currentMovementType = Stationary;
 LSM6DSOXSensor imu(&Wire, (uint8_t)LSM6DSOX_I2C_ADD_L);
 uint16_t currentStepCount;
 uint16_t newStepCount;

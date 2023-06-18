@@ -81,8 +81,8 @@ void setEffectAToStarFieldEffect()
 {
     effectA1.effectFunction = [](int index) { return starFieldEffect(index, &effectA1, 20); };
     effectA2.effectFunction = [](int index) { return starFieldEffect(index, &effectA2, 20); };
-    effectA1.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectA1, 20, 200); };
-    effectA2.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectA1, 20, 200); };
+    effectA1.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectA1, 20, 500); };
+    effectA2.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectA1, 20, 500); };
     effectA1.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
     effectA2.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
 }
@@ -131,8 +131,8 @@ void setEffectAToFireEffect()
 {
     effectA1.effectFunction = [](int index) { return fireEffect(index, &effectA1, 100 - (currentAudioIntensityLevel * 100)); };
     effectA2.effectFunction = [](int index) { return fireEffect(index, &effectA2, 100 - (currentAudioIntensityLevel * 100)); };
-    effectA1.effectFunctionIncrement = []() { incrementFireEffect(&effectA1, 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
-    effectA2.effectFunctionIncrement = []() { incrementFireEffect(&effectA1, 500 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    effectA1.effectFunctionIncrement = []() { incrementFireEffect(&effectA1, 400 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
+    effectA2.effectFunctionIncrement = []() { incrementFireEffect(&effectA1, 400 * currentAudioIntensityLevel * currentAudioIntensityLevel); };
     effectA1.effectFunctionIncrementUniqueId = FIRE_EFFECT_INDEX;
     effectA2.effectFunctionIncrementUniqueId = FIRE_EFFECT_INDEX;
 }
@@ -161,7 +161,7 @@ void setEffectAToFireworksEffect()
 
 void setEffectAToLightChaseEffect()
 {
-    effectA1.effectFunction = [](int index) { return lightChaseEffect(index, &effectA1, 7); };
+    effectA1.effectFunction = [](int index) { return lightChaseEffect(index, &effectA1, 12); };
     effectA2.effectFunction = [](int index) { return lightChaseEffect(index, &effectA2, 7); };
     effectA1.effectFunctionIncrement = []() { };
     effectA2.effectFunctionIncrement = []() { };
@@ -193,10 +193,10 @@ void setEffectBToMeteorRainEffect2()
 
 void setEffectBToStarFieldEffect()
 {
-    effectB1.effectFunction = [](int index) { return starFieldEffect(index, &effectB1, 20); };
+    effectB1.effectFunction = [](int index) { return starFieldEffect(index, &effectB1, 15); };
     effectB2.effectFunction = [](int index) { return starFieldEffect(index, &effectB2, 20); };
-    effectB1.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectB1, 20, 200); };
-    effectB2.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectB1, 20, 200); };
+    effectB1.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectB1, 15, 400); };
+    effectB2.effectFunctionIncrement = []() { incrementStarFieldEffect(&effectB1, 20, 300); };
     effectB1.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
     effectB2.effectFunctionIncrementUniqueId = STAR_FIELD_EFFECT_INDEX;
 }
@@ -266,7 +266,7 @@ void setEffectBToFireworksEffect()
     effectB1.effectFunction = [](int index) { return fireworksEffect(index, &effectB1); };
     effectB2.effectFunction = [](int index) { return fireworksEffect(index, &effectB2); };
     effectB1.effectFunctionIncrement = []() { incrementFireworksEffect(&effectB1, 40); };
-    effectB2.effectFunctionIncrement = []() { incrementFireworksEffect(&effectB2, 40); };
+    effectB2.effectFunctionIncrement = []() { incrementFireworksEffect(&effectB2, 45); };
     effectB1.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
     effectB2.effectFunctionIncrementUniqueId = FIREWORKS_EFFECT_INDEX;
     effectB1.effectFunctionBonusTrigger = triggerFirework;
@@ -275,8 +275,8 @@ void setEffectBToFireworksEffect()
 
 void setEffectBToLightChaseEffect()
 {
-    effectB1.effectFunction = [](int index) { return lightChaseEffect(index, &effectB1, 7); };
-    effectB2.effectFunction = [](int index) { return lightChaseEffect(index, &effectB2, 7); };
+    effectB1.effectFunction = [](int index) { return lightChaseEffect(index, &effectB1, (effectB1.time1 >> 10) % 72); };
+    effectB2.effectFunction = [](int index) { return lightChaseEffect(index, &effectB2, 18); };
     effectB1.effectFunctionIncrement = []() { };
     effectB2.effectFunctionIncrement = []() { };
     effectB1.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;

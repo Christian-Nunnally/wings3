@@ -49,8 +49,8 @@ bool setupMicrophone()
 
 double getAudioIntensityRatio()
 {
-    return (currentRootMeanSquare - currentMinRootMeanSquare) / (currentPeakRootMeanSquare - currentMinRootMeanSquare + AUDIO_INTENSITY_RATIO_THRESHOLD_BUMP);
-    return currentRootMeanSquare / currentPeakRootMeanSquare;
+    if (isMusicDetected()) return (currentRootMeanSquare - currentMinRootMeanSquare) / (currentPeakRootMeanSquare - currentMinRootMeanSquare + AUDIO_INTENSITY_RATIO_THRESHOLD_BUMP);
+    return .5;
 }
 
 int getCurrentPeakDetectorValue()
@@ -70,7 +70,7 @@ int getCurrentFilteredAudioLevel()
 
 bool isMusicDetected()
 {
-    return true;
+    //return true;
     return isMusicDetectedInternal;
 }
 

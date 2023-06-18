@@ -74,9 +74,31 @@ int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
 bool primaryEffectToggle;
 float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
+unsigned long lastTimeEffectChangedDueToTimer;
+int millisecondsBetweenEffectChangeTimer = 1000;
 
 Color getLedColorForFrame(int ledIndex)
 {
+    if (!isMusicDetected())
+    {
+        byte currentScreen = (*currentScreenMap)[ledIndex];
+        if (currentScreen == 4) return {0, 0, 0};
+        else if (currentScreen & 1) return currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
+        
+        Color color1 = currentPrimaryEffectA.effectFunction(ledIndex);
+        Color color2 = currentPrimaryEffectB.effectFunction(ledIndex);
+        Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2, percentOfEffectBToShow8Bit);
+        if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
+        {
+            Color color3 = currentSecondaryEffectA.effectFunction(ledIndex);
+            Color color4 = currentSecondaryEffectB.effectFunction(ledIndex);
+            Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
+            resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, percentOfSecondaryEffectToShow);
+            ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
+        } 
+        else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
+        return ledColorMap[ledIndex];
+    }
     byte currentScreen = (*currentScreenMap)[ledIndex];
     if (currentScreen == 4) return {0, 0, 0};
     else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
@@ -142,10 +164,10 @@ void handleMovementDetected()
     if (movementType == Stationary) effectSettings = effectSettingsStationary;
     else effectSettings = effectSettingsMoving;
 
-    pickRandomTimeModesForEffect(&effectA1, movementType != Stationary, movementType == Stationary);
-    pickRandomTimeModesForEffect(&effectB1, movementType != Stationary, movementType == Stationary);
-    pickRandomTimeModesForEffect(&effectA2, movementType != Stationary, movementType == Stationary);
-    pickRandomTimeModesForEffect(&effectB2, movementType != Stationary, movementType == Stationary);
+    pickRandomTimeModesForEffect(&effectA1, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
+    pickRandomTimeModesForEffect(&effectB1, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
+    pickRandomTimeModesForEffect(&effectA2, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
+    pickRandomTimeModesForEffect(&effectB2, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
 }
 
 inline void incrementTime()
@@ -194,12 +216,23 @@ void incrementColorPalettesTowardsTargetsForEffect(Effect *effect)
 void detectBeat()
 {
     const int PositivePeak = 1;
-    int nextPeak = getCurrentPeakDetectorValue();
-    if (nextPeak == lastPeakDetectorValue) return;
-    lastPeakDetectorValue = nextPeak;
-    if (nextPeak == PositivePeak) handleBeatDetected();
-    else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
-    else if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected) randomizeEffectsNaturally();
+    if (isMusicDetected())
+    {
+        int nextPeak = getCurrentPeakDetectorValue();
+        if (nextPeak == lastPeakDetectorValue) return;
+        lastPeakDetectorValue = nextPeak;
+        if (nextPeak == PositivePeak) handleBeatDetected();
+        else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
+        else if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected) randomizeEffectsNaturally();
+    }
+    else 
+    {
+        if (currentTime - lastTimeEffectChangedDueToTimer > millisecondsBetweenEffectChangeTimer)
+        {
+            lastTimeEffectChangedDueToTimer = currentTime;
+            randomizeEffectsNaturally();
+        }
+    }
 }
 
 void handleBeatDetected()
@@ -217,7 +250,7 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodPaletteChangesWhenRandomizingEffect) pickRandomPalette();
     if (fastRandomByte() < effectSettings.LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect) pickRandomTransformMaps();
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreSwappedWhenRandomizingEffect) swapEffects();
-    if (fastRandomByte() < effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect) pickRandomTimeModesForAllEffects(&effectA1, &effectB1, &effectA2, &effectB2, effectSettings.LikelihoodMovementBasedTimeModeIsPicked, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
+    if (fastRandomByte() < effectSettings.LikelihoodTimeModesRandomizeWhenRandomizingEffect) pickRandomTimeModesForAllEffects(&effectA1, &effectB1, &effectA2, &effectB2, effectSettings.LikelihoodMovementBasedTimeModeIsPicked, effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes, getCurrentMovementType() != Stationary, isMusicDetected());
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenRandomizingEffect) pickRandomEffects();
     if (fastRandomByte() < effectSettings.LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect) pickRandomSizeParametersForEffects();
     if (fastRandomByte() < effectSettings.LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect) pickRandomGlobalBrightnessControlModes();
