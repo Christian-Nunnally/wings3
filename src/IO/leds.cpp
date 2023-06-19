@@ -1,7 +1,5 @@
 #include <Adafruit_NeoPXL8.h>
 #include "../IO/leds.h"
-#include "../IO/analogInput.h"
-#include "../Peripherals/microphone.h"
 #include "../Graphics/effectController.h"
 #include "../Graphics/color.h"
 #include "../settings.h"
@@ -36,7 +34,6 @@ void setupLeds()
 {
   if (ledDisplay.begin(BLEND_FRAMES, TEMPORAL_DITHERING_AMOUNT, DOUBLE_BUFFER, PIO_CONTROLLER)) 
   {
-    subscribeToBrightnessAnalogInputChangedEvent(analogBrightnessChangedHandler);
     setGlobalLedBrightness(currentBrightness);
     #ifdef ENABLE_SERIAL 
     Serial.println("Leds Initalized.");
@@ -52,12 +49,6 @@ void renderLeds()
   normalLedOrder();
   #endif
   ledDisplay.show();
-}
-
-void analogBrightnessChangedHandler()
-{
-  //uint8_t brightness = getAnalogBrightnessSelection();
-  //setGlobalLedBrightness(brightness);
 }
 
 void setGlobalLedBrightness(uint8_t brightness)

@@ -3,10 +3,11 @@
 #include <SingleEMAFilterLib.h>
 #include <PDM.h>
 #include "../Peripherals/microphone.h"
+#include "../IO/leds.h"
 #include "../Utility/time.h"
 #include "../settings.h"
 
-#define AUDIO_SAMPLE_BATCH_SIZE     32
+#define AUDIO_SAMPLE_BATCH_SIZE     128
 #define MICROPHONE_SAMPLE_FREQUENCY 8000
 #define MICROPHONE_CHANNELS         1
 #define EMA_FILTER_ALPHA            .25
@@ -24,7 +25,7 @@ short audioSampleBuffer[512];
 volatile int numberOfAudioSamplesRead;
 SingleEMAFilter<int> singleEMAFilter(EMA_FILTER_ALPHA);
 PeakDetection peakDetector;
-ADCInput mic(26);
+ADCInput mic(26, 28);
 
 int samplesRead;
 float sumOfSquaredSample;
@@ -85,15 +86,7 @@ int getCurrentFilteredAudioLevel()
 
 bool isMusicDetected()
 {
-    return false;
     return isMusicDetectedInternal;
-}
-
-void onAudioDataReceived() 
-{
-  int bytesAvailable = PDM.available();
-  PDM.read(audioSampleBuffer, bytesAvailable);
-  numberOfAudioSamplesRead = bytesAvailable / 2;
 }
 
 inline void resetSampleBatch()
@@ -104,7 +97,7 @@ inline void resetSampleBatch()
 
 inline void applyFiltering()
 {
-    currentRootMeanSquare = sqrt(sumOfSquaredSample / samplesRead) - 830;
+    currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
     int newPeakDetectorValue = peakDetector.getPeak();
@@ -174,21 +167,60 @@ inline void processSampleBatch()
     setMaxRootMeanSquare();
     decayMaxRootMeanSquare();
     resetSampleBatch();
-    monitorAudioLevelsToToggleMusicDetection();
+    //monitorAudioLevelsToToggleMusicDetection();
 }
 
+unsigned long lastPotCheckTime;
+short lastPotValue;
 void processAudioStream()
 {
-  if (micDataReady) {
+  if (micDataReady) 
+  {
     micDataReady = false;
     int samplesAvailable = mic.available();
     for (int i = 0; i < samplesAvailable; i++) {
-      audioSampleBuffer[i] = mic.read() - 831;
-      sumOfSquaredSample += audioSampleBuffer[i] * audioSampleBuffer[i];
-      samplesRead += 1;
-      if (samplesRead == AUDIO_SAMPLE_BATCH_SIZE) processSampleBatch();
+        short audioSample = mic.read() - 831;
+      
+        short potValue = mic.read();
+        if (getTime() - lastPotCheckTime > 1000)
+        {
+            lastPotCheckTime = getTime();
+            #ifdef ENABLE_SERIAL 
+            Serial.print(">potValue:");
+            Serial.println(potValue);
+            #endif
+
+            if (abs(lastPotValue - potValue) > 100)
+            {
+                lastPotValue = potValue;
+                byte brightness;
+                if (potValue > 2048) 
+                {
+                    isMusicDetectedInternal = true;
+                    brightness = potValue - 2048 >> 3;
+                }
+                else 
+                {
+                    isMusicDetectedInternal = false;
+                    brightness = (2047 - potValue) >> 3;
+                }
+                setGlobalLedBrightness(brightness);
+                #ifdef ENABLE_SERIAL 
+                Serial.print(">brightness:");
+                Serial.println(brightness);
+                #endif
+                #ifdef ENABLE_SERIAL 
+                Serial.print(">isMusic:");
+                Serial.println(isMusicDetectedInternal);
+                #endif
+            }
+        }
+
+        sumOfSquaredSample += audioSample * audioSample;
+        samplesRead += 1;
+        if (samplesRead == AUDIO_SAMPLE_BATCH_SIZE) processSampleBatch();
+        }
     }
-  }
 }
 
 inline void monitorAudioLevelsToToggleMusicDetection()

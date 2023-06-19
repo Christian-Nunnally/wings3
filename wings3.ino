@@ -32,6 +32,7 @@
 //   leds.refresh();
 // }
 
+#include <ADCInput.h>
 #include <Arduino.h>
 #include "src/Peripherals/microphone.h"
 #include "src/Peripherals/movementDetection.h"
