@@ -42,7 +42,7 @@ void setupNormalMood(EffectSettings *settings)
     settings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = 80;
     settings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = 255;
     settings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized = 200;
-    settings->MinimumEffectSize = 10;
+    settings->MinimumEffectSize = 3;
     settings->MaximumEffectSize = 200;
 
     settings->AllowedEffects[0] = METEOR_RAIN_EFFECT_INDEX;

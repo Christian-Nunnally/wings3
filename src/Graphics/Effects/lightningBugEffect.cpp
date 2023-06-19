@@ -5,12 +5,12 @@
 #include "../../Utility/fastRandom.h"
 
 const byte MaxNumberOfLightningBugs = 10;
-const int MaxLightningBugRadius = 30;
-const int MinLightningBugRadius = 15;
+const int MaxLightningBugRadius = 40;
+const int MinLightningBugRadius = 10;
 const int MaxLightningBugBrightnessTarget = 65535;
 const int MinLightningBugBrightnessTarget = 40535;
-const int MaxLightningBugFlashSpeed = 12;
-const int MinLightningBugFlashSpeed = 4;
+const int MaxLightningBugFlashSpeed = 8;
+const int MinLightningBugFlashSpeed = 2;
 int lightningBugs[MaxNumberOfLightningBugs] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 uint16_t lightningBugsBrightness[MaxNumberOfLightningBugs];
 uint16_t lightningBugsBrightnessTarget[MaxNumberOfLightningBugs];

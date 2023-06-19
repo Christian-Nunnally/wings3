@@ -35,6 +35,8 @@
         "xiosbase": "cpp",
         "functional": "cpp",
         "cstddef": "cpp",
-        "cstdlib": "cpp"
+        "cstdlib": "cpp",
+        "algorithm": "cpp",
+        "utility": "cpp"
     }
 }

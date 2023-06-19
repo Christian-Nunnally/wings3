@@ -11,7 +11,7 @@ bool isRainDropAtYPosition[256];
 float rainDropXPositions[256];
 float rainDropXVelocities[256];
 bool doesLedHaveWater[TOTAL_LEDS];
-const float rainDropGravity = .0002;
+const float rainDropGravity = .00017;
 Color rainShowerEffect(int pixelIndex, Effect *effect)
 {
   (*effect->transformMap1) = normalTransformMapY;

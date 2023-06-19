@@ -12,7 +12,10 @@
 #define GYROSCOPE_SENSITIVITY 125 // Available values are: 125, 250, 500, 1000, 2000 (degrees per second)
 #define ACCELEROMETER_OUTPUT_DATA_RATE 26.0f // Available values are: 1.6, 12.5, 26, 52, 104, 208, 417, 833, 1667, 3333, 6667 (Hz)
 #define GYROSCOPE_OUTPUT_DATA_RATE 26.0f // Available values are: 12.5, 26, 52, 104, 208, 417, 833, 1667, 3333, 6667 (Hz)
-#define INT_IMU 24
+#define INT_IMU 9
+#define INT_IMU_2 14
+#define SDA_IMU_PIN 10
+#define SCL_IMU_PIN 11
 #define IMU_FIFO_FILL_THRESHOLD 50
 #define MAX_STEP_DETECTED_SUBSCRIBERS 10
 #define MILLISECONDS_BETWEEN_FIFO_POLL 39 
@@ -88,23 +91,27 @@ void setupImu()
     setupIc2();
     #ifdef ENABLE_SERIAL 
     Serial.println("Ic2 Initialized.");
+    Serial.flush();
     #endif
-    feedProgramIntoImu();
+    //feedProgramIntoImu();
     #ifdef ENABLE_SERIAL 
     Serial.println("Program fed to MLC.");
     #endif
     setupAccelerometerGyro();
     #ifdef ENABLE_SERIAL 
     Serial.println("Accel/Gyro Initialized");
+    Serial.flush();
     #endif
-    setupInterrupt();
+    //setupInterrupt();
     #ifdef ENABLE_SERIAL 
     Serial.println("Interrupt Initialized");
+    Serial.flush();
     #endif
     delay(1000);
     calibrateImu();
     #ifdef ENABLE_SERIAL 
     Serial.println("IMU Initalized.");
+    Serial.flush();
     #endif
 }
 
@@ -245,9 +252,21 @@ int getCurrentRollPosition()
 
 void calibrateImu()
 {
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Calibrating IMU.");
+    #endif
     setupCalibration();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Calibration set up.");
+    #endif
     while(isCalibrationRunning()) runCalibrationStep();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Finalizing calibration.");
+    #endif
     finalizeCalibration();
+    #ifdef ENABLE_SERIAL 
+    Serial.println("Done calibrating IMU.");
+    #endif
 }
 
 void setupCalibration()
@@ -325,11 +344,19 @@ MovementType getCurrentMovementType()
 
 void setupIc2()
 {
-    pinMode(INT_IMU, OUTPUT);
-    digitalWrite(INT_IMU, LOW);
+    pinMode(INT_IMU, INPUT_PULLDOWN);
+    pinMode(INT_IMU_2, INPUT_PULLDOWN);
     delay(200);
-    Wire.begin();
-    Wire.setClock(400000);
+
+    bool result = Wire1.setSDA(SDA_IMU_PIN);
+    #ifdef ENABLE_SERIAL 
+    if (result) Serial.println("SDA set");
+    #endif
+    result = Wire1.setSCL(SCL_IMU_PIN);
+    #ifdef ENABLE_SERIAL 
+    if (result) Serial.println("SCL set");
+    #endif
+    Wire1.begin();
 }
 
 void setupAccelerometerGyro()
@@ -345,7 +372,7 @@ void setupAccelerometerGyro()
     imu.Set_FIFO_G_BDR(GYROSCOPE_OUTPUT_DATA_RATE);
     imu.Set_FIFO_Mode(LSM6DSOX_BYPASS_MODE);
     imu.Set_FIFO_Mode(LSM6DSOX_STREAM_MODE);
-    imu.Set_FIFO_INT1_FIFO_Full(1);
+    imu.Set_FIFO_INT2_FIFO_Full(1);
     imu.Set_FIFO_Watermark_Level(IMU_FIFO_FILL_THRESHOLD);
     imu.Set_FIFO_Stop_On_Fth(1); delay(10);
     imu.Enable_Pedometer();
@@ -364,8 +391,14 @@ void feedProgramIntoImu()
 
 void setupInterrupt()
 {
-    pinMode(INT_IMU, INPUT);
+    pinMode(INT_IMU, INPUT_PULLDOWN);
+    pinMode(INT_IMU_2, INPUT_PULLDOWN);
+    Serial.println("Start");
+    Serial.flush();
     attachInterrupt(INT_IMU, movementDetectedCallback, RISING);
+    Serial.println("End");
+    Serial.flush();
+
 }
 
 void movementDetectedCallback() 

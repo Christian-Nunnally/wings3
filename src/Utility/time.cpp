@@ -15,9 +15,9 @@ unsigned long getTime()
 void setTime(unsigned long time)
 {
     currentCachedTime = time;
-    #ifdef ENABLE_SERIAL
-    Serial.print(currentCachedTime - lastCurrentCachedTime);
-    Serial.println("ms");
-    lastCurrentCachedTime = currentCachedTime;
-    #endif
+    // #ifdef ENABLE_SERIAL
+    // Serial.print(currentCachedTime - lastCurrentCachedTime);
+    // Serial.println("ms");
+    // lastCurrentCachedTime = currentCachedTime;
+    // #endif
 }
