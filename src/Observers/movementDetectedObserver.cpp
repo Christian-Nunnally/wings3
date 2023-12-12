@@ -1,10 +1,15 @@
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#define NULL 0
+#endif
 #include "movementDetectedObserver.h"
 
 #define MAX_SUBSCRIBERS 10
 
 void (*movementDetectedEventSubscribers[MAX_SUBSCRIBERS])();
-byte currentMovementDetectedSubscriberCount = 0;
+uint8_t currentMovementDetectedSubscriberCount = 0;
 
 void subscribeToMovementDetectedEvent(void (*listener)()) 
 {

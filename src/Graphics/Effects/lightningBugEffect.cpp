@@ -3,8 +3,13 @@
 #include "../../Graphics/palettes.h"
 #include "../../Graphics/transformMaps.h"
 #include "../../Utility/fastRandom.h"
+#ifdef RP2040
+#else
+#include <cmath>
+#endif
 
-const byte MaxNumberOfLightningBugs = 10;
+
+const uint8_t MaxNumberOfLightningBugs = 10;
 const int MaxLightningBugRadius = 40;
 const int MinLightningBugRadius = 10;
 const int MaxLightningBugBrightnessTarget = 65535;
@@ -44,7 +49,7 @@ Color lightningBugEffect(int pixelIndex, Effect *effect)
     {
       lightningBugsBrightness[i] += (lightningBugsBrightnessTarget[i] - lightningBugsBrightness[i]) * lightningBugFlashSpeed[i] * *(effect->frameTimeDelta);
       lightningBugRadii[i] += (lightningBugRadiiTarget[i] - lightningBugRadii[i]) * lightningBugFlashSpeed[i] * *(effect->frameTimeDelta);
-      if (abs(lightningBugsBrightnessTarget[i] - lightningBugsBrightness[i]) < 3000)
+      if (std::abs(lightningBugsBrightnessTarget[i] - lightningBugsBrightness[i]) < 3000)
       {
           if (lightningBugsBrightnessTarget[i] == 0)
           {

@@ -5,9 +5,9 @@
 #include "../Peripherals/microphone.h"
 
 // Brightness Mode variables.
-const byte NumberOfNormalGlobalBrightnessChangeModes = 3;
-const byte NumberOfMovementBasedGlobalBrightnessChangeModes = 3;
-const byte NumberOfMusicBasedGlobalBrightnessChangeModes = 3;
+const uint8_t NumberOfNormalGlobalBrightnessChangeModes = 3;
+const uint8_t NumberOfMovementBasedGlobalBrightnessChangeModes = 3;
+const uint8_t NumberOfMusicBasedGlobalBrightnessChangeModes = 3;
 uint8_t brightnessModeMaxBrightness = UINT8_MAX;
 // TODO: remove these or anything too dim.
 uint8_t brightnessModeAlmostMaxBrightness = 200;
@@ -22,7 +22,7 @@ uint8_t* normalBrightnessModes[NumberOfNormalGlobalBrightnessChangeModes] = {&br
 uint8_t* movementBasedBrightnessModes[NumberOfMovementBasedGlobalBrightnessChangeModes] = {&brightnessModePitchBasedMovement, &brightnessModeYawBasedMovement, &brightnessModeRollBasedMovement};
 uint8_t* musicBasedBrightnessModes[NumberOfMovementBasedGlobalBrightnessChangeModes] = {&brightnessModeAudioLevelBasedBrightness, &brightnessModeAudioLevelBasedBrightnessBrighter, &brightnessModeAudioLevelBasedBrightnessInverse};
 
-void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, byte likelihood, byte likelihoodMusicBasedMode, byte likelihoodMovementBasedMode)
+void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, uint8_t likelihood, uint8_t likelihoodMusicBasedMode, uint8_t likelihoodMovementBasedMode)
 {
     if (fastRandomByte() > likelihood) return;
     if ((fastRandomByte() < likelihoodMovementBasedMode) && (getCurrentMovementType() != Stationary)) effect->globalBrightnessPointer = movementBasedBrightnessModes[fastRandomInteger(NumberOfMovementBasedGlobalBrightnessChangeModes)];

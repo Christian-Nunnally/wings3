@@ -36,7 +36,7 @@ void setupMixingModes()
     mixingModeBlendFunctions[numberOfMixingModeBlendFunctions++] = blendColorsUsingOverlay;
 }
 
-Color blendIncorporatingOldMixingMode(Color color1, Color color2, byte percentOfEffectBToShow)
+Color blendIncorporatingOldMixingMode(Color color1, Color color2, uint8_t percentOfEffectBToShow)
 {
     Color newColor = mixingModeBlendFunction(color1, color2, percentOfEffectBToShow);
     if (!millisecondsLeftInMixingModeBlend) return newColor;

@@ -1,7 +1,11 @@
 #ifndef EFFECT_SETTINGS_H
 #define EFFECT_SETTINGS_H
 
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 #include "../Graphics/palettes.h"
 
 #define EFFECT_NAME 0

@@ -1,7 +1,12 @@
 #ifndef FAST_MATH_H
 #define FAST_MATH_H
 
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#define PROGMEM
+#endif
 
 uint8_t fastSquareRoot16BitInput(uint16_t input);
 uint8_t fastSquareRootOnlyProvide14MsbOf16BitInput(uint16_t input);

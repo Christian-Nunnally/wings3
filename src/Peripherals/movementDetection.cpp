@@ -1,12 +1,17 @@
 
+#ifdef RP2040
 #include <LSM6DSOXSensor.h>
+#include <SingleEMAFilterLib.h>
 #include "../Peripherals/movementDetectionMlc.h"
+#else
+#include <stdint.h>
+#endif
+
 #include "../Peripherals/movementDetection.h"
 #include "../Utility/time.h"
 #include "../Observers/stepDectectedObserver.h"
 #include "../Observers/movementDetectedObserver.h"
 #include "../settings.h"
-#include <SingleEMAFilterLib.h>
 
 #define ACCELEROMETER_SENSITIVITY 2 // Available values are: 2, 4, 8, 16 (G)
 #define GYROSCOPE_SENSITIVITY 125 // Available values are: 125, 250, 500, 1000, 2000 (degrees per second)
@@ -23,10 +28,13 @@
 #define ACCELERATION_SHIFT_AMOUNT 4
 #define ACCELERATION_SHIFT_AMOUNT_POST 20
 
+#ifdef RP2040
+LSM6DSOXSensor imu(&Wire, (uint8_t)LSM6DSOX_I2C_ADD_L);
+#endif
+
 volatile int mems_event;
 uint8_t lastMovementTypeStatus;
 MovementType currentMovementType = Stationary;
-LSM6DSOXSensor imu(&Wire, (uint8_t)LSM6DSOX_I2C_ADD_L);
 uint16_t currentStepCount;
 uint16_t newStepCount;
 uint16_t oldStepCount;
@@ -60,9 +68,11 @@ int currentRoll;
 int currentPitch;
 int currentYaw;
 
+#ifdef RP2040
 SingleEMAFilter<int> rollEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
 SingleEMAFilter<int> pitchEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
 SingleEMAFilter<int> yawEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
+#endif
 
 void setupIc2();
 void setupAccelerometerGyro();
@@ -107,7 +117,9 @@ void setupImu()
     Serial.println("Interrupt Initialized");
     Serial.flush();
     #endif
+    #ifdef RP2040
     delay(1000);
+    #endif
     calibrateImu();
     #ifdef ENABLE_SERIAL 
     Serial.println("IMU Initalized.");
@@ -131,13 +143,16 @@ void checkForMovement()
 
 inline void checkPedometer()
 {
+    #ifdef RP2040
     uint16_t newStepCount;
+    
     imu.Get_Step_Count(&newStepCount);
     if (newStepCount != oldStepCount)
     {
         oldStepCount = newStepCount;
         notifyStepDetectedEvent();
     }
+    #endif
 }
 
 inline bool doesFifoNeedPolling()
@@ -152,6 +167,7 @@ inline bool doesFifoNeedPolling()
 
 inline void checkMachineLearningCore()
 {
+    #ifdef RP2040
     LSM6DSOX_MLC_Status_t status;
     imu.Get_MLC_Status(&status);
     if (status.is_mlc1)
@@ -160,10 +176,12 @@ inline void checkMachineLearningCore()
         imu.Get_MLC_Output(mlc_out);
         updateMovementTypeFromMLCStatus(mlc_out[0]);
     }
+    #endif
 }
 
 void checkFifo()
 {
+    #ifdef RP2040
     uint8_t FifoTag;
     int32_t acceleration[3];
     int32_t rotation[3];
@@ -220,10 +238,12 @@ void checkFifo()
             yAccelerometerAngle = ((atan(-1 * (accelX) / sqrt(pow((accelY), 2) + pow((accelZ), 2))) * 180 / PI)) - yAccelerometerError;
         }
     }
+    #endif
 }
 
 uint32_t getTimestampOfLastFifoEvent()
 {
+    #ifdef RP2040
     uint8_t byte1;
     uint8_t byte2;
     uint8_t byte3;
@@ -233,6 +253,7 @@ uint32_t getTimestampOfLastFifoEvent()
     imu.Read_Reg(LSM6DSOX_TIMESTAMP2, &byte3);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP3, &byte4);
     return byte1 | byte2 << 8 |  byte3 << 16 | byte4 << 24; 
+    #endif
 }
 
 int getCurrentPitchPosition()
@@ -282,6 +303,7 @@ void setupCalibration()
 
 void runCalibrationStep()
 {
+    #ifdef RP2040
     uint16_t numberOfSamplesInFifo = 0;
     uint8_t FifoTag;
     int32_t acceleration[3];
@@ -293,10 +315,12 @@ void runCalibrationStep()
         if (FifoTag == 1) addGyroscopeCalibrationStep();
         else if (FifoTag == 2) addAccelerometerCalibrationStep();
     }
+    #endif
 }
 
 inline void addGyroscopeCalibrationStep()
 {
+    #ifdef RP2040
     int32_t rotation[3];
     imu.Get_FIFO_G_Axes(rotation);
     if (gyroscopeErrorSamplesRemaining)
@@ -306,10 +330,12 @@ inline void addGyroscopeCalibrationStep()
         yGyroscopeError += rotation[1] >> ACCELERATION_SHIFT_AMOUNT;
         zGyroscopeError += rotation[2] >> ACCELERATION_SHIFT_AMOUNT;
     }
+    #endif
 }
 
 inline void addAccelerometerCalibrationStep()
 {
+    #ifdef RP2040
     int32_t acceleration[3];
     imu.Get_FIFO_X_Axes(acceleration);
     if (accelerometerErrorSamplesRemaining)
@@ -321,6 +347,7 @@ inline void addAccelerometerCalibrationStep()
         xAccelerometerError += ((atan((accelY) / sqrt(pow((accelX), 2) + pow((accelZ), 2))) * 180 / PI));
         yAccelerometerError += ((atan(-1 * (accelX) / sqrt(pow((accelY), 2) + pow((accelZ), 2))) * 180 / PI));;
     }
+    #endif
 }
 
 bool isCalibrationRunning()
@@ -344,6 +371,7 @@ MovementType getCurrentMovementType()
 
 void setupIc2()
 {
+    #ifdef RP2040
     pinMode(INT_IMU, INPUT_PULLDOWN);
     pinMode(INT_IMU_2, INPUT_PULLDOWN);
     delay(200);
@@ -357,10 +385,12 @@ void setupIc2()
     if (result) Serial.println("SCL set");
     #endif
     Wire1.begin();
+    #endif
 }
 
 void setupAccelerometerGyro()
 {
+    #ifdef RP2040
     imu.begin();
     imu.Enable_X();
     imu.Enable_G();
@@ -377,20 +407,24 @@ void setupAccelerometerGyro()
     imu.Set_FIFO_Stop_On_Fth(1); delay(10);
     imu.Enable_Pedometer();
     imu.Set_Timestamp_Status(1);
+    #endif
 }
 
 void feedProgramIntoImu()
 {
+    #ifdef RP2040
     ucf_line_t* programPointer = (ucf_line_t *)lsm6dsox_activity_recognition_for_mobile;
     uint32_t programSize = sizeof(lsm6dsox_activity_recognition_for_mobile) / sizeof(ucf_line_t);
     for (uint32_t lineCounter = 0; lineCounter < programSize; lineCounter++) 
     {
         imu.Write_Reg(programPointer[lineCounter].address, programPointer[lineCounter].data);
     }
+    #endif
 }
 
 void setupInterrupt()
 {
+    #ifdef RP2040
     pinMode(INT_IMU, INPUT_PULLDOWN);
     pinMode(INT_IMU_2, INPUT_PULLDOWN);
     Serial.println("Start");
@@ -398,6 +432,7 @@ void setupInterrupt()
     attachInterrupt(INT_IMU, movementDetectedCallback, RISING);
     Serial.println("End");
     Serial.flush();
+    #endif
 
 }
 

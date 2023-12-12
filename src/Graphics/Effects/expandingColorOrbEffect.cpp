@@ -4,7 +4,7 @@
 #include "../../Graphics/transformMaps.h"
 #include "../../Utility/fastRandom.h"
 
-const byte MaxNumberOfColorOrbs = 10;
+const uint8_t MaxNumberOfColorOrbs = 10;
 const int MaxColorOrbRadius = 100;
 const int MaxColorOrbFlashSpeed = 100;
 const int MinColorOrbFlashSpeed = 12;

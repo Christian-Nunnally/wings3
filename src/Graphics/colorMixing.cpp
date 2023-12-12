@@ -1,6 +1,10 @@
 #include "../Graphics/colorMixing.h"
 #include "../Utility/fastMath.h"
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor)
 {

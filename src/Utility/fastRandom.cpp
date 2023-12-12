@@ -1,5 +1,9 @@
 #include "../Utility/fastRandom.h"
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 
 static unsigned long x=132456789, y=362436069, z=521288629;
 
@@ -41,10 +45,19 @@ uint16_t fastRandomWord()
 
 uint8_t fastRandomByte()
 {
+	#ifdef RP2040
 	return lowByte(xorShift96());
+	#else
+	return xorShift96() & 0xff;
+	#endif
 }
 
 bool fastRandomBoolean()
 {
+	#ifdef RP2040
 	return lowByte(xorShift96() & 0x1);
+	#else
+	return xorShift96() & 0x1;
+	#endif
+
 }

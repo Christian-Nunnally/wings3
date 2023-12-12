@@ -3,6 +3,11 @@
 
 #include "../Graphics/color.h"
 
+#ifdef RP2040
+#else
+#define PROGMEM
+#endif
+
 Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor);
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint8_t blendFactor);
 Color blendColorsUsingAdd(Color color1, Color color2, uint8_t blendFactor);

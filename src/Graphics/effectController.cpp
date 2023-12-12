@@ -1,4 +1,9 @@
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#include <iostream>
+#endif
 #include "../settings.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
@@ -38,8 +43,8 @@ void pickRandomSubPalette();
 void pickRandomSubPaletteForEffect(Effect *effect);
 int pickRandomSubPaletteFromPalette(int palette);
 void pickRandomTransformMaps();
-void pickRandomTransformMaps(Effect *effect, byte likelihood);
-void pickRandomMirroredTransformMaps(Effect *effect, byte likelihood);
+void pickRandomTransformMaps(Effect *effect, uint8_t likelihood);
+void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood);
 void swapEffects();
 void pickRandomSizeParametersForEffects();
 void pickRandomGlobalBrightnessControlModes();
@@ -56,7 +61,7 @@ EffectSettings effectSettingsStationary;
 EffectSettings effectSettingsMoving;
 
 // Screen Mode variables.
-byte *currentScreenMap[TOTAL_LEDS];
+uint8_t *currentScreenMap[TOTAL_LEDS];
 Color ledColorMap[TOTAL_LEDS];
 
 // Transition variables.
@@ -81,7 +86,7 @@ Color getLedColorForFrame(int ledIndex)
 {
     if (!isMusicDetected())
     {
-        byte currentScreen = (*currentScreenMap)[ledIndex];
+        uint8_t currentScreen = (*currentScreenMap)[ledIndex];
         if (currentScreen == 4) return {0, 0, 0};
         else if (currentScreen & 1) return currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
         
@@ -99,7 +104,7 @@ Color getLedColorForFrame(int ledIndex)
         else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
         return ledColorMap[ledIndex];
     }
-    byte currentScreen = (*currentScreenMap)[ledIndex];
+    uint8_t currentScreen = (*currentScreenMap)[ledIndex];
     if (currentScreen == 4) return {0, 0, 0};
     else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
     
@@ -193,7 +198,9 @@ inline void incrementTransitionFromSecondaryToPrimaryEffect()
 {
     if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect - frameTimeDelta > 0) millisecondsLeftInTransitionFromSecondaryToPrimaryEffect -= frameTimeDelta;
     else millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = 0;
-    percentOfSecondaryEffectToShow = (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect / millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax) * UINT8_MAX;
+    std::cout << millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax;
+    if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax != 0) percentOfSecondaryEffectToShow = (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect / millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax) * 255;
+    else percentOfSecondaryEffectToShow = 0;
 }
 
 void incrementColorPalettesTowardsTargets()
@@ -297,9 +304,9 @@ void pickRandomPalette()
 
 void pickRandomPaletteForEffect(Effect *effect)
 {
-    byte numberOfPossiblePalettesToSwitchTo = effectSettings.AllowedPalettes[effect->currentPalette][0];
-    byte indexOfNextPalette = 1 + fastRandomInteger(numberOfPossiblePalettesToSwitchTo);
-    byte nextPalette = effectSettings.AllowedPalettes[effect->currentPalette][indexOfNextPalette];
+    uint8_t numberOfPossiblePalettesToSwitchTo = effectSettings.AllowedPalettes[effect->currentPalette][0];
+    uint8_t indexOfNextPalette = 1 + fastRandomInteger(numberOfPossiblePalettesToSwitchTo);
+    uint8_t nextPalette = effectSettings.AllowedPalettes[effect->currentPalette][indexOfNextPalette];
     effect->currentPalette = nextPalette;
 }
 
@@ -327,13 +334,13 @@ void pickRandomTransformMaps()
     }
 }
 
-void pickRandomTransformMaps(Effect *effect, byte likelihood)
+void pickRandomTransformMaps(Effect *effect, uint8_t likelihood)
 {
     if (fastRandomByte() < likelihood) (*effect->transformMap1) = transformMaps[fastRandomInteger(transformMapsCount)];
     if (fastRandomByte() < likelihood) (*effect->transformMap2) = transformMaps[fastRandomInteger(transformMapsCount)];
 }
 
-void pickRandomMirroredTransformMaps(Effect *effect, byte likelihood)
+void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood)
 {
     if (fastRandomByte() < likelihood) (*effect->transformMap1) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
     if (fastRandomByte() < likelihood) (*effect->transformMap2) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];

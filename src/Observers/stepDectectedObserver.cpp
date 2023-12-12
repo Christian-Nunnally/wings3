@@ -1,10 +1,15 @@
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#define NULL 0
+#endif
 #include "stepDectectedObserver.h"
 
 #define MAX_SUBSCRIBERS 10
 
 void (*stepDetectedEventSubscribers[MAX_SUBSCRIBERS])();
-byte currentSubscriberCount = 0;
+uint8_t currentSubscriberCount = 0;
 
 void subscribeToStepDetectedEvent(void (*listener)()) 
 {

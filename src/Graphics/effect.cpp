@@ -2,7 +2,12 @@
 #include "../Graphics/effect.h"
 #include "../Graphics/transformMaps.h"
 
-uint8_t defaultGlobalBrightness = UINT8_MAX;
+#ifdef RP2040
+#else
+#include <iostream>
+#endif
+
+uint8_t defaultGlobalBrightness = 255;
 
 void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int))
 {
@@ -13,7 +18,7 @@ void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaul
     effect->effectFunctionIncrementUniqueId = -1;
     *effect->transformMap1 = normalTransformMapX;
     *effect->transformMap2 = normalTransformMapY;
-    *effect->globalBrightnessPointer = defaultGlobalBrightness;
+    effect->globalBrightnessPointer = &defaultGlobalBrightness;
     effect->frameTimeDelta = frameTimeDeltaPointer;
     effect->time1 = 0;
     effect->time2 = 0;

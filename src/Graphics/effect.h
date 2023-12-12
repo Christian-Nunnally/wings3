@@ -1,7 +1,11 @@
 #ifndef EFFECT_H
 #define EFFECT_H
 
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 #include "../Graphics/color.h"
 
 typedef struct
@@ -21,8 +25,8 @@ typedef struct
     int time1;
     int time2;
 
-    byte timeMode1;
-    byte timeMode2;
+    uint8_t timeMode1;
+    uint8_t timeMode2;
 
     int size;
 

@@ -68,7 +68,7 @@ for fileName in bitmapFiles:
                     screenValue = 3 if R > 128 and G < 128 and B < 128 else screenValue
                     screenValue = 4 if R < 128 and G < 128 and B < 128 else screenValue
                     screenMap.append(screenValue)
-    print("byte ", end="")
+    print("uint8_t ", end="")
     screenMapName = bitmapFileNames[counter] + "ScreenMap"
     screenMapNames.append(screenMapName)
     print(screenMapName, end="")
@@ -78,7 +78,7 @@ for fileName in bitmapFiles:
     counter += 1
 print()
 print(f"const int screenMapsCount = {len(screenMapNames)};")
-print("byte *screenMaps[screenMapsCount]", end=" = {")
+print("uint8_t *screenMaps[screenMapsCount]", end=" = {")
 print(*screenMapNames, sep=", ", end=" };")
 
 print()

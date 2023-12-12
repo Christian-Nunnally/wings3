@@ -2,6 +2,11 @@
 #include "../../Graphics/Effects/gradientWaveEffect.h"
 #include "../../Graphics/palettes.h"
 
+#ifdef RP2040
+#else
+#include <iostream>
+#endif
+
 Color gradientWaveEffect(int pixelIndex, Effect *effect) 
 {
     uint8_t brightnessFrame8bit = effect->time1 / 4;

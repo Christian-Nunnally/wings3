@@ -6,10 +6,10 @@
 
 const int TimeDeltaResolutionIncreaseFactor = 64;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
-const byte MaxNumberOfTimeModes = 40;
-byte numberOfBasicTimeModes;
-byte numberOfMusicBasedTimeModes;
-byte numberOfMovementBasedTimeModes;
+const uint8_t MaxNumberOfTimeModes = 40;
+uint8_t numberOfBasicTimeModes;
+uint8_t numberOfMusicBasedTimeModes;
+uint8_t numberOfMovementBasedTimeModes;
 int (*timeModeIncrementFunctions[MaxNumberOfTimeModes])(int currentTime, int timeDelta);
 
 void setupTimeModes()
@@ -59,7 +59,7 @@ void setupTimeModes()
     timeModeIncrementFunctions[timeModesSoFar + numberOfMovementBasedTimeModes++] = [](int currentTime, int timeDelta) { return -((int)(getCurrentYawPosition() >> 10)); };
 }
 
-void pickRandomTimeModesForEffect(Effect *effect, bool pickFromBasicTimeModes, bool pickFromMusicBasedTimeModes, bool pickFromMovementBasedTimeModes, byte likelihoodIndividualModeChanges)
+void pickRandomTimeModesForEffect(Effect *effect, bool pickFromBasicTimeModes, bool pickFromMusicBasedTimeModes, bool pickFromMovementBasedTimeModes, uint8_t likelihoodIndividualModeChanges)
 {
     if (pickFromBasicTimeModes)
     {
@@ -131,7 +131,7 @@ void incrementTimesForEffect(Effect *effect, int timeDelta)
     effect->time2 = timeModeIncrementFunctions[effect->timeMode1](effect->time1 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
 }
 
-void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *effect3, Effect *effect4, byte likelihoodMovementBaseModeIsPicked, byte likelihoodMusicBaseModeIsPicked, byte likelihoodIndividualModeChanges, bool shouldTryToPickMovementMode, bool shouldTryToPickMusicMode)
+void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *effect3, Effect *effect4, uint8_t likelihoodMovementBaseModeIsPicked, uint8_t likelihoodMusicBaseModeIsPicked, uint8_t likelihoodIndividualModeChanges, bool shouldTryToPickMovementMode, bool shouldTryToPickMusicMode)
 {
     pickRandomTimeModesForEffect(effect1, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
     pickRandomTimeModesForEffect(effect2, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);

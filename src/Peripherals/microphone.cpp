@@ -1,11 +1,17 @@
+#ifdef RP2040
 #include <ADCInput.h>
 #include <PeakDetection.h> 
 #include <SingleEMAFilterLib.h>
 #include <PDM.h>
+#else
+#include <cmath>
+#endif
 #include "../Peripherals/microphone.h"
 #include "../IO/leds.h"
 #include "../Utility/time.h"
 #include "../settings.h"
+
+// TODO: Move code for reading pot.
 
 #define AUDIO_SAMPLE_BATCH_SIZE     128
 #define MICROPHONE_SAMPLE_FREQUENCY 8000
@@ -23,9 +29,11 @@
 
 short audioSampleBuffer[512];
 volatile int numberOfAudioSamplesRead;
+#ifdef RP2040
 SingleEMAFilter<int> singleEMAFilter(EMA_FILTER_ALPHA);
 PeakDetection peakDetector;
 ADCInput mic(26, 28);
+#endif
 
 int samplesRead;
 float sumOfSquaredSample;
@@ -48,10 +56,14 @@ void onMicDataReady(void) {micDataReady = true;}
 
 bool setupMicrophone()
 {
+    #ifdef RP2040
     mic.onReceive(onMicDataReady);
     mic.begin(MICROPHONE_SAMPLE_FREQUENCY);
     peakDetector.begin(PEAK_DETECTOR_LAG, PEAK_DETECTOR_THRESHOLD, PEAK_DETECTOR_INFLUENCE); 
     bool result = PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
+    #else
+    bool result = true;
+    #endif
     #ifdef ENABLE_SERIAL 
     if (result) Serial.println("Microphone Initalized.");
     #endif
@@ -98,6 +110,7 @@ inline void resetSampleBatch()
 inline void applyFiltering()
 {
     currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
+    #ifdef RP2040
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
     int newPeakDetectorValue = peakDetector.getPeak();
@@ -107,6 +120,7 @@ inline void applyFiltering()
     #endif
     currentPeakDetectorValue = newPeakDetectorValue;
     currentFilteredAudioLevel = peakDetector.getFilt();
+    #endif
     #ifdef ENABLE_SERIAL 
     Serial.print(">rms:");
     Serial.println(currentRootMeanSquare);
@@ -120,12 +134,12 @@ inline void applyFiltering()
     Serial.println(peakDetector.getFilt());
     #endif
 
-        #ifdef ENABLE_SERIAL 
+    #ifdef ENABLE_SERIAL 
     Serial.print(">max:");
     Serial.println(currentPeakRootMeanSquare);
     #endif
 
-        #ifdef ENABLE_SERIAL 
+    #ifdef ENABLE_SERIAL 
     Serial.print(">min:");
     Serial.println(currentMinRootMeanSquare);
     #endif
@@ -177,11 +191,19 @@ void processAudioStream()
   if (micDataReady) 
   {
     micDataReady = false;
+    #ifdef RP2040
     int samplesAvailable = mic.available();
+    #else
+    int samplesAvailable = 0; 
+    #endif
     for (int i = 0; i < samplesAvailable; i++) {
+        #ifdef RP2040
         short audioSample = mic.read() - 831;
-      
         short potValue = mic.read();
+        #else
+        short audioSample = 0;
+        short potValue = 0;
+        #endif
         if (getTime() - lastPotCheckTime > 1000)
         {
             lastPotCheckTime = getTime();
@@ -190,10 +212,10 @@ void processAudioStream()
             Serial.println(potValue);
             #endif
 
-            if (abs(lastPotValue - potValue) > 100)
+            if (std::abs(lastPotValue - potValue) > 100)
             {
                 lastPotValue = potValue;
-                byte brightness;
+                uint8_t brightness;
                 if (potValue > 2048) 
                 {
                     isMusicDetectedInternal = true;

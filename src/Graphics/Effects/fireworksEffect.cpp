@@ -12,8 +12,8 @@ int fireworkTypes[MaxNumberOfFireworks];
 float fireworkVelocities[MaxNumberOfFireworks];
 float fireworkStarSizes[MaxNumberOfFireworks];
 bool fireworkIsActive[MaxNumberOfFireworks];
-byte fireworkColorType[MaxNumberOfFireworks];
-byte fireworkTargetSize[MaxNumberOfFireworks];
+uint8_t fireworkColorType[MaxNumberOfFireworks];
+uint8_t fireworkTargetSize[MaxNumberOfFireworks];
 uint16_t fireworkCenterPixel[MaxNumberOfFireworks];
 
 void incrementFireworksEffect(Effect *effect, int fireworkProbability)
@@ -51,7 +51,7 @@ Color fireworksEffect(int pixelIndex, Effect *effect)
     uint16_t centerPixel = fireworkCenterPixel[firework];
     uint8_t distance = pixelRadiusTransformMaps[centerPixel][pixelIndex];
     uint8_t angle = pixelAngleTransformMaps[centerPixel][pixelIndex];
-    byte colorType = fireworkColorType[firework];
+    uint8_t colorType = fireworkColorType[firework];
     float size = fireworkSizes[firework];
 
     uint8_t color8Bit;

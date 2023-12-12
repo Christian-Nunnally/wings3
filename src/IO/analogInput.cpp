@@ -1,6 +1,11 @@
 #include "../IO/analogInput.h"
 #include "../Utility/time.h"
+#ifdef RP2040
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#define NULL 0
+#endif
 
 #define MAX_ANALOG_INPUT_SUBSCRIBERS 10
 
@@ -10,7 +15,7 @@
 #define ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT 4
 
 void (*brightnessAnalogInputChangedEventSubscribers[MAX_ANALOG_INPUT_SUBSCRIBERS])();
-byte currentBrightnessAnalogInputChangedEventSubscribersCount = 0;
+uint8_t currentBrightnessAnalogInputChangedEventSubscribersCount = 0;
 
 int lastBrightnessAnalogValue; // Global brightness setting
 int lastModeAnalogValue; // global mode selection
@@ -25,13 +30,16 @@ inline void notifyBrightnessAnalogInputChanged();
 
 void setupAnalogInputs()
 {
+    #ifdef RP2040
     analogReadResolution(8);
     pinMode(BRIGHTNESS_ANALOG_INPUT_PIN, INPUT);
     pinMode(MODE_ANALOG_INPUT_PIN, INPUT);
+    #endif
 }
 
 void readAnalogValues()
 {
+    #ifdef RP2040
     if (getTime() - lastInputPollTime < ANALOG_INPUT_REFRESH_FREQUENCY) return;
     lastInputPollTime = getTime();
 
@@ -51,6 +59,7 @@ void readAnalogValues()
         Serial.print("Mode: ");
         Serial.println(currentModeAnalogValue);
     }
+    #endif
 }
 
 int getAnalogBrightnessSelection()
@@ -78,9 +87,6 @@ void subscribeToBrightnessAnalogInputChangedEvent(void (*subscriber)())
   if (currentBrightnessAnalogInputChangedEventSubscribersCount < MAX_ANALOG_INPUT_SUBSCRIBERS) {
     brightnessAnalogInputChangedEventSubscribers[currentBrightnessAnalogInputChangedEventSubscribersCount] = subscriber;
     currentBrightnessAnalogInputChangedEventSubscribersCount++;
-    printf("Subscriber added.\n");
-  } else {
-    printf("Maximum number of subscribers reached.\n");
   }
 }
 
@@ -95,11 +101,9 @@ void unsubscribeFromBrightnessAnalogInputChangedEvent(void (*subscriber)())
             {
                 brightnessAnalogInputChangedEventSubscribers[j] = brightnessAnalogInputChangedEventSubscribers[j + 1];
             }
-            printf("Subscriber removed.\n");
             return;
         }
     }
-    printf("Subscriber not found.\n");
 }
 
 inline void notifyBrightnessAnalogInputChanged() 
