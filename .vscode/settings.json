@@ -8,6 +8,7 @@
         "microcontroller",
         "pgmspace",
         "PROGMEM",
+        "psutil",
         "Unico"
     ],
     "files.associations": {
