@@ -20,7 +20,7 @@
 #define GAMMA_EXPONENT              2.2
 #define MAX_DUTY_CYCLE              110
 
-#define USE_SPECIAL_LED_ORDER_FOR_WINGS
+//#define USE_SPECIAL_LED_ORDER_FOR_WINGS
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
 #define SPECIAL_LED_ORDER_OFFSET    63
 inline void specialLedOrderForWings();

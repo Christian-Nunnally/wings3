@@ -1,3 +1,4 @@
 objects/**
-a.exe
+obj/**
+bin/**
 .VSCodeCounter/**
