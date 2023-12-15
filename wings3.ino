@@ -1,3 +1,4 @@
+#define RP2040
 #include <ADCInput.h>
 #include <Arduino.h>
 #include "src/Peripherals/microphone.h"
@@ -11,7 +12,6 @@
 #include "src/Utility/fastRandom.h"
 #include "src/settings.h"
 
-#define RP2040
 
 void setup() 
 {

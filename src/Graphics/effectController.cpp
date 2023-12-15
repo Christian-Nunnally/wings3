@@ -265,6 +265,10 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect) pickRandomTransitionTime();
     if (fastRandomByte() < effectSettings.LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect) pickRandomAudioLevelThresholdForMoreIntenseEffect();
     if (fastRandomByte() < effectSettings.LikelihoodScreenMapChangesWhenRandomizingEffect) pickRandomScreenMap();
+    std::cout << "status,";
+    std::cout << "effect,";
+    std::cout << fastRandomByte();
+    std::cout << "\n";
 }
 
 void pickRandomScreenMap()
@@ -278,6 +282,10 @@ void pickRandomSubPalette()
     pickRandomSubPaletteForEffect(&effectB1);
     pickRandomSubPaletteForEffect(&effectA2);
     pickRandomSubPaletteForEffect(&effectB2);
+    std::cout << "status,";
+    std::cout << "SubPalette,";
+    std::cout << fastRandomByte();
+    std::cout << "\n";
 }
 
 void pickRandomSubPaletteForEffect(Effect *effect)

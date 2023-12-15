@@ -17,7 +17,8 @@ int main() {
         setTime(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
         incrementEffectFrame();
         renderLeds();
-        std::cout << "print,";
+        std::cout << "status,";
+        std::cout << "frame,";
         std::cout << i++;
         std::cout << "\n";
     }
