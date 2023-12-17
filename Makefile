@@ -8,6 +8,7 @@ sourceFilesList := \
 	tests\TestRunner.cpp \
 	tests\testLeds.cpp \
 	tests\SocketReader.cpp \
+	src\Control\remoteCommandInterpreter.cpp \
 	src\IO\leds.cpp \
 	src\Peripherals\microphone.cpp \
 	src\Peripherals\movementDetection.cpp \

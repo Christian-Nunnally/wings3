@@ -32,6 +32,7 @@ static int8_t LED_PINS[8] =         {19, 20, 21, -1, -1, -1, -1, -1};
 Adafruit_NeoPXL8HDR ledDisplay(LED_COUNT_PER_PIN, LED_PINS, COLOR_ORDER);
 #endif
 uint8_t currentBrightness = 255;
+bool ledsEnabled = true;
 
 inline void normalLedOrder();
 inline void setPixelColor(int pixelIndex, uint8_t red, uint8_t green, uint8_t blue);
@@ -51,6 +52,7 @@ void setupLeds()
 
 void renderLeds()
 {
+  if (!ledsEnabled) return; 
   #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
   specialLedOrderForWings();
   #else
@@ -71,7 +73,19 @@ void setGlobalLedBrightness(uint8_t brightness)
 
 void refreshLeds()
 {
-    refresh();
+  refresh();
+}
+
+void disableLeds()
+{
+    clearLeds();
+    show();
+    ledsEnabled = false;
+}
+
+void enableLeds()
+{
+    ledsEnabled = true;
 }
 
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
@@ -151,5 +165,14 @@ inline bool setupLedsInternal()
   return ledDisplay.begin(BLEND_FRAMES, TEMPORAL_DITHERING_AMOUNT, DOUBLE_BUFFER, PIO_CONTROLLER);
   #else
   return true;
+  #endif
+}
+
+inline void clearLeds()
+{
+  #ifdef RP2040
+  ledDisplay.clear();
+  #else
+  clearTestLeds();
   #endif
 }

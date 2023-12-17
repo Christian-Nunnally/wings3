@@ -49,6 +49,9 @@ class LedGridWindow(SimpleWindow):
                 self.setColor(int(arguments[1]), int(arguments[2]), int(arguments[3]), int(arguments[4]))
         elif arguments[0] == "showFrame":
             self.updateColors()
+        elif arguments[0] == "clearFrame":
+            colors.clear()
+            self.updateColors()
 
     def createRoot(self):
         super().createRoot()

@@ -8,6 +8,7 @@
 #include "../src/IO/tracing.h"
 #include "../src/Peripherals/microphone.h"
 #include "../src/Peripherals/movementDetection.h"
+#include "../src/Control/remoteCommandInterpreter.h"
 #include "../tests/SocketReader.h"
 #include <iostream>
 #include <chrono>
@@ -18,6 +19,7 @@
 #include <unistd.h>
 #include <WinSock2.h>
 #include <string>
+#include <sstream>
 
 using namespace std::chrono;
 
@@ -44,7 +46,29 @@ int main() {
         std::string line;
         line = readLineNonBlocking();
         if (!line.empty()) {
-            //std::cout << "Received: " << line << std::endl;
+            std::stringstream ss(line);
+
+            std::string token;
+            uint8_t operationCode = 0;
+            int16_t operationValue = 0;
+            uint8_t operationFlags = 0;
+
+            std::getline(ss, token, ',');
+            if (!token.empty()) {
+                operationCode = static_cast<uint8_t>(std::stoi(token));
+            }
+
+            std::getline(ss, token, ',');
+            if (!token.empty()) {
+                operationValue = static_cast<int16_t>(std::stoi(token));
+            }
+
+            std::getline(ss, token, ',');
+            if (!token.empty()) {
+                operationFlags = static_cast<uint8_t>(std::stoi(token));
+            }
+
+            interpretRemoteCommand(operationCode, operationValue, operationFlags);
             D_emitMetricString("Received", line);
         } else {
         }

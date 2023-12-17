@@ -24,3 +24,9 @@ void showTestLeds()
     std::cout << "showFrame";
     std::cout << "\n";
 }
+
+void clearTestLeds()
+{
+    std::cout << "clearFrame";
+    std::cout << "\n";  
+}

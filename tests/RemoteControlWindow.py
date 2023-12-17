@@ -40,15 +40,16 @@ class RemoteControlWindow(SimpleWindow):
         self.messageQueue.put("new_color")
 
     def create_grid(self, root, rows, columns):
-        buttons = []
-        for row in range(rows):
-            for column in range(columns):
-                button = tk.Button(root, width=10, height=2, command=lambda r=row, c=column: self.change_color(buttons[r * columns + c]))
-                button.grid(row=row, column=column)
-                buttons.append(button)
+        buttonCount = 0
+        button = tk.Button(root, width=10, height=2, text="turnoff", command=self.turnOffWings)
+        button.grid(row=buttonCount, column=0)
+        buttonCount += 1
 
-    def runCommand(self, arguments):
-        pass
+    def turnOffWings(self):
+        self.runCommand(0,0,0)
+
+    def runCommand(self, operationCode, operationValue, operationFlags):
+        self.messageQueue.put(f"{operationCode},{operationValue},{operationFlags}")
 
     def onClosing(self):
         self.client_socket.close()
