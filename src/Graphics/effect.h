@@ -33,9 +33,11 @@ typedef struct
     int currentPalette;
     int currentPaletteOffset; 
     int currentPaletteOffsetTarget; 
+
+    uint8_t effectId;
 }
 Effect;
 
-void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int));
+void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int), uint8_t effectId);
 
 #endif

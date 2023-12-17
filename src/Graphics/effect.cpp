@@ -9,7 +9,7 @@
 
 uint8_t defaultGlobalBrightness = 255;
 
-void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int))
+void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int), uint8_t effectId)
 {
     effect->effectFunction = defaultEffect;
     effect->effectFunctionHighlight = defaultEffect;
@@ -28,4 +28,5 @@ void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaul
     effect->currentPalette = 0;
     effect->currentPaletteOffset = 0;
     effect->currentPaletteOffsetTarget = 0;
+    effect->effectId = effectId;
 }

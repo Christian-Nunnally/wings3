@@ -1,4 +1,5 @@
 
+#include "../settings.h"
 #include "../Graphics/mixingModes.h"
 #include "../Graphics/colorMixing.h"
 #include "../Utility/fastRandom.h"
@@ -56,9 +57,10 @@ void incrementMixingModeBlend(int frameTimeDelta)
 
 void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMillisecondsForTransition)
 {
-    mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
+    int mixingModeBlendFunctionIndex = fastRandomInteger(numberOfMixingModeBlendFunctions);
+    mixingModeBlendFunction = mixingModeBlendFunctions[mixingModeBlendFunctionIndex];
     millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(minimumMillisecondsForTransition, maximumMillisecondsForTransition) + 1;
     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
-    D_emitIntegerMetric("mixingModeBlendFunction", mixingModeBlendFunction);
+    D_emitIntegerMetric("mixingModeBlendFunction", mixingModeBlendFunctionIndex);
     D_emitIntegerMetric("millisecondsLeftInMixingModeBlendTotalDuration", millisecondsLeftInMixingModeBlendTotalDuration);
 }

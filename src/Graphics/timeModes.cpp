@@ -1,8 +1,12 @@
 
+#define ENABLE_TRACING
+
 #include "../Graphics/timeModes.h"
 #include "../Graphics/effects.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Utility/fastRandom.h"
+#include "../IO/tracing.h"
+#include "../settings.h"
 
 const int TimeDeltaResolutionIncreaseFactor = 64;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
@@ -122,6 +126,8 @@ void pickRandomTimeModesForEffect(Effect *effect, bool pickFromBasicTimeModes, b
             }
         }
     }
+    D_emitIntegerMetric("EffectTimeMode1", effect->effectId, effect->timeMode1);
+    D_emitIntegerMetric("EffectTimeMode2", effect->effectId, effect->timeMode2);
 }
 
 void incrementTimesForEffect(Effect *effect, int timeDelta)
@@ -129,6 +135,8 @@ void incrementTimesForEffect(Effect *effect, int timeDelta)
     int increasedResolutionTimeDelta = (timeDelta * TimeDeltaResolutionIncreaseFactor);
     effect->time1 = timeModeIncrementFunctions[effect->timeMode1](effect->time1 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
     effect->time2 = timeModeIncrementFunctions[effect->timeMode2](effect->time2 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
+    D_emitIntegerMetric("EffectTime1", effect->effectId, effect->time1);
+    D_emitIntegerMetric("EffectTime2", effect->effectId, effect->time2);
 }
 
 void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *effect3, Effect *effect4, uint8_t likelihoodMovementBaseModeIsPicked, uint8_t likelihoodMusicBaseModeIsPicked, uint8_t likelihoodIndividualModeChanges, bool shouldTryToPickMovementMode, bool shouldTryToPickMusicMode)

@@ -21,6 +21,7 @@
 void emitMetric(char* key, char* value);
 void emitMetricString(char* key, std::string value);
 void emitIntegerMetric(char* key, int value);
+void emitIntegerMetric(char* key, uint8_t id, int value);
 void emitDoubleMetric(char* key, double value);
 void emitFloatMetric(char* key, float value);
 

@@ -73,6 +73,7 @@ uint8_t percentOfSecondaryEffectToShow;
 int currentTransitionIncrement;
 bool transitionDirection;
 
+int effectsRandomizedCount = 0;
 int beatCount = 0;
 int frameNumber = 0;
 int frameTimeDelta;
@@ -148,10 +149,10 @@ void incrementEffectFrame()
 
 void setupEffects()
 {
-    initializeEffect(&effectA1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA1); });
-    initializeEffect(&effectB1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB1); });
-    initializeEffect(&effectA2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA2); });
-    initializeEffect(&effectB2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB2); });
+    initializeEffect(&effectA1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA1); }, 0);
+    initializeEffect(&effectB1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB1); }, 1);
+    initializeEffect(&effectA2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA2); }, 2);
+    initializeEffect(&effectB2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB2); }, 3);
     swapEffects();
     setupMixingModes();
     setupTimeModes();
@@ -177,15 +178,7 @@ void handleMovementDetected()
     pickRandomTimeModesForEffect(&effectA1, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
     pickRandomTimeModesForEffect(&effectB1, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
     pickRandomTimeModesForEffect(&effectA2, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
-    pickRandomTimeModesForEffect(&effectB2, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);\
-    D_emitIntegerMetric("effectA1.timeMode1", effectA1.timeMode1);
-    D_emitIntegerMetric("effectA1.timeMode2", effectA1.timeMode2);
-    D_emitIntegerMetric("effectB1.timeMode1", effectB1.timeMode1);
-    D_emitIntegerMetric("effectB1.timeMode2", effectB1.timeMode2);
-    D_emitIntegerMetric("effectA2.timeMode1", effectA2.timeMode1);
-    D_emitIntegerMetric("effectA2.timeMode2", effectA2.timeMode2);
-    D_emitIntegerMetric("effectB2.timeMode1", effectB2.timeMode1);
-    D_emitIntegerMetric("effectB2.timeMode2", effectB2.timeMode2);
+    pickRandomTimeModesForEffect(&effectB2, true, isMusicDetected(), movementType != Stationary, effectSettings.LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes);
 }
 
 inline void incrementTime()
@@ -233,6 +226,9 @@ void incrementColorPalettesTowardsTargetsForEffect(Effect *effect)
 {
     if (effect->currentPaletteOffset > effect->currentPaletteOffsetTarget) effect->currentPaletteOffset -= PALETTE_LENGTH;
     else if (effect->currentPaletteOffset < effect->currentPaletteOffsetTarget) effect->currentPaletteOffset += PALETTE_LENGTH;
+    else return;
+    D_emitIntegerMetric("EffectPaletteOffset", effect->effectId, effect->currentPaletteOffset);
+
 }
 
 void detectBeat()
@@ -281,14 +277,7 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect) pickRandomTransitionTime();
     if (fastRandomByte() < effectSettings.LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect) pickRandomAudioLevelThresholdForMoreIntenseEffect();
     if (fastRandomByte() < effectSettings.LikelihoodScreenMapChangesWhenRandomizingEffect) pickRandomScreenMap();
-    D_emitIntegerMetric("effectA1.timeMode1", effectA1.timeMode1);
-    D_emitIntegerMetric("effectA1.timeMode2", effectA1.timeMode2);
-    D_emitIntegerMetric("effectB1.timeMode1", effectB1.timeMode1);
-    D_emitIntegerMetric("effectB1.timeMode2", effectB1.timeMode2);
-    D_emitIntegerMetric("effectA2.timeMode1", effectA2.timeMode1);
-    D_emitIntegerMetric("effectA2.timeMode2", effectA2.timeMode2);
-    D_emitIntegerMetric("effectB2.timeMode1", effectB2.timeMode1);
-    D_emitIntegerMetric("effectB2.timeMode2", effectB2.timeMode2);
+    D_emitIntegerMetric("effectsRandomizedCount", effectsRandomizedCount++);
 }
 
 void pickRandomScreenMap()
@@ -454,6 +443,7 @@ void pickRandomTransitionTime()
 void switchTransitionDirection()
 {
     transitionDirection = !transitionDirection;
+    D_emitIntegerMetric("transitionDirection", transitionDirection);
 }
 
 void pickRandomAudioLevelThresholdForMoreIntenseEffect()
