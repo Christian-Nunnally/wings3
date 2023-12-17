@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <iostream>
 #endif
+
 #include "../settings.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
@@ -22,6 +23,7 @@
 #include "../Graphics/Effects/gradientWaveEffect.h"
 #include "../Utility/time.h"
 #include "../IO/analogInput.h"
+#include "../IO/tracing.h"
 #include "../Observers/stepDectectedObserver.h"
 #include "../Observers/movementDetectedObserver.h"
 #include "../Utility/fastRandom.h"
@@ -71,6 +73,8 @@ uint8_t percentOfSecondaryEffectToShow;
 int currentTransitionIncrement;
 bool transitionDirection;
 
+int beatCount = 0;
+int frameNumber = 0;
 int frameTimeDelta;
 int currentTime;
 int lastPeakDetectorValue;
@@ -139,6 +143,7 @@ void incrementEffectFrame()
     setAudioIntensityLevel(getAudioIntensityRatio());
     detectBeat();
     incrementEffects();
+    D_emitIntegerMetric("frame", frameNumber++);
 }
 
 void setupEffects()
@@ -244,6 +249,7 @@ void detectBeat()
 
 void handleBeatDetected()
 {
+    D_emitIntegerMetric("beats", beatCount++);
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) randomizeEffectsNaturally();
     effectA1.effectFunctionBonusTrigger();
     if (effectA1.effectFunctionIncrementUniqueId != effectB1.effectFunctionIncrementUniqueId) effectB1.effectFunctionBonusTrigger();
@@ -265,10 +271,6 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect) pickRandomTransitionTime();
     if (fastRandomByte() < effectSettings.LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect) pickRandomAudioLevelThresholdForMoreIntenseEffect();
     if (fastRandomByte() < effectSettings.LikelihoodScreenMapChangesWhenRandomizingEffect) pickRandomScreenMap();
-    std::cout << "status,";
-    std::cout << "effect,";
-    std::cout << fastRandomByte();
-    std::cout << "\n";
 }
 
 void pickRandomScreenMap()
@@ -282,10 +284,6 @@ void pickRandomSubPalette()
     pickRandomSubPaletteForEffect(&effectB1);
     pickRandomSubPaletteForEffect(&effectA2);
     pickRandomSubPaletteForEffect(&effectB2);
-    std::cout << "status,";
-    std::cout << "SubPalette,";
-    std::cout << fastRandomByte();
-    std::cout << "\n";
 }
 
 void pickRandomSubPaletteForEffect(Effect *effect)
@@ -359,6 +357,7 @@ void swapEffects()
     primaryEffectToggle = !primaryEffectToggle;
     if (primaryEffectToggle)
     {
+        D_emitMetric("primaryEffectToggle", "True");
         syncEffects(&effectA2, &effectA1);
         syncEffects(&effectB2, &effectB1);
         currentPrimaryEffectA = effectA1;
@@ -368,6 +367,7 @@ void swapEffects()
     }
     else 
     {
+        D_emitMetric("primaryEffectToggle", "False");
         syncEffects(&effectA1, &effectA2);
         syncEffects(&effectB1, &effectB2);
         currentPrimaryEffectA = effectA2;
@@ -399,6 +399,10 @@ void pickRandomSizeParametersForEffects()
     effectB1.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
     effectA2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
     effectB2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
+    D_emitIntegerMetric("effectA1.size", effectA1.size);
+    D_emitIntegerMetric("effectB1.size", effectB1.size);
+    D_emitIntegerMetric("effectA2.size", effectA2.size);
+    D_emitIntegerMetric("effectB2.size", effectB2.size);
 }
 
 void pickRandomGlobalBrightnessControlModes()

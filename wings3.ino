@@ -1,4 +1,8 @@
 #define RP2040
+#define USE_SPECIAL_LED_ORDER_FOR_WINGS
+//#define ENABLE_SERIAL_WRITE
+//#define ENABLE_SERIAL_READ
+
 #include <ADCInput.h>
 #include <Arduino.h>
 #include "src/Peripherals/microphone.h"
@@ -15,14 +19,12 @@
 
 void setup() 
 {
-  #ifdef ENABLE_SERIAL 
-  setupSerial();
-  #endif
+  D_serialBegin();
   setupLeds();
   setupMicrophone();
   //setupImu();
   setupEffects();
-  // setupAnalogInputs();
+  //setupAnalogInputs();
 }
 
 void loop() 
@@ -32,10 +34,8 @@ void loop()
   renderLeds();
   processAudioStream();
   //checkForMovement();
-  // readAnalogValues();
-  #ifdef ENABLE_SERIAL 
-  readSerial();
-  #endif
+  //readAnalogValues();
+  D_serialRead();
 }
 
 void loop1() 

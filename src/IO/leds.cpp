@@ -3,10 +3,12 @@
 #else
 #include "../../tests/testLeds.h"
 #endif
+
 #include "../IO/leds.h"
 #include "../Graphics/effectController.h"
 #include "../Graphics/color.h"
 #include "../settings.h"
+#include "../IO/serial.h"
 
 #define COLOR_ORDER                 NEO_GRB
 #define LED_COUNT_PER_PIN           136
@@ -20,7 +22,6 @@
 #define GAMMA_EXPONENT              2.2
 #define MAX_DUTY_CYCLE              110
 
-//#define USE_SPECIAL_LED_ORDER_FOR_WINGS
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
 #define SPECIAL_LED_ORDER_OFFSET    63
 inline void specialLedOrderForWings();
@@ -44,9 +45,7 @@ void setupLeds()
   if (setupLedsInternal()) 
   {
     setGlobalLedBrightness(currentBrightness);
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Leds Initalized.");
-    #endif
+    D_serialWrite("Leds Initalized.");
   }
 }
 

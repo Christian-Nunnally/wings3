@@ -9,6 +9,7 @@
 
 #include "../Peripherals/movementDetection.h"
 #include "../Utility/time.h"
+#include "../IO/serial.h"
 #include "../Observers/stepDectectedObserver.h"
 #include "../Observers/movementDetectedObserver.h"
 #include "../settings.h"
@@ -68,12 +69,6 @@ int currentRoll;
 int currentPitch;
 int currentYaw;
 
-#ifdef RP2040
-SingleEMAFilter<int> rollEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
-SingleEMAFilter<int> pitchEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
-SingleEMAFilter<int> yawEMAFilter(MOVEMENT_EMA_FILTER_ALPHA);
-#endif
-
 void setupIc2();
 void setupAccelerometerGyro();
 void feedProgramIntoImu();
@@ -95,36 +90,20 @@ uint32_t getTimestampOfLastFifoEvent();
 
 void setupImu() 
 {
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Begin IMU Initialization.");
-    #endif
+    D_serialWriteNewLine("Begin IMU Initialization.");
     setupIc2();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Ic2 Initialized.");
-    Serial.flush();
-    #endif
+    D_serialWriteNewLine("Ic2 Initialized.");
     //feedProgramIntoImu();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Program fed to MLC.");
-    #endif
+    D_serialWriteNewLine("Program fed to MLC.");
     setupAccelerometerGyro();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Accel/Gyro Initialized");
-    Serial.flush();
-    #endif
+    D_serialWriteNewLine("Accel/Gyro Initialized");
     //setupInterrupt();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Interrupt Initialized");
-    Serial.flush();
-    #endif
+    D_serialWriteNewLine("Interrupt Initialized");
     #ifdef RP2040
     delay(1000);
     #endif
     calibrateImu();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("IMU Initalized.");
-    Serial.flush();
-    #endif
+    D_serialWriteNewLine("IMU Initalized.");
 }
 
 void checkForMovement() 
@@ -143,16 +122,17 @@ void checkForMovement()
 
 inline void checkPedometer()
 {
-    #ifdef RP2040
     uint16_t newStepCount;
     
+    #ifdef RP2040
     imu.Get_Step_Count(&newStepCount);
+    #endif
+
     if (newStepCount != oldStepCount)
     {
         oldStepCount = newStepCount;
         notifyStepDetectedEvent();
     }
-    #endif
 }
 
 inline bool doesFifoNeedPolling()
@@ -181,18 +161,25 @@ inline void checkMachineLearningCore()
 
 void checkFifo()
 {
-    #ifdef RP2040
     uint8_t FifoTag;
     int32_t acceleration[3];
     int32_t rotation[3];
     uint16_t numberOfSamplesInFifo;
+    #ifdef RP2040
     imu.Get_FIFO_Num_Samples(&numberOfSamplesInFifo);
+    #else
+    numberOfSamplesInFifo = 0;
+    #endif
     for (uint16_t i = 0; i < numberOfSamplesInFifo; i++) 
     {
+        #ifdef RP2040
         imu.Get_FIFO_Tag(&FifoTag);
+        #endif
         
         if (FifoTag == 1) { 
+            #ifdef RP2040
             imu.Get_FIFO_G_Axes(rotation);
+            #endif
             uint32_t newGyroscopeDataReceivedTime = getTimestampOfLastFifoEvent();
             uint32_t elapsedTime = newGyroscopeDataReceivedTime - lastGyroscopeDataReceivedTime;
             if (!lastGyroscopeDataReceivedTime)
@@ -210,18 +197,17 @@ void checkFifo()
             currentYaw = currentYaw + zGyroscopeAcceleration * elapsedTime;
             currentRoll = 0.96 * xGyroscopeAngle + 0.04 * xAccelerometerAngle;
             currentPitch = 0.96 * yGyroscopeAngle + 0.04 * yAccelerometerAngle;
-            yawEMAFilter.AddValue(currentYaw);
-            rollEMAFilter.AddValue(currentRoll);
-            pitchEMAFilter.AddValue(currentPitch);
-            // Serial.print(" y: ");
-            // Serial.print((byte)(abs(currentYaw >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
-            // Serial.print(" roll: ");
-            // Serial.print((byte)(abs(currentRoll >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
-            // Serial.print(" pitch: ");
-            // Serial.println((byte)(abs(currentPitch >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
+            D_serialWrite(" y: ");
+            D_serialWrite((byte)(D_abs(currentYaw >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
+            D_serialWrite(" roll: ");
+            D_serialWrite((byte)(D_abs(currentRoll >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
+            D_serialWrite(" pitch: ");
+            D_serialWriteNewLine((byte)(D_abs(currentPitch >> ACCELERATION_SHIFT_AMOUNT_POST) & 0xff));
         } 
         else if (FifoTag == 2) {
+            #ifdef RP2040
             imu.Get_FIFO_X_Axes(acceleration);
+            #endif
             uint32_t newAccelerometerDataReceivedTime = getTimestampOfLastFifoEvent();
             uint32_t elapsedTime = newAccelerometerDataReceivedTime - lastGyroscopeDataReceivedTime;
             if (!lastAccelerometerDataReceivedTime)
@@ -234,25 +220,27 @@ void checkFifo()
             int accelX = acceleration[0] >> ACCELERATION_SHIFT_AMOUNT;
             int accelY = acceleration[1] >> ACCELERATION_SHIFT_AMOUNT;
             int accelZ = acceleration[2] >> ACCELERATION_SHIFT_AMOUNT;
+            #ifdef RP2040
             xAccelerometerAngle = ((atan((accelY) / sqrt(pow((accelX), 2) + pow((accelZ), 2))) * 180 / PI)) - xAccelerometerError;
             yAccelerometerAngle = ((atan(-1 * (accelX) / sqrt(pow((accelY), 2) + pow((accelZ), 2))) * 180 / PI)) - yAccelerometerError;
+            #endif
         }
     }
-    #endif
 }
 
 uint32_t getTimestampOfLastFifoEvent()
 {
-    #ifdef RP2040
     uint8_t byte1;
     uint8_t byte2;
     uint8_t byte3;
     uint8_t byte4;
+    #ifdef RP2040
     imu.Read_Reg(LSM6DSOX_TIMESTAMP0, &byte1);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP1, &byte2);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP2, &byte3);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP3, &byte4);
     return byte1 | byte2 << 8 |  byte3 << 16 | byte4 << 24; 
+    #else return 0
     #endif
 }
 
@@ -273,21 +261,13 @@ int getCurrentRollPosition()
 
 void calibrateImu()
 {
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Calibrating IMU.");
-    #endif
+    D_serialWriteNewLine("Calibrating IMU.");
     setupCalibration();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Calibration set up.");
-    #endif
+    D_serialWriteNewLine("Calibration set up.");
     while(isCalibrationRunning()) runCalibrationStep();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Finalizing calibration.");
-    #endif
+    D_serialWriteNewLine("Finalizing calibration.");
     finalizeCalibration();
-    #ifdef ENABLE_SERIAL 
-    Serial.println("Done calibrating IMU.");
-    #endif
+    D_serialWriteNewLine("Done calibrating IMU.");
 }
 
 void setupCalibration()
@@ -303,11 +283,11 @@ void setupCalibration()
 
 void runCalibrationStep()
 {
-    #ifdef RP2040
     uint16_t numberOfSamplesInFifo = 0;
     uint8_t FifoTag;
     int32_t acceleration[3];
     int32_t rotation[3];
+    #ifdef RP2040
     imu.Get_FIFO_Num_Samples(&numberOfSamplesInFifo);
     for (uint16_t i = 0; i < numberOfSamplesInFifo; i++) 
     {
@@ -377,13 +357,9 @@ void setupIc2()
     delay(200);
 
     bool result = Wire1.setSDA(SDA_IMU_PIN);
-    #ifdef ENABLE_SERIAL 
-    if (result) Serial.println("SDA set");
-    #endif
+    if (result) D_serialWriteNewLine("SDA set");
     result = Wire1.setSCL(SCL_IMU_PIN);
-    #ifdef ENABLE_SERIAL 
-    if (result) Serial.println("SCL set");
-    #endif
+    if (result) D_serialWriteNewLine("SCL set");
     Wire1.begin();
     #endif
 }
@@ -427,11 +403,9 @@ void setupInterrupt()
     #ifdef RP2040
     pinMode(INT_IMU, INPUT_PULLDOWN);
     pinMode(INT_IMU_2, INPUT_PULLDOWN);
-    Serial.println("Start");
-    Serial.flush();
+    D_serialWriteNewLine("Attaching interrupt");
     attachInterrupt(INT_IMU, movementDetectedCallback, RISING);
-    Serial.println("End");
-    Serial.flush();
+    D_serialWriteNewLine("Done attaching interrupt");
     #endif
 
 }

@@ -8,7 +8,9 @@
 #endif
 #include "../Peripherals/microphone.h"
 #include "../IO/leds.h"
+#include "../IO/serial.h"
 #include "../Utility/time.h"
+#include "../Utility/fastmath.h"
 #include "../settings.h"
 
 // TODO: Move code for reading pot.
@@ -64,9 +66,7 @@ bool setupMicrophone()
     #else
     bool result = true;
     #endif
-    #ifdef ENABLE_SERIAL 
-    if (result) Serial.println("Microphone Initalized.");
-    #endif
+    if (result) D_serialWriteNewLine("Microphone Initalized.");
     return result;
 }
 
@@ -114,34 +114,20 @@ inline void applyFiltering()
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
     int newPeakDetectorValue = peakDetector.getPeak();
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">pk:");
-    Serial.println(newPeakDetectorValue);
-    #endif
+    D_serialWrite(">pk:");
+    D_serialWriteNewLine(newPeakDetectorValue);
     currentPeakDetectorValue = newPeakDetectorValue;
     currentFilteredAudioLevel = peakDetector.getFilt();
-    #endif
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">rms:");
-    Serial.println(currentRootMeanSquare);
-    #endif
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">intensity:");
-    Serial.println(getAudioIntensityRatio());
-    #endif
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">filt:");
-    Serial.println(peakDetector.getFilt());
-    #endif
-
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">max:");
-    Serial.println(currentPeakRootMeanSquare);
-    #endif
-
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">min:");
-    Serial.println(currentMinRootMeanSquare);
+    D_serialWrite(">rms:");
+    D_serialWriteNewLine(currentRootMeanSquare);
+    D_serialWrite(">intensity:");
+    D_serialWriteNewLine(getAudioIntensityRatio());
+    D_serialWrite(">filt:");
+    D_serialWriteNewLine(peakDetector.getFilt());
+    D_serialWrite(">max:");
+    D_serialWriteNewLine(currentPeakRootMeanSquare);
+    D_serialWrite(">min:");
+    D_serialWriteNewLine(currentMinRootMeanSquare);
     #endif
 }
 
@@ -174,9 +160,6 @@ inline void decayMaxRootMeanSquare()
 
 inline void processSampleBatch()
 {
-    // #ifdef ENABLE_SERIAL 
-    // Serial.println("Audio batch processed.");
-    // #endif
     applyFiltering();
     setMaxRootMeanSquare();
     decayMaxRootMeanSquare();
@@ -207,12 +190,10 @@ void processAudioStream()
         if (getTime() - lastPotCheckTime > 1000)
         {
             lastPotCheckTime = getTime();
-            #ifdef ENABLE_SERIAL 
-            Serial.print(">potValue:");
-            Serial.println(potValue);
-            #endif
+            D_serialWrite(">potValue:");
+            D_serialWriteNewLine(potValue);
 
-            if (std::abs(lastPotValue - potValue) > 100)
+            if (D_abs(lastPotValue - potValue) > 100)
             {
                 lastPotValue = potValue;
                 uint8_t brightness;
@@ -227,14 +208,10 @@ void processAudioStream()
                     brightness = (2047 - potValue) >> 3;
                 }
                 setGlobalLedBrightness(brightness);
-                #ifdef ENABLE_SERIAL 
-                Serial.print(">brightness:");
-                Serial.println(brightness);
-                #endif
-                #ifdef ENABLE_SERIAL 
-                Serial.print(">isMusic:");
-                Serial.println(isMusicDetectedInternal);
-                #endif
+                D_serialWrite(">brightness:");
+                D_serialWriteNewLine(brightness);
+                D_serialWrite(">isMusic:");
+                D_serialWriteNewLine(isMusicDetectedInternal);
             }
         }
 
@@ -256,10 +233,8 @@ inline void monitorAudioLevelsToToggleMusicDetection()
         if (getCurrentPeakRootMeanSquare() > MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
     }
     if (musicDetectionCountdown < MUSIC_DETECTION_COUNTDOWN) musicDetectionCountdown++;
-    #ifdef ENABLE_SERIAL 
-    Serial.print(">isMusic:");
-    Serial.println(isMusicDetectedInternal);
-    #endif
+    D_serialWrite(">isMusic:");
+    D_serialWriteNewLine(isMusicDetectedInternal);
 }
 
 inline void incrementMusicDetectionToggle()

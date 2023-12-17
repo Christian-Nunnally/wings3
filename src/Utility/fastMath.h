@@ -3,8 +3,18 @@
 
 #ifdef RP2040
 #include <Arduino.h>
+
+#define D_abs(...)   abs(__VA_ARGS__)
+#define D_serialWrite(...)  writeSerial(__VA_ARGS__)
+#define D_serialWriteNewLine(...)  writeSerialNewLine(__VA_ARGS__)
 #else
 #include <stdint.h>
+#include <cmath>
+
+#define D_abs(...)   std::abs(__VA_ARGS__)
+#define D_serialWrite(...)
+#define D_serialWriteNewLine(...)
+
 #define PROGMEM
 #endif
 

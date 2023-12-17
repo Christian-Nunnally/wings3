@@ -6,6 +6,7 @@
 #else
 #include <stdint.h>
 #endif
+
 #include "../../Graphics/color.h"
 #include "../../Graphics/effect.h"
 

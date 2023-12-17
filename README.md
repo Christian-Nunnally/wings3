@@ -28,5 +28,4 @@ This project can be built for two targets, either an RP4020 microcontroller, or 
 #### Instructions
 
 1. Open a terminal and open this repository's root directory
-1. Run `make` to build the project
-1. Run `python .\tests\2DLedGridSimulator.py` to run the test program from the 2D grid simulator.
+1. Run `python .\run.py` to build and run the test program from the 2D grid simulator.

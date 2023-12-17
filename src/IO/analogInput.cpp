@@ -1,11 +1,14 @@
-#include "../IO/analogInput.h"
-#include "../Utility/time.h"
 #ifdef RP2040
 #include <Arduino.h>
 #else
 #include <stdint.h>
 #define NULL 0
 #endif
+
+#include "../IO/analogInput.h"
+#include "../Utility/time.h"
+#include "../Utility/fastMath.h"
+#include "../IO/serial.h"
 
 #define MAX_ANALOG_INPUT_SUBSCRIBERS 10
 
@@ -39,27 +42,32 @@ void setupAnalogInputs()
 
 void readAnalogValues()
 {
-    #ifdef RP2040
     if (getTime() - lastInputPollTime < ANALOG_INPUT_REFRESH_FREQUENCY) return;
     lastInputPollTime = getTime();
 
+    #ifdef RP2040
     currentBrightnessAnalogValue = analogRead(BRIGHTNESS_ANALOG_INPUT_PIN);
-    if (abs(lastBrightnessAnalogValue - currentBrightnessAnalogValue) > ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT)
+    #endif
+    int difference = lastBrightnessAnalogValue - currentBrightnessAnalogValue;
+    if (D_abs(difference) > ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT)
     {
         lastBrightnessAnalogValue = currentBrightnessAnalogValue;
-        Serial.print("Brightness: ");
-        Serial.println(currentBrightnessAnalogValue);
+        D_serialWrite("Brightness: ");
+        D_serialWrite(currentBrightnessAnalogValue);
+        D_serialWrite("\n");
         notifyBrightnessAnalogInputChanged();
     }
 
+    #ifdef RP2040
     currentModeAnalogValue = analogRead(MODE_ANALOG_INPUT_PIN);
-    if (abs(lastModeAnalogValue - currentModeAnalogValue) > ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT)
+    #endif
+    if (D_abs(lastModeAnalogValue - currentModeAnalogValue) > ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT)
     {
         lastModeAnalogValue = currentModeAnalogValue;
-        Serial.print("Mode: ");
-        Serial.println(currentModeAnalogValue);
+        D_serialWrite("Mode: ");
+        D_serialWrite(currentModeAnalogValue);
+        D_serialWrite("\n");
     }
-    #endif
 }
 
 int getAnalogBrightnessSelection()

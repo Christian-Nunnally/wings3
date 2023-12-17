@@ -5,6 +5,7 @@
 #include <stdint.h>
 #define NULL 0
 #endif
+
 #include "../Utility/time.h"
 #include "../settings.h"
 
@@ -20,9 +21,4 @@ unsigned long getTime()
 void setTime(unsigned long time)
 {
     currentCachedTime = time;
-    // #ifdef ENABLE_SERIAL
-    // Serial.print(currentCachedTime - lastCurrentCachedTime);
-    // Serial.println("ms");
-    // lastCurrentCachedTime = currentCachedTime;
-    // #endif
 }

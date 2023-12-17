@@ -137,20 +137,4 @@ void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *
     pickRandomTimeModesForEffect(effect2, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
     pickRandomTimeModesForEffect(effect3, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
     pickRandomTimeModesForEffect(effect4, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
-
-    // int startIndex = 0;
-    // int length = numberOfBasicTimeModes;
-    // if ((fastRandomByte() < likelihoodMovementBaseModeIsPicked) && (getCurrentMovementType() != Stationary))
-    // {
-    //     startIndex = numberOfBasicTimeModes;
-    //     length = numberOfMovementBasedTimeModes;
-    // }
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect1->timeMode1 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect2->timeMode1 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect3->timeMode1 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect4->timeMode1 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect1->timeMode2 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect2->timeMode2 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect3->timeMode2 = fastRandomInteger(length) + startIndex;
-    // if (fastRandomByte() < likelihoodIndividualModeChanges) effect4->timeMode2 = fastRandomInteger(length) + startIndex;
 }

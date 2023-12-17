@@ -13,23 +13,23 @@ void setupSerial()
     if (millis() - startTime > 20000) break;
     delay(10);
   }
-  Serial.println("Serial Initalized.");
+  writeSerialNewLine("Serial Initalized.");
 }
 
-bool templol = false;
 void readSerial()
 {
   if (Serial.available())
   {
     int data = Serial.read();
-    if (templol)
-    {
-      //setGlobalLedBrightness(UINT16_MAX);
-    }
-    else 
-    {
-      //setGlobalLedBrightness(0);
-    }
-    templol = !templol;
   }
+}
+
+void writeSerial(char * text)
+{
+  Serial.print(text);
+}
+
+void writeSerialNewLine(char * text)
+{
+  Serial.println(text);
 }

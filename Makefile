@@ -1,11 +1,13 @@
 compiler := g++
 compilerFlags := -std=c++11 -Wall
+ompilerFlagsThatGoAfterObjectFiles := -lws2_32
 objectsDirectory := obj
 binariesDirectory := bin
 executableName := wings
 sourceFilesList := \
 	tests\TestRunner.cpp \
 	tests\testLeds.cpp \
+	tests\SocketReader.cpp \
 	src\IO\leds.cpp \
 	src\Peripherals\microphone.cpp \
 	src\Peripherals\movementDetection.cpp \
@@ -19,6 +21,7 @@ sourceFilesList := \
 	src\Graphics\mixingModes.cpp \
 	src\Graphics\brightnessControlModes.cpp \
 	src\IO\analogInput.cpp \
+	src\IO\tracing.cpp \
 	src\Observers\stepDectectedObserver.cpp \
 	src\Observers\movementDetectedObserver.cpp \
 	src\Utility\time.cpp \
@@ -42,11 +45,11 @@ all: $(executablePath)
 
 $(executablePath): $(objectsFilesList)
 	@if not exist $(binariesDirectory) mkdir $(binariesDirectory)
-	$(compiler) $(compilerFlags) $^ -o $@
+	$(compiler) $(compilerFlags) $^ -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
 $(objectsDirectory)/%.o: %.cpp
 	@if not exist $(objectsDirectory)\$(dir $<) mkdir $(objectsDirectory)\$(dir $<)
-	$(compiler) $(compilerFlags) -c $< -o $@
+	$(compiler) $(compilerFlags) -c $< -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
 clean:
 	rm -rf $(objectsDirectory) $(binariesDirectory)
