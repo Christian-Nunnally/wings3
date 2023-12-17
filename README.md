@@ -4,7 +4,7 @@ LED effect generator for small mobile blinky projects.
 
 ## Getting started
 
-This project can be built for two targets, either an RP4020 microcontroller, or on windows for testing and development.
+This project can be built for two targets, either a RP4020 microcontroller, or on windows for testing and development.
 
 ### RP2040
 
