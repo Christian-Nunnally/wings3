@@ -9,7 +9,9 @@ import queue
 
 class RemoteControlWindow(SimpleWindow):
     def __init__(self):
+        self.buttonCount = 0
         self.createRoot()
+        self.root.geometry("-0+0")
         self.keepServerAlive = True
         self.messageQueue = queue.Queue()
         self.serverThread = threading.Thread(target=self.runServerSocket)
@@ -39,15 +41,6 @@ class RemoteControlWindow(SimpleWindow):
     def sendCommand(self):
         self.messageQueue.put("new_color")
 
-    def create_grid(self, root, rows, columns):
-        buttonCount = 0
-        button = tk.Button(root, width=10, height=2, text="turnoff", command=self.turnOffWings)
-        button.grid(row=buttonCount, column=0)
-        buttonCount += 1
-
-    def turnOffWings(self):
-        self.runCommand(0,0,0)
-
     def runCommand(self, operationCode, operationValue, operationFlags):
         self.messageQueue.put(f"{operationCode},{operationValue},{operationFlags}")
 
@@ -60,11 +53,31 @@ class RemoteControlWindow(SimpleWindow):
     def createRoot(self):
         super().createRoot()
         self.root.title("Simulated Remote Control")
+        self.create_grid(self.root)
 
-        rows = 5
-        columns = 5
+    def makeButton(self, root, text, command):
+        button = tk.Button(root, width=30, height=2, background="black", foreground="white", text=text, command=command)
+        button.grid(row=self.buttonCount, column=0)
+        self.buttonCount += 1
 
-        self.create_grid(self.root, rows, columns)
+    def create_grid(self, root):
+        self.makeButton(root, "turnoff", self.turnOffWings)
+        self.makeButton(root, "randomize", self.randomizeEffect)
+        self.makeButton(root, "simulate beat", self.randomizeEffect)
+        self.makeButton(root, "simulate step", self.randomizeEffect)
+        self.makeButton(root, "enable music detection", self.randomizeEffect)
+        self.makeButton(root, "disable music detection", self.randomizeEffect)
+        self.makeButton(root, "enable movement detection", self.randomizeEffect)
+        self.makeButton(root, "disable movement detection", self.randomizeEffect)
+        self.makeButton(root, "set effect preset #1", self.randomizeEffect)
+        self.makeButton(root, "set effect preset #2", self.randomizeEffect)
+        self.makeButton(root, "set effect preset #3", self.randomizeEffect)
+
+    def turnOffWings(self):
+        self.runCommand(0,0,0)
+
+    def randomizeEffect(self):
+        self.runCommand(0,0,0)
 
 if __name__ == "__main__":
     RemoteControlWindow()

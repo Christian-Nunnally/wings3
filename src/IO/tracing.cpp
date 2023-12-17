@@ -58,3 +58,39 @@ void emitIntegerMetric(char* key, int value)
     std::cout << "\n";
     #endif
 }
+
+void emitDoubleMetric(char* key, double value)
+{
+    #ifdef RP2040
+    D_serialWrite("metric,");
+    D_serialWrite(key);
+    D_serialWrite(",");
+    D_serialWrite(value);
+    D_serialWrite("\n");
+    #else
+    std::cout << "\n";
+    std::cout << "metric,";
+    std::cout << key;
+    std::cout << ",";
+    std::cout << value;
+    std::cout << "\n";
+    #endif
+}
+
+void emitFloatMetric(char* key, float value)
+{
+    #ifdef RP2040
+    D_serialWrite("metric,");
+    D_serialWrite(key);
+    D_serialWrite(",");
+    D_serialWrite(value);
+    D_serialWrite("\n");
+    #else
+    std::cout << "\n";
+    std::cout << "metric,";
+    std::cout << key;
+    std::cout << ",";
+    std::cout << value;
+    std::cout << "\n";
+    #endif
+}

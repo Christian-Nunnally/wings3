@@ -6,7 +6,24 @@ class ConfigurationStatusWindow(SimpleWindow):
 
     def __init__(self):
         self.createRoot()
-        self.update_status()
+        self.root.geometry("+0+0")
+
+    def sortMetricsList(self):
+        newKeyToIndexMap = {}
+        metricNamesList = list(self.keyToIndexMap.keys())
+        metricNamesList.sort()
+        newIndex = 0
+
+        currentValues = {}
+        for currentMetric in self.keyToIndexMap:
+            currentValues[currentMetric] = self.listbox.get(self.keyToIndexMap[currentMetric])
+
+        for metricName in metricNamesList:
+            newKeyToIndexMap[metricName] = newIndex
+            self.listbox.delete(newIndex)
+            self.listbox.insert(newIndex, currentValues[metricName])
+            newIndex += 1
+        self.keyToIndexMap = newKeyToIndexMap
 
     def getOrAssignIndexForKey(self, key):
         if key in self.keyToIndexMap: return self.keyToIndexMap[key]
@@ -18,21 +35,6 @@ class ConfigurationStatusWindow(SimpleWindow):
         self.listbox.delete(index)
         self.listbox.insert(index, new_status)
 
-    def update_status(self):
-        # Replace this with your function to fetch updated status strings
-        # For demonstration purposes, I'm using a static list of strings
-        status_list = [
-            "Status 1: Updated",
-            "Status 2: In Progress",
-            "Status 3: Pending",
-            "Status 4: Completed",
-            "Status 5: Error"
-        ]
-
-        # Update the first status line with a new status
-        #new_status = "Status 1: Newly Updated"
-        #self.update_single_status(0, new_status)
-
     def runCommand(self, arguments):
         if arguments[0] == "metric":
             self.update_single_status(arguments[1], f"{arguments[1]}: {arguments[2]}")
@@ -40,15 +42,18 @@ class ConfigurationStatusWindow(SimpleWindow):
     def createRoot(self):
         super().createRoot()
         self.root.title("Metric Status Display")
-        self.root.configure(bg='black')  # Set background color to black
+        self.root.configure(bg='black', height=500)  # Set background color to black
 
-        # Use a custom font and color for the listbox
-        self.custom_font = ('Arial', 12)
+        self.custom_font = ('Consolas', 12)
         self.custom_fg = 'white'  # Set text color to white
 
         self.frame = tk.Frame(self.root, bg='black')  # Set frame background color to black
         self.frame.pack(padx=10, pady=10)
 
         # Create a Listbox with a custom font and color
-        self.listbox = tk.Listbox(self.frame, font=self.custom_font, fg=self.custom_fg, bg='black', width=40, height=10)
+        self.listbox = tk.Listbox(self.frame, font=self.custom_font, fg=self.custom_fg, bg='black', width=80, height=50, borderwidth=0, highlightthickness=0)
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        sortButton = tk.Button(self.root, text='Sort metrics list', background="black", foreground="white", width=100, command=self.sortMetricsList)
+        sortButton.pack()
+

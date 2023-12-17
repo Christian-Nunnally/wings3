@@ -3,6 +3,7 @@
 #include "../Utility/fastRandom.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Peripherals/microphone.h"
+#include "../IO/tracing.h"
 
 // Brightness Mode variables.
 const uint8_t NumberOfNormalGlobalBrightnessChangeModes = 3;
@@ -41,4 +42,5 @@ void incrementBrightnessModeLevels()
     brightnessModePitchBasedMovement = (getCurrentPitchPosition() >> 19) & 0xff;
     brightnessModeRollBasedMovement = (getCurrentRollPosition() >> 19) & 0xff;
     brightnessModeYawBasedMovement = (getCurrentYawPosition() >> 19) & 0xff;
+    D_emitDoubleMetric("currentAudioIntensityLevel", currentAudioIntensityLevel);
 }

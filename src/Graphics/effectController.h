@@ -6,5 +6,6 @@
 void incrementEffectFrame();
 Color getLedColorForFrame(int ledIndex);
 void setupEffects();
+void randomizeEffectsNaturally();
 
 #endif

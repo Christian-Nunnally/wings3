@@ -2,6 +2,7 @@
 #include "../Graphics/mixingModes.h"
 #include "../Graphics/colorMixing.h"
 #include "../Utility/fastRandom.h"
+#include "../IO/tracing.h"
 
 const int MaxNumberOfMixingModeBlendFunctions = 20;
 int numberOfMixingModeBlendFunctions;
@@ -49,6 +50,8 @@ void incrementMixingModeBlend(int frameTimeDelta)
     if (!millisecondsLeftInMixingModeBlend) return;
     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlend > frameTimeDelta ? millisecondsLeftInMixingModeBlend - frameTimeDelta : 0;
     percentOfOldMixingModeToMixIn8Bit = (millisecondsLeftInMixingModeBlend / millisecondsLeftInMixingModeBlendTotalDuration) * UINT8_MAX;
+    D_emitIntegerMetric("millisecondsLeftInMixingModeBlend", millisecondsLeftInMixingModeBlend);
+    D_emitIntegerMetric("percentOfOldMixingModeToMixIn8Bit", percentOfOldMixingModeToMixIn8Bit);
 }
 
 void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMillisecondsForTransition)
@@ -56,4 +59,6 @@ void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMilli
     mixingModeBlendFunction = mixingModeBlendFunctions[fastRandomInteger(numberOfMixingModeBlendFunctions)];
     millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(minimumMillisecondsForTransition, maximumMillisecondsForTransition) + 1;
     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
+    D_emitIntegerMetric("mixingModeBlendFunction", mixingModeBlendFunction);
+    D_emitIntegerMetric("millisecondsLeftInMixingModeBlendTotalDuration", millisecondsLeftInMixingModeBlendTotalDuration);
 }

@@ -11,6 +11,7 @@ class LedGridWindow(SimpleWindow):
     def __init__(self) -> None:
         self.createRoot()
         self.createGridSimulatorCanvas()
+        self.center()
 
     def rgbToHex(self, red, green, blue):
         return f'#{red:02x}{green:02x}{blue:02x}'
