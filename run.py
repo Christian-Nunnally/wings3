@@ -15,9 +15,6 @@ def parseLine(line):
         print(repr(e))
         return []
 
-def send_input(process, user_input):
-    pass
-
 os.system("make")
 ledGridWindow = LedGridWindow()
 configurationStatusWindow = ConfigurationStatusWindow()
@@ -40,8 +37,6 @@ while True:
     arguments = parseLine(line)
     ledGridWindow.runCommand(arguments)
     configurationStatusWindow.runCommand(arguments)
-
-    send_input(program, "Hello World")
 
 parent = psutil.Process(program.pid)
 for child in parent.children(recursive=True):

@@ -104,19 +104,3 @@ DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)
 
     return 0;
 }
-
-// int main() {
-//     runInNewThread();
-//     while (true) {
-//         std::string line;
-//         line = readLineNonBlocking();
-//         if (!line.empty()) {
-//             std::cout << "Received: " << line << std::endl;
-//         } else {
-//             std::cout << "waiting " << line << std::endl;
-//             Sleep(100);
-//         }
-//     }
-
-//     return 0;
-// }

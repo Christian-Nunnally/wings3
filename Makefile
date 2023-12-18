@@ -39,7 +39,6 @@ sourceFilesList := \
 	src\Graphics\Effects\gradientWaveEffect.cpp \
 	src\Graphics\Effects\starFieldEffect.cpp \
 
-paletteImageFiles = $(wildcard Palettes/*)
 objectsFilesList := $(patsubst %.cpp,$(objectsDirectory)/%.o,$(sourceFilesList))
 executablePath := $(binariesDirectory)\$(executableName).exe
 
@@ -49,12 +48,13 @@ $(executablePath): $(objectsFilesList)
 	@if not exist $(binariesDirectory) mkdir $(binariesDirectory)
 	$(compiler) $(compilerFlags) $^ -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
-$(objectsDirectory)/%.o: %.cpp
+$(objectsDirectory)/%.o: %.cpp src/Graphics/palettes.h
 	@if not exist $(objectsDirectory)\$(dir $<) mkdir $(objectsDirectory)\$(dir $<)
 	$(compiler) $(compilerFlags) -c $< -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
-src/Graphics/palettes.h: $(paletteImageFiles)
-	python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ | out-file -encoding ASCII src\Graphics\palettes.h
+paletteImageFiles = $(wildcard Palettes/*)
+src/Graphics/palettes.h: Palettes $(paletteImageFiles)
+	python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ src\Graphics\palettes.h
 
 clean:
 	rm -rf $(objectsDirectory) $(binariesDirectory)
