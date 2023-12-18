@@ -61,5 +61,5 @@ class LedGridWindow(SimpleWindow):
     def createGridSimulatorCanvas(self):
         canvasWidth = square_size * PhysicalLedIndexMappingWidth
         canvasHeight = square_size * PhysicalLedIndexMappingHeight
-        self.canvas = tk.Canvas(self.root, width=canvasWidth, height=canvasHeight, bg="black")
+        self.canvas = tk.Canvas(self.root, width=canvasWidth, height=canvasHeight, bg="black", borderwidth=0, highlightthickness=0)
         self.canvas.pack()

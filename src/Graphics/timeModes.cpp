@@ -126,8 +126,8 @@ void pickRandomTimeModesForEffect(Effect *effect, bool pickFromBasicTimeModes, b
             }
         }
     }
-    D_emitIntegerMetric("EffectTimeMode1", effect->effectId, effect->timeMode1);
-    D_emitIntegerMetric("EffectTimeMode2", effect->effectId, effect->timeMode2);
+    D_emitIntegerMetric("fxTimeMode1", effect->effectId, effect->timeMode1);
+    D_emitIntegerMetric("fxTimeMode2", effect->effectId, effect->timeMode2);
 }
 
 void incrementTimesForEffect(Effect *effect, int timeDelta)
@@ -135,8 +135,8 @@ void incrementTimesForEffect(Effect *effect, int timeDelta)
     int increasedResolutionTimeDelta = (timeDelta * TimeDeltaResolutionIncreaseFactor);
     effect->time1 = timeModeIncrementFunctions[effect->timeMode1](effect->time1 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
     effect->time2 = timeModeIncrementFunctions[effect->timeMode2](effect->time2 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
-    D_emitIntegerMetric("EffectTime1", effect->effectId, effect->time1);
-    D_emitIntegerMetric("EffectTime2", effect->effectId, effect->time2);
+    D_emitIntegerMetric("fxTime1", effect->effectId, effect->time1 & 0xffff);
+    D_emitIntegerMetric("fxTime2", effect->effectId, effect->time2 & 0xffff);
 }
 
 void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *effect3, Effect *effect4, uint8_t likelihoodMovementBaseModeIsPicked, uint8_t likelihoodMusicBaseModeIsPicked, uint8_t likelihoodIndividualModeChanges, bool shouldTryToPickMovementMode, bool shouldTryToPickMusicMode)

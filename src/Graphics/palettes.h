@@ -1,11 +1,7 @@
 #ifndef PALETTES_H
 #define PALETTES_H
 
-#ifdef RP2040
-#include <pgmspace.h>
-#else
-#define PROGMEM
-#endif
+#include "../commonHeaders.h"
 #include "../Graphics/color.h"
 
 #define TOTAL_NUMBER_OF_PALETTES 20

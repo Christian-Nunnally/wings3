@@ -6,6 +6,7 @@ paletteWidth = 256
 paletteHeights = []
 numbersPerRow = 66
 paletteStarts = []
+paletteNames = []
 
 def createPaletteFromImages(paletteFileNames):
     colors = []
@@ -65,7 +66,7 @@ colors = createPaletteFromImages(bitmapFiles)
 print("#ifndef PALETTES_H")
 print("#define PALETTES_H")
 print()
-print("#include <pgmspace.h>")
+print("#include \"../commonHeaders.h\"")
 print("#include \"../Graphics/color.h\"")
 print()
 print(f"#define TOTAL_NUMBER_OF_PALETTES {len(paletteHeights)}")
