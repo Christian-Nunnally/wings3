@@ -1,9 +1,4 @@
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#endif
-
+#include "../commonHeaders.h"
 #include "../Utility/fastRandom.h"
 
 static unsigned long x=132456789, y=362436069, z=521288629;

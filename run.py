@@ -3,7 +3,7 @@ from tests.ConfigurationStatusWindow import ConfigurationStatusWindow
 from tests.RemoteControlWindow import RemoteControlWindow
 from subprocess import Popen, PIPE, STDOUT
 import psutil
-from Configuration.configuration import PhysicalLedIndexMappingWidth, PhysicalLedIndexMapping, PhysicalLedIndexMappingHeight
+from PythonScripts.configuration import PhysicalLedIndexMappingWidth, PhysicalLedIndexMapping, PhysicalLedIndexMappingHeight
 import os
 
 def parseLine(line):

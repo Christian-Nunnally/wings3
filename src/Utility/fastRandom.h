@@ -1,11 +1,7 @@
 #ifndef FAST_RANDOM_H
 #define FAST_RANDOM_H
 
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#endif
+#include "../commonHeaders.h"
 
 void fastRandomSeed(long seed);
 int fastRandomInteger(int minimumValue, int maximumValue);

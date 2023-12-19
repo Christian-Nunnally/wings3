@@ -48,13 +48,23 @@ $(executablePath): $(objectsFilesList)
 	@if not exist $(binariesDirectory) mkdir $(binariesDirectory)
 	$(compiler) $(compilerFlags) $^ -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
-$(objectsDirectory)/%.o: %.cpp src/Graphics/palettes.h
+$(objectsDirectory)/%.o: %.cpp src/Graphics/palettes.h src/Graphics/screenMaps.h src/Graphics/transformMaps.h src/Graphics/directionMaps.h
 	@if not exist $(objectsDirectory)\$(dir $<) mkdir $(objectsDirectory)\$(dir $<)
 	$(compiler) $(compilerFlags) -c $< -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
-paletteImageFiles = $(wildcard Palettes/*)
-src/Graphics/palettes.h: Palettes $(paletteImageFiles)
+paletteImageFiles = $(wildcard Palettes/*.bmp)
+src/Graphics/palettes.h: Palettes $(paletteImageFiles) PythonScripts\imagePaletteExtractor.py
 	python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ src\Graphics\palettes.h
+
+screenMapFiles = $(wildcard ScreenMaps/*.bmp)
+src/Graphics/screenMaps.h: ScreenMaps $(screenMapFiles) PythonScripts\screenMapGenerator.py PythonScripts\configuration.py
+	python .\PythonScripts\screenMapGenerator.py .\ScreenMaps\ src\Graphics\screenMaps.h
+
+src/Graphics/transformMaps.h: PythonScripts\transformMapsHeaderGenerator.py PythonScripts\configuration.py
+	python .\PythonScripts\transformMapsHeaderGenerator.py src\Graphics\transformMaps.h
+
+src/Graphics/directionMaps.h: PythonScripts\directionMapGenerator.py PythonScripts\configuration.py
+	python .\PythonScripts\directionMapGenerator.py src\Graphics\directionMaps.h
 
 clean:
 	rm -rf $(objectsDirectory) $(binariesDirectory)

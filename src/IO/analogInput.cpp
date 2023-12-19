@@ -1,10 +1,4 @@
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#define NULL 0
-#endif
-
+#include "../commonHeaders.h"
 #include "../IO/analogInput.h"
 #include "../Utility/time.h"
 #include "../Utility/fastMath.h"

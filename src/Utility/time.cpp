@@ -1,11 +1,5 @@
 
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#define NULL 0
-#endif
-
+#include "../commonHeaders.h"
 #include "../Utility/time.h"
 #include "../settings.h"
 

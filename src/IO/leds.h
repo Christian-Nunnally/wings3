@@ -1,11 +1,7 @@
 #ifndef LEDS_H
 #define LEDS_H
 
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#endif
+#include "../commonHeaders.h"
 
 void setupLeds();
 void refreshLeds();

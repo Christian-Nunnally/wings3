@@ -4,7 +4,8 @@
 //#define ENABLE_SERIAL_READ
 
 #include <ADCInput.h>
-#include <Arduino.h>
+#include "src/settings.h"
+#include "src/commonHeaders.h"
 #include "src/Peripherals/microphone.h"
 #include "src/Peripherals/movementDetection.h"
 #include "src/IO/leds.h"
@@ -14,7 +15,6 @@
 #include "src/Graphics/colorMixing.h"
 #include "src/Utility/time.h"
 #include "src/Utility/fastRandom.h"
-#include "src/settings.h"
 
 
 void setup() 

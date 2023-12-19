@@ -6,6 +6,31 @@ import time
 import threading
 import queue
 
+REMOTE_OPERATION_CODE_ENABLE_LEDS = 0
+REMOTE_OPERATION_CODE_DISABLE_LEDS = 1
+REMOTE_OPERATION_CODE_ENABLE_MUSIC_DETECTION = 2
+REMOTE_OPERATION_CODE_DISABLE_MUSIC_DETECTION = 3
+REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION = 4
+REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION = 5
+REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION = 6
+REMOTE_OPERATION_CODE_DISABLE_STEP_DETECTION = 7
+REMOTE_OPERATION_CODE_ENABLE_RANDOM_EFFECT_CHANGE = 8
+REMOTE_OPERATION_CODE_DISABLE_RANDOM_EFFECT_CHANGE = 9
+REMOTE_OPERATION_CODE_INCREASE_BRIGHTNESS = 10
+REMOTE_OPERATION_CODE_DECREASE_BRIGHTNESS = 11
+REMOTE_OPERATION_CODE_INCREASE_SPEED = 12
+REMOTE_OPERATION_CODE_DECREASE_SPEED = 13
+REMOTE_OPERATION_CODE_SELECT_PRESET = 14
+REMOTE_OPERATION_CODE_SET_PRESET = 15
+REMOTE_OPERATION_CODE_RANDOMIZE_EFFECTS = 16
+REMOTE_OPERATION_CODE_EFFECT_TRIGGER = 17
+REMOTE_OPERATION_CODE_ENTER_SETTINGS = 18
+REMOTE_OPERATION_CODE_NAVIGATE_UP = 19
+REMOTE_OPERATION_CODE_NAVIGATE_DOWN = 20
+REMOTE_OPERATION_CODE_NAVIGATE_LEFT = 21
+REMOTE_OPERATION_CODE_NAVIGATE_RIGHT = 22
+REMOTE_OPERATION_CODE_NAVIGATE_ENTER = 23
+REMOTE_OPERATION_CODE_NAVIGATE_BACK = 24
 
 class RemoteControlWindow(SimpleWindow):
     def __init__(self):
@@ -61,7 +86,8 @@ class RemoteControlWindow(SimpleWindow):
         self.buttonCount += 1
 
     def create_grid(self, root):
-        self.makeButton(root, "turnoff", self.turnOffWings)
+        self.makeButton(root, "turn off", self.turnOffWings)
+        self.makeButton(root, "turn on", self.turnOnWings)
         self.makeButton(root, "randomize", self.randomizeEffect)
         self.makeButton(root, "simulate beat", self.randomizeEffect)
         self.makeButton(root, "simulate step", self.randomizeEffect)
@@ -73,11 +99,14 @@ class RemoteControlWindow(SimpleWindow):
         self.makeButton(root, "set effect preset #2", self.randomizeEffect)
         self.makeButton(root, "set effect preset #3", self.randomizeEffect)
 
+    def turnOnWings(self):
+        self.runCommand(REMOTE_OPERATION_CODE_ENABLE_LEDS,0,0)
+
     def turnOffWings(self):
-        self.runCommand(0,0,0)
+        self.runCommand(REMOTE_OPERATION_CODE_DISABLE_LEDS,0,0)
 
     def randomizeEffect(self):
-        self.runCommand(0,0,0)
+        self.runCommand(REMOTE_OPERATION_CODE_RANDOMIZE_EFFECTS,0,0)
 
 if __name__ == "__main__":
     RemoteControlWindow()

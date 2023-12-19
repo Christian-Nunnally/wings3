@@ -1,10 +1,4 @@
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#include <iostream>
-#endif
-
+#include "../commonHeaders.h"
 #include "../settings.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"

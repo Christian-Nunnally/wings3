@@ -33,3 +33,5 @@ PhysicalLedIndexMapping = [
 
 PhysicalLedIndexMappingWidth = len(PhysicalLedIndexMapping[0])
 PhysicalLedIndexMappingHeight = len(PhysicalLedIndexMapping)
+
+TotalLedCount = 272

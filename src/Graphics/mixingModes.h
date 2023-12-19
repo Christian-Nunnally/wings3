@@ -1,11 +1,7 @@
 #ifndef MIXING_MODES_H
 #define MIXING_MODES_H
 
-#ifdef RP2040
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#endif
+#include "../commonHeaders.h"
 #include "../Graphics/color.h"
 
 void setupMixingModes();
