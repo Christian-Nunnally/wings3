@@ -34,7 +34,8 @@ volatile int numberOfAudioSamplesRead;
 #ifdef RP2040
 SingleEMAFilter<int> singleEMAFilter(EMA_FILTER_ALPHA);
 PeakDetection peakDetector;
-ADCInput mic(26, 28);
+#define MICROPHONE_PIN 26
+ADCInput microphoneADCInput(MICROPHONE_PIN);
 #endif
 
 int samplesRead;
@@ -55,12 +56,11 @@ inline void incrementMusicDetectionToggle();
 
 bool micDataReady = false;
 void onMicDataReady(void) {micDataReady = true;}
-
 bool setupMicrophone()
 {
     #ifdef RP2040
-    mic.onReceive(onMicDataReady);
-    mic.begin(MICROPHONE_SAMPLE_FREQUENCY);
+    microphoneADCInput.onReceive(onMicDataReady);
+    microphoneADCInput.begin(MICROPHONE_SAMPLE_FREQUENCY);
     peakDetector.begin(PEAK_DETECTOR_LAG, PEAK_DETECTOR_THRESHOLD, PEAK_DETECTOR_INFLUENCE); 
     bool result = PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
     #else
@@ -171,53 +171,51 @@ unsigned long lastPotCheckTime;
 short lastPotValue;
 void processAudioStream()
 {
-  if (micDataReady) 
-  {
-    micDataReady = false;
-    #ifdef RP2040
-    int samplesAvailable = mic.available();
-    #else
-    int samplesAvailable = 0; 
-    #endif
-    for (int i = 0; i < samplesAvailable; i++) {
+    if (micDataReady) 
+    {
+        micDataReady = false;
         #ifdef RP2040
-        short audioSample = mic.read() - 831;
-        short potValue = mic.read();
+        int samplesAvailable = microphoneADCInput.available();
         #else
-        short audioSample = 0;
-        short potValue = 0;
+        int samplesAvailable = 0; 
         #endif
-        if (getTime() - lastPotCheckTime > 1000)
-        {
-            lastPotCheckTime = getTime();
-            D_serialWrite(">potValue:");
-            D_serialWriteNewLine(potValue);
-
-            if (D_abs(lastPotValue - potValue) > 100)
+        for (int i = 0; i < samplesAvailable; i++) {
+            #ifdef RP2040
+            short audioSample = microphoneADCInput.read() - 831;
+            #else
+            short audioSample = 0;
+            #endif
+            if (getTime() - lastPotCheckTime > 1000)
             {
-                lastPotValue = potValue;
-                uint8_t brightness;
-                if (potValue > 2048) 
-                {
-                    isMusicDetectedInternal = true;
-                    brightness = potValue - 2048 >> 3;
-                }
-                else 
-                {
-                    isMusicDetectedInternal = false;
-                    brightness = (2047 - potValue) >> 3;
-                }
-                setGlobalLedBrightness(brightness);
-                D_serialWrite(">brightness:");
-                D_serialWriteNewLine(brightness);
-                D_serialWrite(">isMusic:");
-                D_serialWriteNewLine(isMusicDetectedInternal);
-            }
-        }
+                lastPotCheckTime = getTime();
+                D_serialWrite(">potValue:");
+                D_serialWriteNewLine(potValue);
 
-        sumOfSquaredSample += audioSample * audioSample;
-        samplesRead += 1;
-        if (samplesRead == AUDIO_SAMPLE_BATCH_SIZE) processSampleBatch();
+                if (D_abs(lastPotValue - potValue) > 100)
+                {
+                    lastPotValue = potValue;
+                    uint8_t brightness;
+                    if (potValue > 2048) 
+                    {
+                        isMusicDetectedInternal = true;
+                        brightness = potValue - 2048 >> 3;
+                    }
+                    else 
+                    {
+                        isMusicDetectedInternal = false;
+                        brightness = (2047 - potValue) >> 3;
+                    }
+                    setGlobalLedBrightness(brightness);
+                    D_serialWrite(">brightness:");
+                    D_serialWriteNewLine(brightness);
+                    D_serialWrite(">isMusic:");
+                    D_serialWriteNewLine(isMusicDetectedInternal);
+                }
+            }
+
+            sumOfSquaredSample += audioSample * audioSample;
+            samplesRead += 1;
+            if (samplesRead == AUDIO_SAMPLE_BATCH_SIZE) processSampleBatch();
         }
     }
 }

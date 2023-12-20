@@ -12,12 +12,6 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-void startSocketReader();
-bool stopSocketReader();
-bool connectToServer(const char* serverIP, int port);
-std::string readLine();
-std::string readLineNonBlocking();
-void runInNewThread();
-DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam);
+void processFakeRemoteInput();
 
 #endif

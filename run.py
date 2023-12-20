@@ -15,7 +15,8 @@ def parseLine(line):
         print(repr(e))
         return []
 
-os.system("make")
+if os.system("make") != 0:
+    exit()
 ledGridWindow = LedGridWindow()
 configurationStatusWindow = ConfigurationStatusWindow()
 remoteControlWindow = RemoteControlWindow()

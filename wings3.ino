@@ -15,26 +15,18 @@
 #include "src/Graphics/colorMixing.h"
 #include "src/Utility/time.h"
 #include "src/Utility/fastRandom.h"
+#include "src/Control/initializeAndRun.h"
 
 
 void setup() 
 {
   D_serialBegin();
-  setupLeds();
-  setupMicrophone();
-  //setupImu();
-  setupEffects();
-  //setupAnalogInputs();
+  initialize();
 }
 
 void loop() 
 {
-  setTime(millis());
-  incrementEffectFrame();
-  renderLeds();
-  processAudioStream();
-  //checkForMovement();
-  //readAnalogValues();
+  run();
   D_serialRead();
 }
 

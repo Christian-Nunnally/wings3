@@ -101,9 +101,9 @@ void setupImu()
     D_serialWriteNewLine("Interrupt Initialized");
     #ifdef RP2040
     delay(1000);
-    #endif
     calibrateImu();
     D_serialWriteNewLine("IMU Initalized.");
+    #endif
 }
 
 void checkForMovement() 

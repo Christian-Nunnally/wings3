@@ -3,5 +3,6 @@
 
 unsigned long getTime();
 void setTime(unsigned long time);
+unsigned long getSystemTime();
 
 #endif

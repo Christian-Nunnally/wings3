@@ -1,4 +1,7 @@
-#include "../tests/SocketReader.h"
+#include "../src/settings.h"
+#include "../tests/socketRemoteControl.h"
+#include "../src/IO/tracing.h"
+#include "../src/Control/remoteCommandInterpreter.h"
 
 #include <iostream>
 #include <string>
@@ -9,10 +12,26 @@
 #include <chrono>
 #include <windows.h>
 
+#include <chrono>
+#include <iostream>
+#include <cstring>
+#include <unistd.h>
+#include <WinSock2.h>
+#include <string>
+#include <sstream>
+
 #pragma comment(lib, "ws2_32.lib")
 
 std::queue<std::string> fifoQueue;
 SOCKET clientSocket;
+bool hasSocketRemoteBeenInitialized = false;
+
+void startSocketReader();
+bool stopSocketReader();
+bool connectToServer(const char* serverIP, int port);
+std::string readLine();
+std::string readLineNonBlocking();
+DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam);
 
 void startSocketReader() {
     WSADATA wsaData;
@@ -86,6 +105,44 @@ void runInNewThread() {
     }
 }
 
+void processFakeRemoteInput() 
+{
+    if (!hasSocketRemoteBeenInitialized)
+    {
+        hasSocketRemoteBeenInitialized = true;
+        runInNewThread();
+        return;
+    }
+
+    std::string line;
+    line = readLineNonBlocking();
+    if (line.empty()) return;
+    std::stringstream ss(line);
+
+    std::string token;
+    uint8_t operationCode = 0;
+    int16_t operationValue = 0;
+    uint8_t operationFlags = 0;
+
+    std::getline(ss, token, ',');
+    if (!token.empty()) {
+        operationCode = static_cast<uint8_t>(std::stoi(token));
+    }
+
+    std::getline(ss, token, ',');
+    if (!token.empty()) {
+        operationValue = static_cast<int16_t>(std::stoi(token));
+    }
+
+    std::getline(ss, token, ',');
+    if (!token.empty()) {
+        operationFlags = static_cast<uint8_t>(std::stoi(token));
+    }
+
+    interpretRemoteCommand(operationCode, operationValue, operationFlags);
+    D_emitMetricString("Received opcode", line);
+}
+
 DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)
 {
     startSocketReader();
@@ -101,6 +158,5 @@ DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)
         }
     }
     stopSocketReader();
-
     return 0;
 }

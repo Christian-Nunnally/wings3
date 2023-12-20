@@ -101,5 +101,6 @@
         "*.tcc": "cpp",
         "memory_resource": "cpp",
         "cinttypes": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

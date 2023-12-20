@@ -7,8 +7,9 @@ executableName := wings
 sourceFilesList := \
 	tests\TestRunner.cpp \
 	tests\testLeds.cpp \
-	tests\SocketReader.cpp \
+	tests\socketRemoteControl.cpp \
 	src\Control\remoteCommandInterpreter.cpp \
+	src\Control\initializeAndRun.cpp \
 	src\IO\leds.cpp \
 	src\Peripherals\microphone.cpp \
 	src\Peripherals\movementDetection.cpp \
