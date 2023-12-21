@@ -167,8 +167,6 @@ inline void processSampleBatch()
     //monitorAudioLevelsToToggleMusicDetection();
 }
 
-unsigned long lastPotCheckTime;
-short lastPotValue;
 void processAudioStream()
 {
     if (micDataReady) 
@@ -185,33 +183,6 @@ void processAudioStream()
             #else
             short audioSample = 0;
             #endif
-            if (getTime() - lastPotCheckTime > 1000)
-            {
-                lastPotCheckTime = getTime();
-                D_serialWrite(">potValue:");
-                D_serialWriteNewLine(potValue);
-
-                if (D_abs(lastPotValue - potValue) > 100)
-                {
-                    lastPotValue = potValue;
-                    uint8_t brightness;
-                    if (potValue > 2048) 
-                    {
-                        isMusicDetectedInternal = true;
-                        brightness = potValue - 2048 >> 3;
-                    }
-                    else 
-                    {
-                        isMusicDetectedInternal = false;
-                        brightness = (2047 - potValue) >> 3;
-                    }
-                    setGlobalLedBrightness(brightness);
-                    D_serialWrite(">brightness:");
-                    D_serialWriteNewLine(brightness);
-                    D_serialWrite(">isMusic:");
-                    D_serialWriteNewLine(isMusicDetectedInternal);
-                }
-            }
 
             sumOfSquaredSample += audioSample * audioSample;
             samplesRead += 1;

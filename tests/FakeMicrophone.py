@@ -1,5 +1,6 @@
 import pyaudio
 import numpy as np
+import sys
 
 # Function to calculate root mean square (RMS)
 def calculate_rms(audio_data):
@@ -13,6 +14,13 @@ CHUNK = 1024  # Number of frames per buffer
 
 # Initialize PyAudio
 audio = pyaudio.PyAudio()
+
+# Get available audio input devices
+num_devices = audio.get_device_count()
+print("Available audio input devices:")
+for i in range(num_devices):
+    device_info = audio.get_device_info_by_index(i)
+    print(f"{i}: {device_info['name']}")
 
 # Open a stream to capture audio from the system's default audio input
 stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
@@ -29,6 +37,7 @@ try:
         
         # Print the RMS value (you can perform any further operations here)
         print(f"Root Mean Square (RMS): {rms}")
+        sys.stdout.flush()
 
 except KeyboardInterrupt:
     pass
