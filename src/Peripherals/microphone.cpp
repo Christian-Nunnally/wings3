@@ -5,6 +5,7 @@
 #include <PDM.h>
 #else
 #include <cmath>
+#include "../../tests/testMicrophone.h"
 #endif
 #include "../Peripherals/microphone.h"
 #include "../IO/leds.h"
@@ -58,13 +59,14 @@ bool micDataReady = false;
 void onMicDataReady(void) {micDataReady = true;}
 bool setupMicrophone()
 {
+    bool result = true;
     #ifdef RP2040
     microphoneADCInput.onReceive(onMicDataReady);
     microphoneADCInput.begin(MICROPHONE_SAMPLE_FREQUENCY);
     peakDetector.begin(PEAK_DETECTOR_LAG, PEAK_DETECTOR_THRESHOLD, PEAK_DETECTOR_INFLUENCE); 
     bool result = PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
     #else
-    bool result = true;
+    setupTestMicrophone();
     #endif
     if (result) D_serialWriteNewLine("Microphone Initalized.");
     return result;
@@ -101,6 +103,16 @@ bool isMusicDetected()
     return isMusicDetectedInternal;
 }
 
+void enableMusicDetection()
+{
+    isMusicDetectedInternal = true;
+}
+
+void disableMusicDetection()
+{
+    isMusicDetectedInternal = false;
+}
+
 inline void resetSampleBatch()
 {
     samplesRead = 0;
@@ -109,8 +121,8 @@ inline void resetSampleBatch()
 
 inline void applyFiltering()
 {
-    currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
     #ifdef RP2040
+    currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
     singleEMAFilter.AddValue(currentRootMeanSquare);
     peakDetector.add(singleEMAFilter.GetLowPass());
     int newPeakDetectorValue = peakDetector.getPeak();
@@ -128,6 +140,8 @@ inline void applyFiltering()
     D_serialWriteNewLine(currentPeakRootMeanSquare);
     D_serialWrite(">min:");
     D_serialWriteNewLine(currentMinRootMeanSquare);
+    #else
+    currentRootMeanSquare = getLastTestMicrophoneRMS();
     #endif
 }
 
@@ -169,26 +183,25 @@ inline void processSampleBatch()
 
 void processAudioStream()
 {
+    #ifdef RP2040
     if (micDataReady) 
     {
         micDataReady = false;
-        #ifdef RP2040
         int samplesAvailable = microphoneADCInput.available();
-        #else
-        int samplesAvailable = 0; 
-        #endif
         for (int i = 0; i < samplesAvailable; i++) {
-            #ifdef RP2040
             short audioSample = microphoneADCInput.read() - 831;
-            #else
-            short audioSample = 0;
-            #endif
 
             sumOfSquaredSample += audioSample * audioSample;
             samplesRead += 1;
             if (samplesRead == AUDIO_SAMPLE_BATCH_SIZE) processSampleBatch();
         }
     }
+    #else
+    if (processTestMicrophoneAudio())
+    {
+        processSampleBatch();
+    }
+    #endif
 }
 
 inline void monitorAudioLevelsToToggleMusicDetection()

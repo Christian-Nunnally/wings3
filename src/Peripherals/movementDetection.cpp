@@ -423,6 +423,6 @@ void updateMovementTypeFromMLCStatus(uint8_t status)
     else if (status == 4) currentMovementType = Jogging;
     else if (status == 8) currentMovementType = Biking;
     else if (status == 12) currentMovementType = Driving;
-    else currentMovementType = Unknown;
+    else currentMovementType = UnknownMovement;
     notifyMovementDetectedEvent();  
 }

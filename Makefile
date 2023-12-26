@@ -7,6 +7,7 @@ executableName := wings
 sourceFilesList := \
 	tests\TestRunner.cpp \
 	tests\testLeds.cpp \
+	tests\testMicrophone.cpp \
 	tests\socketRemoteControl.cpp \
 	src\Control\remoteCommandInterpreter.cpp \
 	src\Control\initializeAndRun.cpp \
@@ -66,6 +67,9 @@ src/Graphics/transformMaps.h: PythonScripts\transformMapsHeaderGenerator.py Pyth
 
 src/Graphics/directionMaps.h: PythonScripts\directionMapGenerator.py PythonScripts\configuration.py
 	python .\PythonScripts\directionMapGenerator.py src\Graphics\directionMaps.h
+
+diagram.svg: diagram.dot
+	dot .\diagram.dot -Tsvg -o diagram.svg
 
 clean:
 	rm -rf $(objectsDirectory) $(binariesDirectory)

@@ -1,0 +1,33 @@
+digraph {
+    subgraph cluster_wings3py {
+        wings3py;
+        LedSimulatorWindow;
+        MetricDisplayWindow;
+        SimulatedRemoteWindow;
+        SimulatedRemoteWindowSocketServerThread[fillcolor=lightgrey,style=filled];
+        subgraph cluster_binwings3cpp {
+            wings3core;
+            wings3socketRemoteControl;
+            SocketReceiverThread[fillcolor=lightgrey,style=filled];
+            wings3fakeMicrophone;
+            wings3fakeMicrophoneThread[fillcolor=lightgrey,style=filled];
+            subgraph cluster_audioCaptureMic {
+                fakeMicrophonepy;
+
+            }
+        }
+    }
+    wings3core -> wings3py;
+    wings3py -> LedSimulatorWindow;
+    wings3py -> MetricDisplayWindow;
+    wings3py -> SimulatedRemoteWindow;
+
+    SimulatedRemoteWindow -> SimulatedRemoteWindowSocketServerThread;
+    SocketReceiverThread -> wings3socketRemoteControl;
+    wings3socketRemoteControl -> wings3core;
+    SimulatedRemoteWindowSocketServerThread -> SocketReceiverThread;
+
+    wings3fakeMicrophone -> wings3core;
+    wings3fakeMicrophoneThread -> wings3fakeMicrophone;
+    fakeMicrophonepy -> wings3fakeMicrophoneThread;
+}

@@ -8,7 +8,7 @@ enum MovementType
     Jogging,
     Biking,
     Driving,
-    Unknown,
+    UnknownMovement,
 };
 
 void setupImu();

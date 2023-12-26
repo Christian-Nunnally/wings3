@@ -88,8 +88,8 @@ class RemoteControlWindow(SimpleWindow):
     def create_grid(self, root):
         self.makeButton(root, "Enable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_LEDS))
         self.makeButton(root, "Disable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_LEDS))
-        # self.makeButton(root, "Enable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MUSIC_DETECTION))
-        # self.makeButton(root, "Disable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MUSIC_DETECTION))
+        self.makeButton(root, "Enable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MUSIC_DETECTION))
+        self.makeButton(root, "Disable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MUSIC_DETECTION))
         # self.makeButton(root, "Enable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION))
         # self.makeButton(root, "Disable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION))
         # self.makeButton(root, "Enable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION))

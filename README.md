@@ -11,7 +11,7 @@ This project can be built for two targets, either a RP4020 microcontroller, or o
 #### Prerequisites
 
 - [`Arduino`](https://www.arduino.cc/en/software) (or some other way of programming your hardware)
-- [`Python 3.11`](https://www.python.org/downloads/release/python-3110/)
+- [`Python 3.12.1`](https://www.python.org/downloads/)
 
 #### Instructions
 
@@ -21,11 +21,15 @@ This project can be built for two targets, either a RP4020 microcontroller, or o
 
 #### Prerequisites
 
-- [`make`](https://gnuwin32.sourceforge.net/packages/make.htm)
-- [`gcc`](https://community.chocolatey.org/packages/mingw)
-- [`Python 3.11`](https://www.python.org/downloads/release/python-3110/)
+- [`make`](https://gnuwin32.sourceforge.net/packages/make.htm) (Easily installed to windows by installing [chocolatey](https://chocolatey.org/install) and running `choco install make`)
+- [`gcc`](https://community.chocolatey.org/packages/mingw) (Easily installed to windows by installing [chocolatey](https://chocolatey.org/install) and running `choco install mingw`)
+- [`Python 3.12.1`](https://www.python.org/downloads/)
 
 #### Instructions
 
-1. Open a terminal and open this repository's root directory
-1. Run `python .\run.py` to build and run the test program from the 2D grid simulator.
+1. Start with prerequisites installed and run all commands from the repository root.
+1. Install pipx which will manage an isolated poetry installation with `pip install pipx`.
+1. Install poetry to manage project dependencies with `pipx install poetry`.
+    If you get a warning about your path, run `pipx ensurepath` and restart your terminal.
+1. Run `poetry install`
+1. Run `poetry run python wings3.py` to build and run the test program from the 2D grid simulator.

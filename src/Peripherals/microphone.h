@@ -9,5 +9,7 @@ int getCurrentPeakDetectorValue();
 int getCurrentPeakRootMeanSquare();
 int getCurrentFilteredAudioLevel();
 bool isMusicDetected();
+void enableMusicDetection();
+void disableMusicDetection();
 
 #endif
