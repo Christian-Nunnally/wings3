@@ -1,7 +1,7 @@
-#include "../settings.h"
-#include "../IO/tracing.h"
-#include "../windows/socketRemoteControl.h"
-#include "../Control/remoteCommandInterpreter.h"
+#include "../common/settings.h"
+#include "../common/IO/tracing.h"
+#include "socketRemoteControl.h"
+#include "../common/Control/remoteCommandInterpreter.h"
 
 #pragma comment(lib, "ws2_32.lib")
 

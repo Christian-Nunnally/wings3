@@ -1,12 +1,12 @@
-#include "../settings.h"
+#include "testMicrophone.h"
+#include "../common/settings.h"
+#include "../common/IO/tracing.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "testMicrophone.h"
-#include "../IO/tracing.h"
 #include <iostream>
 #include <string>
 #include <winsock2.h>

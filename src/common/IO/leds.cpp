@@ -1,14 +1,14 @@
 #ifdef RP2040
 #include <Adafruit_NeoPXL8.h>
 #else
-#include "../windows/testLeds.h"
+#include "../../windows/testLeds.h"
 #endif
 
-#include "../IO/leds.h"
+#include "leds.h"
+#include "serial.h"
 #include "../Graphics/effectController.h"
 #include "../Graphics/color.h"
 #include "../settings.h"
-#include "../IO/serial.h"
 
 #define COLOR_ORDER                 NEO_GRB
 #define LED_COUNT_PER_PIN           136
