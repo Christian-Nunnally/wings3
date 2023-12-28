@@ -58,18 +58,18 @@ $(objectsDirectory)/%.o: %.cpp src/common/Graphics/palettes.h src/common/Graphic
 	$(compiler) $(compilerFlags) -c $< -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
 paletteImageFiles = $(wildcard resources/Palettes/*.bmp)
-src/common/Graphics/palettes.h: resources/Palettes $(paletteImageFiles) src/build/imagePaletteExtractor.py
-	python ./src/build/imagePaletteExtractor.py ./resources/Palettes/ src/common/Graphics/palettes.h
+src/common/Graphics/palettes.h: resources/Palettes $(paletteImageFiles) src/pipeline/imagePaletteExtractor.py
+	python ./src/pipeline/imagePaletteExtractor.py ./resources/Palettes/ src/common/Graphics/palettes.h
 
 screenMapFiles = $(wildcard resources/ScreenMaps/*.bmp)
-src/common/Graphics/screenMaps.h: resources/ScreenMaps $(screenMapFiles) src/build/screenMapGenerator.py src/build/configuration.py
-	python ./src/build/screenMapGenerator.py ./resources/ScreenMaps/ src/common/Graphics/screenMaps.h
+src/common/Graphics/screenMaps.h: resources/ScreenMaps $(screenMapFiles) src/pipeline/screenMapGenerator.py src/pipeline/configuration.py
+	python ./src/pipeline/screenMapGenerator.py ./resources/ScreenMaps/ src/common/Graphics/screenMaps.h
 
-src/common/Graphics/transformMaps.h: src/build/transformMapsHeaderGenerator.py src/build/configuration.py
-	python ./src/build/transformMapsHeaderGenerator.py src/common/Graphics/transformMaps.h
+src/common/Graphics/transformMaps.h: src/pipeline/transformMapsHeaderGenerator.py src/pipeline/configuration.py
+	python ./src/pipeline/transformMapsHeaderGenerator.py src/common/Graphics/transformMaps.h
 
-src/common/Graphics/directionMaps.h: src/build/directionMapGenerator.py src/build/configuration.py
-	python ./src/build/directionMapGenerator.py src/common/Graphics/directionMaps.h
+src/common/Graphics/directionMaps.h: src/pipeline/directionMapGenerator.py src/pipeline/configuration.py
+	python ./src/pipeline/directionMapGenerator.py src/common/Graphics/directionMaps.h
 
 diagram.svg: diagram.dot
 	dot ./diagram.dot -Tsvg -o diagram.svg

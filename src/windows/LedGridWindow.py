@@ -1,5 +1,5 @@
 import tkinter as tk
-from src.build.configuration import PhysicalLedIndexMappingWidth, PhysicalLedIndexMapping, PhysicalLedIndexMappingHeight
+from src.pipeline.configuration import PhysicalLedIndexMappingWidth, PhysicalLedIndexMapping, PhysicalLedIndexMappingHeight
 from src.windows.SimpleWindow import SimpleWindow
 
 colors = {}
