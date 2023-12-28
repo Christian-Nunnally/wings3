@@ -1,3 +1,5 @@
+# Make file for building an execuable that will run on windows.
+
 compiler := g++
 compilerFlags := -std=c++11 -Wall
 ompilerFlagsThatGoAfterObjectFiles := -lws2_32
@@ -5,10 +7,10 @@ objectsDirectory := obj
 binariesDirectory := bin
 executableName := wings
 sourceFilesList := \
-	tests\TestRunner.cpp \
-	tests\testLeds.cpp \
-	tests\testMicrophone.cpp \
-	tests\socketRemoteControl.cpp \
+	src\windows\TestRunner.cpp \
+	src\windows\testLeds.cpp \
+	src\windows\testMicrophone.cpp \
+	src\windows\socketRemoteControl.cpp \
 	src\Control\remoteCommandInterpreter.cpp \
 	src\Control\initializeAndRun.cpp \
 	src\IO\leds.cpp \
@@ -56,18 +58,18 @@ $(objectsDirectory)/%.o: %.cpp src/Graphics/palettes.h src/Graphics/screenMaps.h
 	$(compiler) $(compilerFlags) -c $< -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
 paletteImageFiles = $(wildcard Palettes/*.bmp)
-src/Graphics/palettes.h: Palettes $(paletteImageFiles) PythonScripts\imagePaletteExtractor.py
-	python .\PythonScripts\imagePaletteExtractor.py .\Palettes\ src\Graphics\palettes.h
+src/Graphics/palettes.h: Palettes $(paletteImageFiles) src\build\imagePaletteExtractor.py
+	python .\src\build\imagePaletteExtractor.py .\Palettes\ src\Graphics\palettes.h
 
 screenMapFiles = $(wildcard ScreenMaps/*.bmp)
-src/Graphics/screenMaps.h: ScreenMaps $(screenMapFiles) PythonScripts\screenMapGenerator.py PythonScripts\configuration.py
-	python .\PythonScripts\screenMapGenerator.py .\ScreenMaps\ src\Graphics\screenMaps.h
+src/Graphics/screenMaps.h: ScreenMaps $(screenMapFiles) src\build\screenMapGenerator.py src\build\configuration.py
+	python .\src\build\screenMapGenerator.py .\ScreenMaps\ src\Graphics\screenMaps.h
 
-src/Graphics/transformMaps.h: PythonScripts\transformMapsHeaderGenerator.py PythonScripts\configuration.py
-	python .\PythonScripts\transformMapsHeaderGenerator.py src\Graphics\transformMaps.h
+src/Graphics/transformMaps.h: src\build\transformMapsHeaderGenerator.py src\build\configuration.py
+	python .\src\build\transformMapsHeaderGenerator.py src\Graphics\transformMaps.h
 
-src/Graphics/directionMaps.h: PythonScripts\directionMapGenerator.py PythonScripts\configuration.py
-	python .\PythonScripts\directionMapGenerator.py src\Graphics\directionMaps.h
+src/Graphics/directionMaps.h: src\build\directionMapGenerator.py src\build\configuration.py
+	python .\src\build\directionMapGenerator.py src\Graphics\directionMaps.h
 
 diagram.svg: diagram.dot
 	dot .\diagram.dot -Tsvg -o diagram.svg
