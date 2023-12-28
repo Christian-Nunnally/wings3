@@ -1,7 +1,7 @@
 #ifdef RP2040
 #include <Adafruit_NeoPXL8.h>
 #else
-#include "../../tests/testLeds.h"
+#include "../windows/testLeds.h"
 #endif
 
 #include "../IO/leds.h"

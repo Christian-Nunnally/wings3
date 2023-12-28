@@ -1,6 +1,6 @@
-from tests.LedGridWindow import LedGridWindow
-from tests.TraceViewerWindow import TraceViewerWindow
-from tests.RemoteControlWindow import RemoteControlWindow
+from src.windows.LedGridWindow import LedGridWindow
+from src.windows.TraceViewerWindow import TraceViewerWindow
+from src.windows.RemoteControlWindow import RemoteControlWindow
 from subprocess import Popen, PIPE, STDOUT
 import psutil
 import os
