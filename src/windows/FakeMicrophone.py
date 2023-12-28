@@ -1,11 +1,14 @@
 import pyaudio
 import numpy as np
 import sys
+from OptionDialog import showOptionsDialog
 
 AUDIO_FORMAT = pyaudio.paInt16
 CHANNELS = 1
 SAMPLES_PER_SECOND = 8000
 FRAMES_PER_BUFFER = 256
+
+useDefaultInputDevice = True
 
 def calculateRms(data):
     if len(data) == 0: 
@@ -17,11 +20,18 @@ def calculateRms(data):
 audio = pyaudio.PyAudio()
 deviceCount = audio.get_device_count()
 print("Available audio input devices:")
+devicesNames = []
 for i in range(deviceCount):
     device_info = audio.get_device_info_by_index(i)
+    devicesNames.append(f"{i}: {device_info['name']}")
     print(f"{i}: {device_info['name']}")
 
-stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER)
+if not useDefaultInputDevice:
+    option = showOptionsDialog(devicesNames)
+    deviceIndex = int(option[0])
+    stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER, input_device_index=deviceIndex)
+else:
+    stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER)
 print("Listening to audio...")
 
 try:
