@@ -1,7 +1,7 @@
 
+#include "brightnessControlModes.h"
 #include "../settings.h"
 #include "../IO/tracing.h"
-#include "../Graphics/brightnessControlModes.h"
 #include "../Utility/fastRandom.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Peripherals/microphone.h"

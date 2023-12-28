@@ -1,9 +1,10 @@
+#ifndef COMMON_HEADERS_H
+#define COMMON_HEADERS_H
+
 #ifdef RP2040
-#include <Arduino.h>
-#include <pgmspace.h>
+#include "../rp2040/commonHeaders.h"
 #else
-#include <stdint.h>
-#include <iostream>
-#include <cmath>
-#define PROGMEM
+#include "../windows/commonWindowsHeaders.h"
+#endif
+
 #endif

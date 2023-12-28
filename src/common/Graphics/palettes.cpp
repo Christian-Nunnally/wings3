@@ -1,5 +1,5 @@
 
-#include "../Graphics/palettes.h"
+#include "palettes.h"
 
 Color colorFromPalette(int index, uint8_t brightness)
 {

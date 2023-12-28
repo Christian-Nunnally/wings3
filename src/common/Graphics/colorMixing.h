@@ -1,12 +1,8 @@
 #ifndef COLOR_MIXING_H
 #define COLOR_MIXING_H
 
-#include "../Graphics/color.h"
-
-#ifdef RP2040
-#else
-#define PROGMEM
-#endif
+#include "color.h"
+#include "../commonHeaders.h"
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor);
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint8_t blendFactor);

@@ -1,8 +1,8 @@
 #ifndef TIME_MODES_H
 #define TIME_MODES_H
 
+#include "effect.h"
 #include "../commonHeaders.h"
-#include "../Graphics/effect.h"
 
 void setupTimeModes();
 void pickRandomTimeModesForEffect(Effect *effect, bool pickFromBasicTimeModes, bool pickFromMusicBasedTimeModes, bool pickFromMovementBasedTimeModes, uint8_t likelihoodIndividualModeChanges);

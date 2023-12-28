@@ -1,11 +1,7 @@
 
-#ifdef RP2040
-#else
-#include <iostream>
-#endif
 
-#include "../../Graphics/Effects/gradientWaveEffect.h"
-#include "../../Graphics/palettes.h"
+#include "../Effects/gradientWaveEffect.h"
+#include "../palettes.h"
 
 
 Color gradientWaveEffect(int pixelIndex, Effect *effect) 

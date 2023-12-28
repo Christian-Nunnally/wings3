@@ -1,5 +1,5 @@
 #include "../commonHeaders.h"
-#include "../Graphics/colorMixing.h"
+#include "colorMixing.h"
 #include "../Utility/fastMath.h"
 
 Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor)

@@ -1,10 +1,10 @@
 
 #include "../settings.h"
-#include "../Graphics/timeModes.h"
-#include "../Graphics/effects.h"
+#include "../IO/tracing.h"
+#include "timeModes.h"
+#include "effects.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Utility/fastRandom.h"
-#include "../IO/tracing.h"
 
 const int TimeDeltaResolutionIncreaseFactor = 64;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
