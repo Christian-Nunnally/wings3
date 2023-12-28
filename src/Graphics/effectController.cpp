@@ -48,6 +48,7 @@ void pickRandomTransitionTime();
 void switchTransitionDirection();
 void pickRandomAudioLevelThresholdForMoreIntenseEffect();
 void handleBeatDetected();
+void randomizeEffectsBasedOnElapsedTime();
 
 Effect currentPrimaryEffectA;
 Effect currentPrimaryEffectB;
@@ -80,6 +81,7 @@ float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
 unsigned long lastTimeEffectChangedDueToTimer;
 int millisecondsBetweenEffectChangeTimer = 1000;
+bool isRandomizingEffectBasedOnElapsedTimeEnabled = true;
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -137,6 +139,7 @@ void incrementEffectFrame()
     incrementColorPalettesTowardsTargets();
     setAudioIntensityLevel(getAudioIntensityRatio());
     detectBeat();
+    randomizeEffectsBasedOnElapsedTime();
     incrementEffects();
     D_emitIntegerMetric("frame", frameNumber++);
 }
@@ -228,23 +231,23 @@ void incrementColorPalettesTowardsTargetsForEffect(Effect *effect)
 void detectBeat()
 {
     const int PositivePeak = 1;
-    if (isMusicDetected())
+    if (!isMusicDetected()) return;
+    int nextPeak = getCurrentPeakDetectorValue();
+    if (nextPeak == lastPeakDetectorValue) return;
+    D_emitIntegerMetric("peakDetector", nextPeak);
+    lastPeakDetectorValue = nextPeak;
+    if (nextPeak == PositivePeak) handleBeatDetected();
+    else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
+    else if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected) randomizeEffectsNaturally();
+}
+
+void randomizeEffectsBasedOnElapsedTime()
+{
+    if (!isRandomizingEffectBasedOnElapsedTimeEnabled) return;
+    if (currentTime - lastTimeEffectChangedDueToTimer > millisecondsBetweenEffectChangeTimer)
     {
-        int nextPeak = getCurrentPeakDetectorValue();
-        if (nextPeak == lastPeakDetectorValue) return;
-        D_emitIntegerMetric("peakDetector", nextPeak);
-        lastPeakDetectorValue = nextPeak;
-        if (nextPeak == PositivePeak) handleBeatDetected();
-        else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
-        else if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenAntiBeatDetected) randomizeEffectsNaturally();
-    }
-    else 
-    {
-        if (currentTime - lastTimeEffectChangedDueToTimer > millisecondsBetweenEffectChangeTimer)
-        {
-            lastTimeEffectChangedDueToTimer = currentTime;
-            randomizeEffectsNaturally();
-        }
+        lastTimeEffectChangedDueToTimer = currentTime;
+        randomizeEffectsNaturally();
     }
 }
 
@@ -475,4 +478,14 @@ void pickRandomAudioLevelThresholdForMoreIntenseEffect()
     effectB1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
     D_emitFloatMetric("fxA1AudioLevelThresholdToShowMoreIntenseEffect", effectA1AudioLevelThresholdToShowMoreIntenseEffect);
     D_emitFloatMetric("fxB1AudioLevelThresholdToShowMoreIntenseEffect", effectB1AudioLevelThresholdToShowMoreIntenseEffect);
+}
+
+void enableRandomEffectChangeBasedOnElapsedTime()
+{
+    isRandomizingEffectBasedOnElapsedTimeEnabled = true;
+}
+
+void disableRandomEffectChangeBasedOnElapsedTime()
+{
+    isRandomizingEffectBasedOnElapsedTimeEnabled = false;
 }

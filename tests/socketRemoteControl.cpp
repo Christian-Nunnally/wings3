@@ -1,24 +1,7 @@
 #include "../src/settings.h"
-#include "../tests/socketRemoteControl.h"
 #include "../src/IO/tracing.h"
+#include "../tests/socketRemoteControl.h"
 #include "../src/Control/remoteCommandInterpreter.h"
-
-#include <iostream>
-#include <string>
-#include <winsock2.h>
-#include <thread>
-#include <queue>
-#include <mutex>
-#include <chrono>
-#include <windows.h>
-
-#include <chrono>
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <WinSock2.h>
-#include <string>
-#include <sstream>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -33,21 +16,26 @@ std::string readLine();
 std::string readLineNonBlocking();
 DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam);
 
-void startSocketReader() {
+void startSocketReader() 
+{
     WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) 
+    {
         std::cerr << "WSAStartup failed\n";
     }
 }
 
-bool stopSocketReader() {
-    if (clientSocket != INVALID_SOCKET) {
+bool stopSocketReader() 
+{
+    if (clientSocket != INVALID_SOCKET) 
+    {
         closesocket(clientSocket);
     }
     WSACleanup();
 }
 
-bool connectToServer(const char* serverIP, int port) {
+bool connectToServer(const char* serverIP, int port) 
+{
     struct sockaddr_in serverAddr;
     clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket == INVALID_SOCKET) {
@@ -69,23 +57,28 @@ bool connectToServer(const char* serverIP, int port) {
     return true;
 }
 
-std::string readLine() {
+std::string readLine() 
+{
     std::string data;
     char ch;
     int bytesReceived;
-    while (true) {
+    while (true) 
+    {
         bytesReceived = recv(clientSocket, &ch, 1, 0);
-        if (bytesReceived <= 0 || ch == '\n') {
+        if (bytesReceived <= 0 || ch == '\n') 
+        {
             break;
         }
-        if (ch != '\r') {
+        if (ch != '\r') 
+        {
             data += ch;
         }
     }
     return data;
 }
 
-std::string readLineNonBlocking() {
+std::string readLineNonBlocking() 
+{
     std::string line = "";
     if (!fifoQueue.empty())
     {
@@ -95,7 +88,8 @@ std::string readLineNonBlocking() {
     return line;
 }
 
-void runInNewThread() {
+void runInNewThread() 
+{
     DWORD threadId;
     HANDLE hThread;
 
@@ -125,17 +119,20 @@ void processFakeRemoteInput()
     uint8_t operationFlags = 0;
 
     std::getline(ss, token, ',');
-    if (!token.empty()) {
+    if (!token.empty()) 
+    {
         operationCode = static_cast<uint8_t>(std::stoi(token));
     }
 
     std::getline(ss, token, ',');
-    if (!token.empty()) {
+    if (!token.empty()) 
+    {
         operationValue = static_cast<int16_t>(std::stoi(token));
     }
 
     std::getline(ss, token, ',');
-    if (!token.empty()) {
+    if (!token.empty()) 
+    {
         operationFlags = static_cast<uint8_t>(std::stoi(token));
     }
 
@@ -149,7 +146,8 @@ DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)
     if (connectToServer("127.0.0.1", 3232)) 
     {
         std::string line;
-        while (true) {
+        while (true) 
+        {
             line = readLine();
             if (!line.empty())
             { 

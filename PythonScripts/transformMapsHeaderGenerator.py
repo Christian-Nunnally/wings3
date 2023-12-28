@@ -230,7 +230,7 @@ print(file=outFile)
 
 
 centerPositions = []
-for i in range(272):
+for i in range(TotalLedCount):
     for y in range(PhysicalLedIndexMappingHeight):
         for x in range(PhysicalLedIndexMappingWidth):
             if (PhysicalLedIndexMapping[y][x] == i):

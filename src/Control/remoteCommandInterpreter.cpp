@@ -25,5 +25,14 @@ void interpretRemoteCommand(uint8_t operationCode, int16_t value, uint8_t flags)
     {
         disableMusicDetection();
     }
+
+    else if (operationCode == REMOTE_OPERATION_CODE_ENABLE_RANDOM_EFFECT_CHANGE)
+    {
+        enableRandomEffectChangeBasedOnElapsedTime();
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_DISABLE_RANDOM_EFFECT_CHANGE)
+    {
+        disableRandomEffectChangeBasedOnElapsedTime();
+    }
 }
 

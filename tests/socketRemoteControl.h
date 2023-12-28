@@ -9,6 +9,9 @@
 #include <mutex>
 #include <chrono>
 #include <windows.h>
+#include <cstring>
+#include <unistd.h>
+#include <sstream>
 
 #pragma comment(lib, "ws2_32.lib")
 

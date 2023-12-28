@@ -38,13 +38,14 @@ class ConfigurationStatusWindow(SimpleWindow):
         return self.keyToIndexMap[key]
 
     def update_single_status(self, key, newStatus):
-        index = self.getOrAssignIndexForKey(key)
-        self.listbox.delete(index)
-        self.listbox.insert(index, newStatus)
-        if key == self.graphedMetricName:
-            self.listbox.selection_set(first=index)
-            self.listbox.yview(index)
-            self.listbox.activate(index)
+        if (self.graphWindow == None or self.graphWindow.isClosed):
+            index = self.getOrAssignIndexForKey(key)
+            self.listbox.delete(index)
+            self.listbox.insert(index, newStatus)
+            if key == self.graphedMetricName:
+                self.listbox.selection_set(first=index)
+                self.listbox.yview(index)
+                self.listbox.activate(index)
 
     def runCommand(self, arguments):
         if arguments[0] == "metric":
@@ -55,15 +56,14 @@ class ConfigurationStatusWindow(SimpleWindow):
     def createRoot(self):
         super().createRoot()
         self.root.title("Metric Status Display")
-        self.root.configure(bg='black', height=500)  # Set background color to black
+        self.root.configure(bg='black', height=500)
 
         self.custom_font = ('Consolas', 9)
-        self.custom_fg = 'white'  # Set text color to white
+        self.custom_fg = 'white'
 
-        self.frame = tk.Frame(self.root, bg='black')  # Set frame background color to black
+        self.frame = tk.Frame(self.root, bg='black')
         self.frame.pack(padx=10, pady=10)
 
-        # Create a Listbox with a custom font and color
         self.listbox = tk.Listbox(self.frame, font=self.custom_font, fg=self.custom_fg, bg='black', width=90, height=80, borderwidth=0, highlightthickness=0, activestyle=None)
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.listbox.bind("<<ListboxSelect>>", self.onSelect)
@@ -76,10 +76,7 @@ class ConfigurationStatusWindow(SimpleWindow):
         if (self.graphWindow is not None): self.graphWindow.update()
 
     def onSelect(self, event):
-        # Get the index of the selected item
         index = event.widget.curselection()[0]
-        
-        # Get the value of the selected item
         if index >= 0 and index < len(self.indexToKeyMap):
             key = self.indexToKeyMap[index]
         self.graphedMetricName = key

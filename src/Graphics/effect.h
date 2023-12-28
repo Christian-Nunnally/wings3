@@ -1,6 +1,7 @@
 #ifndef EFFECT_H
 #define EFFECT_H
 
+#include "../settings.h"
 #include "../commonHeaders.h"
 #include "../Graphics/color.h"
 
@@ -12,8 +13,8 @@ typedef struct
     void (*effectFunctionBonusTrigger)() {};
     int effectFunctionIncrementUniqueId;
 
-    uint8_t const *transformMap1[272];
-    uint8_t const *transformMap2[272];
+    uint8_t const *transformMap1[TOTAL_LEDS];
+    uint8_t const *transformMap2[TOTAL_LEDS];
 
     uint8_t *globalBrightnessPointer;
 

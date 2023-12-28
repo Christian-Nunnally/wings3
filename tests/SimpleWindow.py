@@ -23,7 +23,6 @@ class SimpleWindow:
 
     def center(self):
         self.root.update_idletasks()
-        # PyQt way to find the screen resolution
         user32 = ctypes.windll.user32
         screen_width = user32.GetSystemMetrics(0)
         screen_height = user32.GetSystemMetrics(1)

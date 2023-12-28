@@ -12,6 +12,7 @@ class LedGridWindow(SimpleWindow):
         self.createRoot()
         self.createGridSimulatorCanvas()
         self.center()
+        self.squares = {}
 
     def rgbToHex(self, red, green, blue):
         return f'#{red:02x}{green:02x}{blue:02x}'
@@ -29,19 +30,21 @@ class LedGridWindow(SimpleWindow):
             for x in range(PhysicalLedIndexMappingWidth):
                 ledIndex = PhysicalLedIndexMapping[y][x]
                 if not ledIndex == -1:
-                    self.createSquare(x, y, ledIndex)
+                    self.updateOrCreateSquare(x, y, ledIndex)
 
-    def createSquare(self, x, y, ledIndex):
+    def updateOrCreateSquare(self, x, y, ledIndex):
         colorRgb = self.getColor(ledIndex)
         color = self.rgbToHex(colorRgb[0], colorRgb[1], colorRgb[2])
-        x1 = x * square_size
-        y1 = y * square_size
-        x2 = x1 + square_size
-        y2 = y1 + square_size
-        self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
+        if ledIndex in self.squares:
+            self.canvas.itemconfig(self.squares[ledIndex], fill=color)
+        else:
+            x1 = x * square_size
+            y1 = y * square_size
+            x2 = x1 + square_size
+            y2 = y1 + square_size
+            self.squares[ledIndex] = self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
 
     def updateColors(self):
-        self.canvas.delete("all")
         self.createSquares()
 
     def runCommand(self, arguments):

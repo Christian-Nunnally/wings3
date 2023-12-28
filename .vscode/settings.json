@@ -1,15 +1,26 @@
 {
     "cSpell.words": [
         "Adafruit",
+        "astype",
         "blinky",
         "DSOX",
+        "facecolor",
+        "frombuffer",
         "getdata",
         "Leds",
         "microcontroller",
         "pgmspace",
         "PROGMEM",
         "psutil",
-        "Unico"
+        "pyaudio",
+        "tkagg",
+        "Unico",
+        "WSADATA",
+        "xlabel",
+        "xticks",
+        "ylabel",
+        "ylim",
+        "yticks"
     ],
     "files.associations": {
         "chrono": "cpp",
