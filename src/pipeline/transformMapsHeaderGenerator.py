@@ -1,6 +1,6 @@
 import math
 import sys
-from src.build.configuration import PhysicalLedIndexMapping, TotalLedCount, PhysicalLedIndexMappingWidth, PhysicalLedIndexMappingHeight
+from src.pipeline.configuration import PhysicalLedIndexMapping, TotalLedCount, PhysicalLedIndexMappingWidth, PhysicalLedIndexMappingHeight
 
 outFile = open(sys.argv[1], 'w')
 
