@@ -40,6 +40,7 @@ sourceFilesList := \
 	src\Graphics\Effects\meteorRainEffect.cpp \
 	src\Graphics\Effects\gradientWaveEffect.cpp \
 	src\Graphics\Effects\starFieldEffect.cpp \
+	src\PeakDetection\peakDetection.cpp \
 
 objectsFilesList := $(patsubst %.cpp,$(objectsDirectory)/%.o,$(sourceFilesList))
 executablePath := $(binariesDirectory)\$(executableName).exe

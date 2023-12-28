@@ -1,18 +1,18 @@
 #ifdef RP2040
 #include <ADCInput.h>
-#include <PeakDetection.h> 
-#include <SingleEMAFilterLib.h>
 #include <PDM.h>
 #else
 #include <cmath>
 #include "../../tests/testMicrophone.h"
 #endif
+#include "../settings.h"
+#include "../PeakDetection/peakDetection.h" 
 #include "../Peripherals/microphone.h"
 #include "../IO/leds.h"
 #include "../IO/serial.h"
+#include "../IO/tracing.h"
 #include "../Utility/time.h"
 #include "../Utility/fastmath.h"
-#include "../settings.h"
 
 // TODO: Move code for reading pot.
 
@@ -32,9 +32,8 @@
 
 short audioSampleBuffer[512];
 volatile int numberOfAudioSamplesRead;
-#ifdef RP2040
-SingleEMAFilter<int> singleEMAFilter(EMA_FILTER_ALPHA);
 PeakDetection peakDetector;
+#ifdef RP2040
 #define MICROPHONE_PIN 26
 ADCInput microphoneADCInput(MICROPHONE_PIN);
 #endif
@@ -52,8 +51,8 @@ bool isMusicDetectedInternal = false;
 int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
 unsigned long lastRmsDecayTime;
 
-inline void monitorAudioLevelsToToggleMusicDetection();
-inline void incrementMusicDetectionToggle();
+// EMA
+double ema = 10.0;
 
 bool micDataReady = false;
 void onMicDataReady(void) {micDataReady = true;}
@@ -63,13 +62,17 @@ bool setupMicrophone()
     #ifdef RP2040
     microphoneADCInput.onReceive(onMicDataReady);
     microphoneADCInput.begin(MICROPHONE_SAMPLE_FREQUENCY);
-    peakDetector.begin(PEAK_DETECTOR_LAG, PEAK_DETECTOR_THRESHOLD, PEAK_DETECTOR_INFLUENCE); 
     bool result = PDM.begin(MICROPHONE_CHANNELS, MICROPHONE_SAMPLE_FREQUENCY);
     #else
     setupTestMicrophone();
     #endif
+    peakDetector.begin(PEAK_DETECTOR_LAG, PEAK_DETECTOR_THRESHOLD, PEAK_DETECTOR_INFLUENCE); 
     if (result) D_serialWriteNewLine("Microphone Initalized.");
     return result;
+}
+
+void updateExponentialMovingAverage(double newValue) {
+    ema = EMA_FILTER_ALPHA * newValue + (1 - EMA_FILTER_ALPHA) * ema;
 }
 
 double getAudioIntensityRatio()
@@ -123,26 +126,19 @@ inline void applyFiltering()
 {
     #ifdef RP2040
     currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
-    singleEMAFilter.AddValue(currentRootMeanSquare);
-    peakDetector.add(singleEMAFilter.GetLowPass());
-    int newPeakDetectorValue = peakDetector.getPeak();
-    D_serialWrite(">pk:");
-    D_serialWriteNewLine(newPeakDetectorValue);
-    currentPeakDetectorValue = newPeakDetectorValue;
-    currentFilteredAudioLevel = peakDetector.getFilt();
-    D_serialWrite(">rms:");
-    D_serialWriteNewLine(currentRootMeanSquare);
-    D_serialWrite(">intensity:");
-    D_serialWriteNewLine(getAudioIntensityRatio());
-    D_serialWrite(">filt:");
-    D_serialWriteNewLine(peakDetector.getFilt());
-    D_serialWrite(">max:");
-    D_serialWriteNewLine(currentPeakRootMeanSquare);
-    D_serialWrite(">min:");
-    D_serialWriteNewLine(currentMinRootMeanSquare);
     #else
     currentRootMeanSquare = getLastTestMicrophoneRMS();
+    D_emitIntegerMetric("RMS", currentRootMeanSquare);
     #endif
+    updateExponentialMovingAverage(currentRootMeanSquare);
+    peakDetector.add(ema);
+    D_emitFloatMetric("EMA", ema);
+    currentPeakDetectorValue = peakDetector.getPeak();
+    currentFilteredAudioLevel = peakDetector.getFilt();
+}
+
+double exponentialMovingAverage(double new_data, double previous_ema, double alpha) {
+    return alpha * new_data + (1 - alpha) * previous_ema;
 }
 
 inline void setMaxRootMeanSquare()
@@ -178,7 +174,6 @@ inline void processSampleBatch()
     setMaxRootMeanSquare();
     decayMaxRootMeanSquare();
     resetSampleBatch();
-    //monitorAudioLevelsToToggleMusicDetection();
 }
 
 void processAudioStream()
@@ -197,34 +192,9 @@ void processAudioStream()
         }
     }
     #else
-    if (processTestMicrophoneAudio())
+    while (processTestMicrophoneAudio())
     {
         processSampleBatch();
     }
     #endif
-}
-
-inline void monitorAudioLevelsToToggleMusicDetection()
-{
-    if (isMusicDetectedInternal)
-    {
-        if (getCurrentPeakRootMeanSquare() < MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
-    }
-    else 
-    {
-        if (getCurrentPeakRootMeanSquare() > MUSIC_DETECTION_RMS_THRESHOLD) incrementMusicDetectionToggle();
-    }
-    if (musicDetectionCountdown < MUSIC_DETECTION_COUNTDOWN) musicDetectionCountdown++;
-    D_serialWrite(">isMusic:");
-    D_serialWriteNewLine(isMusicDetectedInternal);
-}
-
-inline void incrementMusicDetectionToggle()
-{
-    musicDetectionCountdown -= 5;
-    if (musicDetectionCountdown <= 5)
-    {
-        isMusicDetectedInternal = !isMusicDetectedInternal;
-        musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
-    }
 }

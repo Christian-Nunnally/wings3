@@ -1,9 +1,10 @@
 
+#include "../settings.h"
+#include "../IO/tracing.h"
 #include "../Graphics/brightnessControlModes.h"
 #include "../Utility/fastRandom.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Peripherals/microphone.h"
-#include "../IO/tracing.h"
 
 // Brightness Mode variables.
 const uint8_t NumberOfNormalGlobalBrightnessChangeModes = 3;

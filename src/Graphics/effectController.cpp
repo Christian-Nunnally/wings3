@@ -232,6 +232,7 @@ void detectBeat()
     {
         int nextPeak = getCurrentPeakDetectorValue();
         if (nextPeak == lastPeakDetectorValue) return;
+        D_emitIntegerMetric("peakDetector", nextPeak);
         lastPeakDetectorValue = nextPeak;
         if (nextPeak == PositivePeak) handleBeatDetected();
         else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();

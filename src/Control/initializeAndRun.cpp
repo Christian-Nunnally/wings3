@@ -37,7 +37,7 @@ void run()
         D_serialRead();
 
         #ifdef RP2040
-        // Real remote
+        //processRealRemoteInput();
         #else
         processFakeRemoteInput();
         #endif

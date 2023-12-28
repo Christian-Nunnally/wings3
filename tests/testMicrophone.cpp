@@ -1,3 +1,4 @@
+#include "../src/settings.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -5,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "testMicrophone.h"
+#include "../src/IO/tracing.h"
 #include <iostream>
 #include <string>
 #include <winsock2.h>
@@ -17,9 +19,13 @@
 FILE *testMicrophonePipe;
 int lastTestMicrophoneRMS;
 char testMicrophoneBuffer[128];
+bool shouldTestMicrophoneLoopContinue = true;
 
 std::queue<int> testMicrophoneRMSQueue;
 DWORD WINAPI testMicrophoneThreadLoop(LPVOID lpParam);
+
+extern "C" FILE *popen(const char *command, const char *mode);
+extern "C" void pclose(FILE *pipe); 
 
 void setupTestMicrophone()
 {
@@ -37,7 +43,7 @@ DWORD WINAPI testMicrophoneThreadLoop(LPVOID lpParam)
     if (!testMicrophonePipe) {
         fprintf(stderr, "Error: Failed to open pipe.\n");
     }
-    while (fgets(testMicrophoneBuffer, sizeof(testMicrophoneBuffer), testMicrophonePipe) != NULL) {
+    while (fgets(testMicrophoneBuffer, sizeof(testMicrophoneBuffer), testMicrophonePipe) != NULL && shouldTestMicrophoneLoopContinue) {
         testMicrophoneRMSQueue.push(atoi(testMicrophoneBuffer));
     }
     return 0;
@@ -46,9 +52,9 @@ DWORD WINAPI testMicrophoneThreadLoop(LPVOID lpParam)
 bool processTestMicrophoneAudio()
 {
     bool result = false;
-    while (!testMicrophoneRMSQueue.empty())
+    if (!testMicrophoneRMSQueue.empty())
     {
-        lastTestMicrophoneRMS = testMicrophoneRMSQueue.front(); 
+        lastTestMicrophoneRMS = testMicrophoneRMSQueue.front();
         testMicrophoneRMSQueue.pop(); 
         result = true;
     }
@@ -62,5 +68,6 @@ int getLastTestMicrophoneRMS()
 
 void teardownTestMicrophone()
 {
+    shouldTestMicrophoneLoopContinue = false;
     pclose(testMicrophonePipe);
 }

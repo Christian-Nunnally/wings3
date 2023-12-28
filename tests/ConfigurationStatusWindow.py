@@ -1,8 +1,12 @@
 import tkinter as tk
 from tests.SimpleWindow import SimpleWindow
+from tests.MetricGraphWindow import MetricGraphWindow
 
 class ConfigurationStatusWindow(SimpleWindow):
     keyToIndexMap = {}
+    indexToKeyMap = {}
+    graphWindow = None
+    graphedMetricName = ""
 
     def __init__(self):
         self.createRoot()
@@ -10,6 +14,7 @@ class ConfigurationStatusWindow(SimpleWindow):
 
     def sortMetricsList(self):
         newKeyToIndexMap = {}
+        self.indexToKeyMap = {}
         metricNamesList = list(self.keyToIndexMap.keys())
         metricNamesList.sort()
         newIndex = 0
@@ -20,6 +25,7 @@ class ConfigurationStatusWindow(SimpleWindow):
 
         for metricName in metricNamesList:
             newKeyToIndexMap[metricName] = newIndex
+            self.indexToKeyMap[newKeyToIndexMap[metricName]] = metricName
             self.listbox.delete(newIndex)
             self.listbox.insert(newIndex, currentValues[metricName])
             newIndex += 1
@@ -28,32 +34,57 @@ class ConfigurationStatusWindow(SimpleWindow):
     def getOrAssignIndexForKey(self, key):
         if key in self.keyToIndexMap: return self.keyToIndexMap[key]
         self.keyToIndexMap[key] = len(self.keyToIndexMap)
+        self.indexToKeyMap[self.keyToIndexMap[key]] = key
         return self.keyToIndexMap[key]
 
-    def update_single_status(self, key, new_status):
+    def update_single_status(self, key, newStatus):
         index = self.getOrAssignIndexForKey(key)
         self.listbox.delete(index)
-        self.listbox.insert(index, new_status)
+        self.listbox.insert(index, newStatus)
+        if key == self.graphedMetricName:
+            self.listbox.selection_set(first=index)
+            self.listbox.yview(index)
+            self.listbox.activate(index)
 
     def runCommand(self, arguments):
         if arguments[0] == "metric":
             self.update_single_status(arguments[1], f"{arguments[1]}: {arguments[2]}")
+            if self.graphWindow is not None and arguments[1] == self.graphedMetricName:
+                self.graphWindow.insertData(float(arguments[2]))
 
     def createRoot(self):
         super().createRoot()
         self.root.title("Metric Status Display")
         self.root.configure(bg='black', height=500)  # Set background color to black
 
-        self.custom_font = ('Consolas', 11)
+        self.custom_font = ('Consolas', 9)
         self.custom_fg = 'white'  # Set text color to white
 
         self.frame = tk.Frame(self.root, bg='black')  # Set frame background color to black
         self.frame.pack(padx=10, pady=10)
 
         # Create a Listbox with a custom font and color
-        self.listbox = tk.Listbox(self.frame, font=self.custom_font, fg=self.custom_fg, bg='black', width=80, height=60, borderwidth=0, highlightthickness=0)
+        self.listbox = tk.Listbox(self.frame, font=self.custom_font, fg=self.custom_fg, bg='black', width=90, height=80, borderwidth=0, highlightthickness=0, activestyle=None)
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.listbox.bind("<<ListboxSelect>>", self.onSelect)
 
         sortButton = tk.Button(self.root, text='Sort metrics list', background="black", foreground="white", width=100, command=self.sortMetricsList)
         sortButton.pack()
 
+    def update(self):
+        if self.root is not None: self.root.update()
+        if (self.graphWindow is not None): self.graphWindow.update()
+
+    def onSelect(self, event):
+        # Get the index of the selected item
+        index = event.widget.curselection()[0]
+        
+        # Get the value of the selected item
+        if index >= 0 and index < len(self.indexToKeyMap):
+            key = self.indexToKeyMap[index]
+        self.graphedMetricName = key
+        if (self.graphWindow == None or self.graphWindow.isClosed):
+            self.graphWindow = MetricGraphWindow()
+        else:
+            pass
+        self.graphWindow.resetMinMax()

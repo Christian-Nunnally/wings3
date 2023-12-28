@@ -1,7 +1,6 @@
 import pyaudio
 import numpy as np
 import sys
-import struct
 
 # Function to calculate root mean square (RMS)
 def calculate_rms_2(audio_data):
@@ -19,8 +18,8 @@ def np_audioop_rms(data, width):
 # Constants for audio parameters
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1  # Number of audio channels (1 for mono, 2 for stereo)
-RATE = 22100  # Sample rate (samples per second)
-CHUNK = 512  # Number of frames per buffer
+RATE = 8000  # Sample rate (samples per second)
+CHUNK = 256  # Number of frames per buffer
 
 # Initialize PyAudio
 audio = pyaudio.PyAudio()

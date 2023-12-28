@@ -40,6 +40,7 @@ class RemoteControlWindow(SimpleWindow):
         self.keepServerAlive = True
         self.messageQueue = queue.Queue()
         self.serverThread = threading.Thread(target=self.runServerSocket)
+        self.serverThread.daemon = True
         self.serverThread.start()
 
     def runServerSocket(self):

@@ -4,6 +4,6 @@
 #define TOTAL_LEDS 272 
 #define PALETTE_LENGTH 256 
 
-//#define ENABLE_TRACING
+#define ENABLE_TRACING
 
 #endif
