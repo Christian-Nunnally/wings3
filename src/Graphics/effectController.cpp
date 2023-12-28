@@ -80,6 +80,7 @@ bool primaryEffectToggle;
 float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
 unsigned long lastTimeEffectChangedDueToTimer;
+unsigned long lastTimeFrameIncremented;
 int millisecondsBetweenEffectChangeTimer = 1000;
 bool isRandomizingEffectBasedOnElapsedTimeEnabled = true;
 
@@ -141,7 +142,8 @@ void incrementEffectFrame()
     detectBeat();
     randomizeEffectsBasedOnElapsedTime();
     incrementEffects();
-    D_emitIntegerMetric("frame", frameNumber++);
+    D_emitIntegerMetric("frameTime", currentTime - lastTimeFrameIncremented);
+    lastTimeFrameIncremented = currentTime;
 }
 
 void setupEffects()

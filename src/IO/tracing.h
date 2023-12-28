@@ -3,6 +3,7 @@
 #define TRACING_H
 
 #include <string>
+#include "../IO/standardOutputCommandOperationCodes.h"
 
 #ifdef ENABLE_TRACING
 #define D_emitMetric(...)          emitMetric(__VA_ARGS__)

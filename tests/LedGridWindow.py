@@ -5,6 +5,12 @@ from tests.SimpleWindow import SimpleWindow
 colors = {}
 square_size = 30
 
+#STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC = 0
+STANDARD_OUTPUT_OPERATION_CODE_SET_LED = 1
+STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS = 2
+STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS = 3
+
+
 class LedGridWindow(SimpleWindow):
     canvas = None
 
@@ -48,12 +54,13 @@ class LedGridWindow(SimpleWindow):
         self.createSquares()
 
     def runCommand(self, arguments):
-        if arguments[0] == "setPixel":
+        commandOperationCode = int(arguments[0])
+        if commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SET_LED:
             if (len(arguments) == 5):
                 self.setColor(int(arguments[1]), int(arguments[2]), int(arguments[3]), int(arguments[4]))
-        elif arguments[0] == "showFrame":
+        elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS:
             self.updateColors()
-        elif arguments[0] == "clearFrame":
+        elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS:
             colors.clear()
             self.updateColors()
 

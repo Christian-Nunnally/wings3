@@ -1,9 +1,8 @@
 from tests.LedGridWindow import LedGridWindow
-from tests.ConfigurationStatusWindow import ConfigurationStatusWindow
+from tests.TraceViewerWindow import TraceViewerWindow
 from tests.RemoteControlWindow import RemoteControlWindow
 from subprocess import Popen, PIPE, STDOUT
 import psutil
-from PythonScripts.configuration import PhysicalLedIndexMappingWidth, PhysicalLedIndexMapping, PhysicalLedIndexMappingHeight
 import os
 
 def parseLine(line):
@@ -18,7 +17,7 @@ def parseLine(line):
 if os.system("make") != 0:
     exit()
 ledGridWindow = LedGridWindow()
-configurationStatusWindow = ConfigurationStatusWindow()
+configurationStatusWindow = TraceViewerWindow()
 remoteControlWindow = RemoteControlWindow()
 program = Popen('bin\\wings.exe', stdout = PIPE, stderr = STDOUT, stdin = PIPE, shell = True)
 

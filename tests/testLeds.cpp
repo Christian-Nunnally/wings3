@@ -1,9 +1,10 @@
 #include <iostream>
 #include "../tests/testLeds.h"
+#include "../tests/testLeds.h"
 
 void setTestLedsPixelColor(int pixelIndex, uint8_t red, uint8_t green, uint8_t blue)
 {
-    std::cout << "setPixel";
+    std::cout << STANDARD_OUTPUT_OPERATION_CODE_SET_LED;
     std::cout << ",";
     std::cout << pixelIndex;
     std::cout << ",";
@@ -21,12 +22,12 @@ void setTestLedsBrightness(uint8_t brightness)
 
 void showTestLeds()
 {
-    std::cout << "showFrame";
+    std::cout << STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS;
     std::cout << "\n";
 }
 
 void clearTestLeds()
 {
-    std::cout << "clearFrame";
+    std::cout << STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS;
     std::cout << "\n";  
 }
