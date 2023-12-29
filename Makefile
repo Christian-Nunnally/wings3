@@ -7,7 +7,7 @@ objectsDirectory := obj
 binariesDirectory := bin
 executableName := wings
 sourceFilesList := \
-	src/windows/TestRunner.cpp \
+	src/windows/program.cpp \
 	src/windows/testLeds.cpp \
 	src/windows/testMicrophone.cpp \
 	src/windows/socketRemoteControl.cpp \

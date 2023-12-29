@@ -71,6 +71,6 @@ class MetricGraphWindow(SimpleWindow):
         if (value > self.yMax): self.yMax = value
         if (value < self.yMin): self.yMin = value
         if self.shouldResetMinMax:
-            self.yMax = value
+            self.yMax = value + 0.001
             self.yMin = value
             self.shouldResetMinMax = False

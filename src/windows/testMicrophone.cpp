@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
+//#include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <winsock2.h>
