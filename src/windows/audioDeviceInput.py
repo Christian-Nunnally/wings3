@@ -41,7 +41,8 @@ try:
         print(f"{rms}")
         sys.stdout.flush()
 finally:
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-    print("Audio stream closed.")
+    pass
+    # stream.stop_stream()
+    # stream.close()
+    # audio.terminate()
+    # print("Audio stream closed.")

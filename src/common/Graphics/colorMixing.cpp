@@ -17,19 +17,13 @@ Color blendColorsUsingMixing(Color color1, Color color2, uint8_t blendFactor)
 Color blendColorsUsingMixingGlitched(Color color1, Color color2, uint8_t blendFactor)
 {
   uint8_t brightnessAdjustedRed1 = ((UINT8_MAX - blendFactor) * color1.red) >> 8;
-  uint8_t color1FactoredRed = (brightnessAdjustedRed1 * color1.red) >> 8;
   uint8_t brightnessAdjustedRed2 = (blendFactor * color2.red) >> 8;
-  uint8_t color2FactoredRed = (brightnessAdjustedRed2 * color2.red) >> 8;
 
   uint8_t brightnessAdjustedGreen1 = ((UINT8_MAX - blendFactor) * color1.green) >> 8;
-  uint8_t color1FactoredGreen = (brightnessAdjustedGreen1 * color1.green) >> 8;
   uint8_t brightnessAdjustedGreen2 = (blendFactor * color2.green) >> 8;
-  uint8_t color2FactoredGreen = (brightnessAdjustedGreen2 * color2.green) >> 8;
 
   uint8_t brightnessAdjustedBlue1 = ((UINT8_MAX - blendFactor) * color1.blue) >> 8;
-  uint8_t color1FactoredBlue = (brightnessAdjustedBlue1 * color1.blue) >> 8;
   uint8_t brightnessAdjustedBlue2 = (blendFactor * color2.blue) >> 8;
-  uint8_t color2FactoredBlue = (brightnessAdjustedBlue2 * color2.blue) >> 8;
 
   uint8_t red = fastSquareRoot16BitInput((brightnessAdjustedRed1 * color1.red) + (brightnessAdjustedRed2 * color2.red));
   uint8_t green = fastSquareRoot16BitInput((brightnessAdjustedGreen1 * color1.green) + (brightnessAdjustedGreen2 * color2.green));

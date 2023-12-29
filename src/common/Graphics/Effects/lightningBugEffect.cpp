@@ -1,7 +1,7 @@
 
 #include "../../Graphics/Effects/lightningBugEffect.h"
 #include "../../Graphics/palettes.h"
-#include "../../Graphics/transformMaps.h"
+#include "../../Graphics/perPixelRadiusTransformMaps.h"
 #include "../../Utility/fastRandom.h"
 #include "../../Utility/fastMath.h"
 

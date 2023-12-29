@@ -1,6 +1,6 @@
 
 #include "../Graphics/effect.h"
-#include "../Graphics/transformMaps.h"
+#include "../Graphics/normalTransformMaps.h"
 
 #ifdef RP2040
 #else
@@ -16,9 +16,13 @@ void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaul
     effect->effectFunctionIncrement = +[]{};
     effect->effectFunctionBonusTrigger = +[]{};
     effect->effectFunctionIncrementUniqueId = -1;
-    *effect->transformMap1 = normalTransformMapX;
-    *effect->transformMap2 = normalTransformMapY;
+    effect->transformMap1Index = 0;
+    effect->transformMap2Index = 0;
+    *effect->transformMap1 = transformMaps[0];
+    *effect->transformMap2 = mirroredTransformMaps[0];
     effect->globalBrightnessPointer = &defaultGlobalBrightness;
+    effect->brightnessControlIndex = 0;
+    effect->brightnessControlMode = 0;
     effect->frameTimeDelta = frameTimeDeltaPointer;
     effect->time1 = 0;
     effect->time2 = 0;

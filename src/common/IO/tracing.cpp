@@ -9,7 +9,7 @@
 #include "../IO/standardOutputCommandOperationCodes.h"
 
 #ifdef RP2040
-inline void printOpCodeAndKeyRP2040(char* key)
+inline void printOpCodeAndKeyRP2040(std::string key)
 {
     D_serialWrite(STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC);
     D_serialWrite(",");
@@ -17,7 +17,7 @@ inline void printOpCodeAndKeyRP2040(char* key)
     D_serialWrite(",");  
 }
 #else
-inline void printOpCodeAndKeyWindows(char* key)
+inline void printOpCodeAndKeyWindows(std::string key)
 {
     std::cout << STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC;
     std::cout << ",";
@@ -26,7 +26,7 @@ inline void printOpCodeAndKeyWindows(char* key)
 }
 #endif
 
-void emitMetric(char* key, char* value)
+void emitMetric(std::string key, std::string value)
 {
     #ifdef RP2040
     printOpCodeAndKeyRP2040(key);
@@ -39,7 +39,7 @@ void emitMetric(char* key, char* value)
     #endif
 }
 
-void emitMetricString(char* key, std::string value)
+void emitMetricString(std::string key, std::string value)
 {
     #ifdef RP2040
     printOpCodeAndKeyRP2040(key);
@@ -52,7 +52,7 @@ void emitMetricString(char* key, std::string value)
     #endif
 }
 
-void emitIntegerMetric(char* key, int value)
+void emitIntegerMetric(std::string key, int value)
 {
     #ifdef RP2040
     printOpCodeAndKeyRP2040(key);
@@ -65,7 +65,7 @@ void emitIntegerMetric(char* key, int value)
     #endif
 }
 
-void emitIntegerMetric(char* key, uint8_t id, int value)
+void emitIntegerMetric(std::string key, uint8_t id, int value)
 {
     #ifdef RP2040
     printOpCodeAndKeyRP2040(key);
@@ -82,7 +82,7 @@ void emitIntegerMetric(char* key, uint8_t id, int value)
     #endif
 }
 
-void emitDoubleMetric(char* key, double value)
+void emitDoubleMetric(std::string key, double value)
 {
     #ifdef RP2040
     printOpCodeAndKeyRP2040(key);
@@ -95,7 +95,7 @@ void emitDoubleMetric(char* key, double value)
     #endif
 }
 
-void emitFloatMetric(char* key, float value)
+void emitFloatMetric(std::string key, float value)
 {
     #ifdef RP2040
     printOpCodeAndKeyRP2040(key);

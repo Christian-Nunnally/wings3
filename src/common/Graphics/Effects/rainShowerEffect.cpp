@@ -2,7 +2,6 @@
 #include "../../Graphics/Effects/rainShowerEffect.h"
 #include "../../Graphics/palettes.h"
 #include "../../Graphics/directionMaps.h"
-#include "../../Graphics/transformMaps.h"
 #include "../../Utility/fastRandom.h"
 #include "../../settings.h"
 
@@ -14,9 +13,6 @@ bool doesLedHaveWater[TOTAL_LEDS];
 const float rainDropGravity = .00017;
 Color rainShowerEffect(int pixelIndex, Effect *effect)
 {
-  (*effect->transformMap1) = normalTransformMapY;
-  (*effect->transformMap2) = normalTransformMapX;
-  int rainAnimationFrame2 = effect->time1 % 512;
   if ((*effect->transformMap1)[pixelIndex] == 0)
   {
     if (!isRainDropAtYPosition[(*effect->transformMap2)[pixelIndex]])

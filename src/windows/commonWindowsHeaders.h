@@ -5,5 +5,6 @@
 #include <iostream>
 #include <cmath>
 #define PROGMEM
+#define PI 3.14595
 
 #endif

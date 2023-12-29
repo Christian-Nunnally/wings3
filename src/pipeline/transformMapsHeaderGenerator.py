@@ -2,16 +2,37 @@ import math
 import sys
 from src.pipeline.configuration import PhysicalLedIndexMapping, TotalLedCount, PhysicalLedIndexMappingWidth, PhysicalLedIndexMappingHeight
 
-outFile = open(sys.argv[1], 'w')
+def error(text):
+    print(text)
+    print()
+    print("Example usage: 'python transformMapsHeaderGenerator.py outputFile.h perPixelAngle'")
+    exit(1)
 
-print("#ifndef TRANSFORM_MAPS_H", file=outFile)
-print("#define TRANSFORM_MAPS_H", file=outFile)
-print(file=outFile)
-print("#include \"../commonHeaders.h\"", file=outFile)
-print("#include \"../settings.h\"", file=outFile)
-print(file=outFile)
+def validateArgumentsAndOpenFile():
+    if len(sys.argv) < 3:
+        error(f"Error: Not enough arguments (expected 3, got {len(sys.argv)}): {sys.argv}")
+        error = True
+    elif len(sys.argv) > 3:
+        error(f"Error: Too many arguments (expected 3, got {len(sys.argv)}): {sys.argv}")
+    elif sys.argv[2] != "perPixelAngle" and sys.argv[2] != "perPixelRadius" and sys.argv[2] != "normal":
+        error(f"Error: Expected second argument to be perPixelAngle/perPixelRadius/normal (got '{sys.argv[2]}')")
+    try:
+        return open(sys.argv[1], 'w')
+    except:
+        error(f"Error: Could not open file at location {sys.argv[1]} for writing.")
 
-globalMapList = []
+def printCommonHeader(name):
+    print(f"#ifndef {name}_H", file=outFile)
+    print(f"#define {name}_H", file=outFile)
+    print(file=outFile)
+    print("#include \"../commonHeaders.h\"", file=outFile)
+    print("#include \"../settings.h\"", file=outFile)
+    print(file=outFile)
+
+def printCommonFooter():
+    print(file=outFile)
+    print(file=outFile)
+    print("#endif", file=outFile)
 
 def mapNumber(value, fromMin, fromMax, toMin, toMax):
     leftSpan = fromMax - fromMin
@@ -19,8 +40,8 @@ def mapNumber(value, fromMin, fromMax, toMin, toMax):
     valueScaled = float(value - fromMin) / float(leftSpan)
     return toMin + (valueScaled * rightSpan)
 
-def printMap(name, map):
-    globalMapList.append(name)
+def printMap(name, map, outFile, mapNameList):
+    mapNameList.append(name)
     print(f"const static uint8_t {name}[{len(map)}] PROGMEM = ", end = "", file=outFile)
     print("{", end = "", file=outFile)
     for i in range(len(map)):
@@ -28,22 +49,24 @@ def printMap(name, map):
         print(int(map[i]), end = end, file=outFile)
     print("};", file=outFile)
 
-def printMaps(groupName, maps):
-    printMap(f"{groupName}TransformMapX", maps[0])
-    printMap(f"{groupName}TransformMapY", maps[1])
-    printMap(f"{groupName}TopRadiusMap1", maps[2])
-    printMap(f"{groupName}TopAngleMap1", maps[3])
-    printMap(f"{groupName}TopRadiusMap2", maps[4])
-    printMap(f"{groupName}TopAngleMap2", maps[5])
-    printMap(f"{groupName}TopRadiusMap3", maps[6])
-    printMap(f"{groupName}TopAngleMap3", maps[7])
-    printMap(f"{groupName}TopRadiusMap4", maps[8])
-    printMap(f"{groupName}TopAngleMap4", maps[9])
-    printMap(f"{groupName}TopRadiusMap5", maps[10])
-    printMap(f"{groupName}TopAngleMap5", maps[11])
-    printMap(f"{groupName}TopRadiusMap6", maps[12])
-    printMap(f"{groupName}TopAngleMap6", maps[13])
+def printMaps(groupName, maps, outFile, mapNameList):
+    printMap(f"{groupName}TransformMapX", maps[0], outFile, mapNameList)
+    printMap(f"{groupName}TransformMapY", maps[1], outFile, mapNameList)
+    printMap(f"{groupName}TopRadiusMap1", maps[2], outFile, mapNameList)
+    printMap(f"{groupName}TopAngleMap1", maps[3], outFile, mapNameList)
+    printMap(f"{groupName}TopRadiusMap2", maps[4], outFile, mapNameList)
+    printMap(f"{groupName}TopAngleMap2", maps[5], outFile, mapNameList)
+    printMap(f"{groupName}TopRadiusMap3", maps[6], outFile, mapNameList)
+    printMap(f"{groupName}TopAngleMap3", maps[7], outFile, mapNameList)
+    printMap(f"{groupName}TopRadiusMap4", maps[8], outFile, mapNameList)
+    printMap(f"{groupName}TopAngleMap4", maps[9], outFile, mapNameList)
+    printMap(f"{groupName}TopRadiusMap5", maps[10], outFile, mapNameList)
+    printMap(f"{groupName}TopAngleMap5", maps[11], outFile, mapNameList)
+    printMap(f"{groupName}TopRadiusMap6", maps[12], outFile, mapNameList)
+    printMap(f"{groupName}TopAngleMap6", maps[13], outFile, mapNameList)
     print(file=outFile)
+
+outFile = validateArgumentsAndOpenFile()
 
 flippedXLayout = []
 for y in range(PhysicalLedIndexMappingHeight):
@@ -200,6 +223,18 @@ def computeMaps(layout, totalWidth, totalHeight, centerX, centerY):
                     angleMap.append(mappedAngle)
     return transformMapX, transformMapY, radiusMap, angleMap
 
+def computeCenterOfAllPixels():
+    centerPositions = []
+    for i in range(TotalLedCount):
+        for y in range(PhysicalLedIndexMappingHeight):
+            for x in range(PhysicalLedIndexMappingWidth):
+                if (PhysicalLedIndexMapping[y][x] == i):
+                    if PhysicalLedIndexMapping[y][x] != -1:
+                        xPos = x / (len(PhysicalLedIndexMapping[0]) - 1)
+                        yPos = y / (len(PhysicalLedIndexMapping) - 1)
+                        centerPositions.append([xPos, yPos])
+    return centerPositions
+
 centerPositions = [
     [0.0, 0.0],
     [0.5, 0.0],
@@ -209,83 +244,87 @@ centerPositions = [
     [0.5, 1],
 ]
 
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions)
-printMaps("normal", maps)
+if (sys.argv[2] == "normal"):
+    printCommonHeader("NORMAL_TRANSFORM_MAPS")
 
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 8.0, 4.0, centerPositions)
-printMaps("normalLowResolution8x4", maps)
+    globalMapList = []
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions)
+    printMaps("normal", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 16.0, 8.0, centerPositions)
-printMaps("normalLowResolution16x8", maps)
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 8.0, 4.0, centerPositions)
+    printMaps("normalLowResolution8x4", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(flippedXLayout, 255.0, 127.0, centerPositions)
-printMaps("swappedX", maps)
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 16.0, 8.0, centerPositions)
+    printMaps("normalLowResolution16x8", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(flippedYLayout, 255.0, 127.0, centerPositions)
-printMaps("swappedY", maps)
+    maps = computeMapsAcrossAllCenters(flippedXLayout, 255.0, 127.0, centerPositions)
+    printMaps("swappedX", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(flippedXYLayout, 255.0, 127.0, centerPositions)
-printMaps("swappedXY", maps)
+    maps = computeMapsAcrossAllCenters(flippedYLayout, 255.0, 127.0, centerPositions)
+    printMaps("swappedY", maps, outFile, globalMapList)
 
-print(f"const int transformMapsCount = {len(globalMapList)};", file=outFile)
-print("const static uint8_t* transformMaps[transformMapsCount]", end=" PROGMEM = {", file=outFile)
-print(*globalMapList, sep=", ", end=" };", file=outFile)
-print(file=outFile)
+    maps = computeMapsAcrossAllCenters(flippedXYLayout, 255.0, 127.0, centerPositions)
+    printMaps("swappedXY", maps, outFile, globalMapList)
 
+    print(f"const int transformMapsCount = {len(globalMapList)};", file=outFile)
+    print("const static uint8_t* transformMaps[transformMapsCount]", end=" PROGMEM = {", file=outFile)
+    print(*globalMapList, sep=", ", end=" };", file=outFile)
+    print(file=outFile)
+    print(file=outFile)
+    print(file=outFile)
 
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
-printMaps("normalMirrored", maps)
+    globalMapList=[]
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+    printMaps("normalMirrored", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 8.0, 4.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
-printMaps("normalLowResolution8x4Mirrored", maps)
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 8.0, 4.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+    printMaps("normalLowResolution8x4Mirrored", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 16.0, 8.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
-printMaps("normalLowResolution16x8Mirrored", maps)
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 16.0, 8.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+    printMaps("normalLowResolution16x8Mirrored", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(flippedXLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
-printMaps("swappedXMirrored", maps)
+    maps = computeMapsAcrossAllCenters(flippedXLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+    printMaps("swappedXMirrored", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(flippedYLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
-printMaps("swappedYMirrored", maps)
+    maps = computeMapsAcrossAllCenters(flippedYLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+    printMaps("swappedYMirrored", maps, outFile, globalMapList)
 
-maps = computeMapsAcrossAllCenters(flippedXYLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
-printMaps("swappedXYMirrored", maps)
+    maps = computeMapsAcrossAllCenters(flippedXYLayout, 255.0, 127.0, centerPositions, onlyPolar=False, shouldBeMirrored=True)
+    printMaps("swappedXYMirrored", maps, outFile, globalMapList)
 
-print(f"const int mirroredTransformMapsCount = {len(globalMapList)};", file=outFile)
-print("const static uint8_t* mirroredTransformMaps[mirroredTransformMapsCount]", end=" PROGMEM = {", file=outFile)
-print(*globalMapList, sep=", ", end=" };", file=outFile)
-print(file=outFile)
+    print(f"const int mirroredTransformMapsCount = {len(globalMapList)};", file=outFile)
+    print("const static uint8_t* mirroredTransformMaps[mirroredTransformMapsCount]", end=" PROGMEM = {", file=outFile)
+    print(*globalMapList, sep=", ", end=" };", file=outFile)
+    print(file=outFile)
 
+elif sys.argv[2] == "perPixelRadius":
+    printCommonHeader("PER_PIXEL_RADIUS_TRANSFORM_MAPS")
+    centerPositions = computeCenterOfAllPixels()
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions, True)
+    print(file=outFile)
+    globalPixelRadiusMapList = []
+    mapIndex = 0
+    for mapIndex in range(int(len(maps) / 2)):
+        printMap(f"radiusTransformMapForPixel{mapIndex}", maps[mapIndex * 2], outFile, [])
+        globalPixelRadiusMapList.append(f"radiusTransformMapForPixel{mapIndex}")
+    print(file=outFile)
+    print(f"const static int pixelRadiusTransformMapsCount = {len(globalPixelRadiusMapList)};", file=outFile)
+    print("const static uint8_t* pixelRadiusTransformMaps[pixelRadiusTransformMapsCount]", end=" = {", file=outFile)
+    print(*globalPixelRadiusMapList, sep=", ", end=" };", file=outFile)
 
-centerPositions = []
-for i in range(TotalLedCount):
-    for y in range(PhysicalLedIndexMappingHeight):
-        for x in range(PhysicalLedIndexMappingWidth):
-            if (PhysicalLedIndexMapping[y][x] == i):
-                if PhysicalLedIndexMapping[y][x] != -1:
-                    xPos = x / (len(PhysicalLedIndexMapping[0]) - 1)
-                    yPos = y / (len(PhysicalLedIndexMapping) - 1)
-                    centerPositions.append([xPos, yPos])
-maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions, True)
+elif sys.argv[2] == "perPixelAngle":
+    printCommonHeader("PER_PIXEL_ANGLE_TRANSFORM_MAPS")
+    centerPositions = computeCenterOfAllPixels()
+    maps = computeMapsAcrossAllCenters(PhysicalLedIndexMapping, 255.0, 127.0, centerPositions, True)
+    print(file=outFile)
+    globalPixelAngleMapList = []
+    mapIndex = 0
+    for mapIndex in range(int(len(maps) / 2)):
+        printMap(f"angleTransformMapForPixel{mapIndex}", maps[(mapIndex * 2) + 1], outFile, [])
+        globalPixelAngleMapList.append(f"angleTransformMapForPixel{mapIndex}")
+    print(file=outFile)
+    print(f"const static int pixelAngleTransformMapsCount = {len(globalPixelAngleMapList)};", file=outFile)
+    print("const static uint8_t* pixelAngleTransformMaps[pixelAngleTransformMapsCount]", end=" = {", file=outFile)
+    print(*globalPixelAngleMapList, sep=", ", end=" };", file=outFile)
 
-print(file=outFile)
-globalPixelRadiusMapList = []
-globalPixelPolarMapList = []
-mapIndex = 0
-for mapIndex in range(int(len(maps) / 2)):
-    printMap(f"radiusTransformMapForPixel{mapIndex}", maps[mapIndex * 2])
-    printMap(f"angleTransformMapForPixel{mapIndex}", maps[(mapIndex * 2) + 1])
-    globalPixelRadiusMapList.append(f"radiusTransformMapForPixel{mapIndex}")
-    globalPixelPolarMapList.append(f"angleTransformMapForPixel{mapIndex}")
-
-print(file=outFile)
-print(f"const static int pixelRadiusTransformMapsCount = {len(globalPixelRadiusMapList)};", file=outFile)
-print("const static uint8_t* pixelRadiusTransformMaps[pixelRadiusTransformMapsCount]", end=" = {", file=outFile)
-print(*globalPixelRadiusMapList, sep=", ", end=" };", file=outFile)
-print(file=outFile)
-print(f"const static int pixelAngleTransformMapsCount = {len(globalPixelPolarMapList)};", file=outFile)
-print("const static uint8_t* pixelAngleTransformMaps[pixelAngleTransformMapsCount]", end=" = {", file=outFile)
-print(*globalPixelPolarMapList, sep=", ", end=" };", file=outFile)
-print(file=outFile)
-print(file=outFile)
-print("#endif", file=outFile)
+printCommonFooter()

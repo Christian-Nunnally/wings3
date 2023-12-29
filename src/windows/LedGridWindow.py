@@ -54,15 +54,19 @@ class LedGridWindow(SimpleWindow):
         self.createSquares()
 
     def runCommand(self, arguments):
-        commandOperationCode = int(arguments[0])
-        if commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SET_LED:
-            if (len(arguments) == 5):
-                self.setColor(int(arguments[1]), int(arguments[2]), int(arguments[3]), int(arguments[4]))
-        elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS:
-            self.updateColors()
-        elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS:
-            colors.clear()
-            self.updateColors()
+        try:
+            commandOperationCode = int(arguments[0])
+            if commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SET_LED:
+                if (len(arguments) == 5):
+                    self.setColor(int(arguments[1]), int(arguments[2]), int(arguments[3]), int(arguments[4]))
+            elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS:
+                self.updateColors()
+            elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS:
+                colors.clear()
+                self.updateColors()
+        except:
+            print("ERROR Invalid arguments: ")
+            print(arguments)
 
     def createRoot(self):
         super().createRoot()

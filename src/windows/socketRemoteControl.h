@@ -13,8 +13,6 @@
 #include <unistd.h>
 #include <sstream>
 
-#pragma comment(lib, "ws2_32.lib")
-
 void processFakeRemoteInput();
 
 #endif

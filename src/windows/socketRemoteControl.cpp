@@ -3,8 +3,6 @@
 #include "socketRemoteControl.h"
 #include "../common/Control/remoteCommandInterpreter.h"
 
-#pragma comment(lib, "ws2_32.lib")
-
 std::queue<std::string> fifoQueue;
 SOCKET clientSocket;
 bool hasSocketRemoteBeenInitialized = false;
@@ -32,6 +30,7 @@ bool stopSocketReader()
         closesocket(clientSocket);
     }
     WSACleanup();
+    return true;
 }
 
 bool connectToServer(const char* serverIP, int port) 

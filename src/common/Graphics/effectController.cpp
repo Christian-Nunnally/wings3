@@ -3,7 +3,7 @@
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Graphics/effectController.h"
-#include "../Graphics/transformMaps.h"
+#include "../Graphics/normalTransformMaps.h"
 #include "../Graphics/screenMaps.h"
 #include "../Graphics/effectSettings.h"
 #include "../Graphics/colorMixing.h"
@@ -65,14 +65,14 @@ Color ledColorMap[TOTAL_LEDS];
 uint16_t percentOfEffectBToShow;
 uint8_t percentOfEffectBToShow8Bit;
 uint8_t percentOfSecondaryEffectToShow;
-int currentTransitionIncrement;
+uint16_t currentTransitionIncrement;
 bool transitionDirection;
 
 int effectsRandomizedCount = 0;
 int beatCount = 0;
 int frameNumber = 0;
 int frameTimeDelta;
-int currentTime;
+unsigned long currentTime;
 int lastPeakDetectorValue;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
@@ -81,7 +81,7 @@ float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
 unsigned long lastTimeEffectChangedDueToTimer;
 unsigned long lastTimeFrameIncremented;
-int millisecondsBetweenEffectChangeTimer = 1000;
+unsigned int millisecondsBetweenEffectChangeTimer = 1000;
 bool isRandomizingEffectBasedOnElapsedTimeEnabled = true;
 
 Color getLedColorForFrame(int ledIndex)
@@ -193,7 +193,7 @@ inline void incrementTime()
 
 inline void incrementTransition()
 {
-    int incrementAmount = currentTransitionIncrement * frameTimeDelta;
+    uint32_t incrementAmount = currentTransitionIncrement * frameTimeDelta;
     if (transitionDirection) percentOfEffectBToShow = (UINT16_MAX - percentOfEffectBToShow) > incrementAmount ? percentOfEffectBToShow + incrementAmount : UINT16_MAX;
     else percentOfEffectBToShow = (percentOfEffectBToShow > incrementAmount) ? percentOfEffectBToShow - incrementAmount : 0; 
     percentOfEffectBToShow8Bit = percentOfEffectBToShow >> 8;
@@ -364,34 +364,38 @@ void pickRandomTransformMaps()
 
 void pickRandomTransformMaps(Effect *effect, uint8_t likelihood)
 {
-    D_emitMetric("AreTransformMapsMirrored", "No");
+    D_emitMetricString("AreTransformMapsMirrored", "No");
     if (fastRandomByte() < likelihood) 
     {
         int transformMap1Index = fastRandomInteger(transformMapsCount);
-        (*effect->transformMap1) = transformMaps[fastRandomInteger(transformMapsCount)];
+        effect->transformMap1Index = transformMap1Index;
+        (*effect->transformMap1) = transformMaps[transformMap1Index];
         D_emitIntegerMetric("fxTransformMap1", effect->effectId, transformMap1Index);
     }
     if (fastRandomByte() < likelihood) 
     {
         int transformMap2Index = fastRandomInteger(transformMapsCount);
-        (*effect->transformMap2) = transformMaps[fastRandomInteger(transformMapsCount)];
+        effect->transformMap2Index = transformMap2Index;
+        (*effect->transformMap2) = transformMaps[transformMap2Index];
         D_emitIntegerMetric("fxTransformMap2", effect->effectId, transformMap2Index);
     }
 }
 
 void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood)
 {
-    D_emitMetric("AreTransformMapsMirrored", "Yes");
+    D_emitMetricString("AreTransformMapsMirrored", "Yes");
     if (fastRandomByte() < likelihood) 
     {
         int transformMap1Index = fastRandomInteger(transformMapsCount);
-        (*effect->transformMap1) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
+        effect->transformMap1Index = transformMap1Index;
+        (*effect->transformMap1) = mirroredTransformMaps[transformMap1Index];
         D_emitIntegerMetric("fxTransformMap1", effect->effectId, transformMap1Index);
     }
     if (fastRandomByte() < likelihood)
     { 
         int transformMap1Index = fastRandomInteger(transformMapsCount);
-        (*effect->transformMap2) = mirroredTransformMaps[fastRandomInteger(transformMapsCount)];
+        effect->transformMap2Index = transformMap1Index;
+        (*effect->transformMap2) = mirroredTransformMaps[transformMap1Index];
         D_emitIntegerMetric("fxTransformMap2", effect->effectId, transformMap1Index);
     }
 }
@@ -401,7 +405,7 @@ void swapEffects()
     primaryEffectToggle = !primaryEffectToggle;
     if (primaryEffectToggle)
     {
-        D_emitMetric("primaryEffectToggle", "True");
+        D_emitMetricString("primaryEffectToggle", "True");
         syncEffects(&effectA2, &effectA1);
         syncEffects(&effectB2, &effectB1);
         currentPrimaryEffectA = effectA1;
@@ -411,7 +415,7 @@ void swapEffects()
     }
     else 
     {
-        D_emitMetric("primaryEffectToggle", "False");
+        D_emitMetricString("primaryEffectToggle", "False");
         syncEffects(&effectA1, &effectA2);
         syncEffects(&effectB1, &effectB2);
         currentPrimaryEffectA = effectA2;

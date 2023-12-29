@@ -2,7 +2,6 @@
 #include "../../Graphics/Effects/fireEffect.h"
 #include "../../Graphics/palettes.h"
 #include "../../Graphics/directionMaps.h"
-#include "../../Graphics/transformMaps.h"
 #include "../../Utility/fastRandom.h"
 #include "../../settings.h"
 
@@ -37,9 +36,6 @@ static bool currentHeatBackBuffer;
 
 void incrementFireEffect(Effect *effect, int flameDecay)
 {
-  (*effect->transformMap1) = normalTransformMapX;
-  (*effect->transformMap2) = normalTransformMapY;
-
   if (shouldFireMoveUpThisFrame) 
   {
     shouldFireMoveUpThisFrame = false;

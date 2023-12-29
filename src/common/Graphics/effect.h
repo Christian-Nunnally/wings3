@@ -13,10 +13,14 @@ typedef struct
     void (*effectFunctionBonusTrigger)() {};
     int effectFunctionIncrementUniqueId;
 
+    uint8_t transformMap1Index;
+    uint8_t transformMap2Index;
     uint8_t const *transformMap1[TOTAL_LEDS];
     uint8_t const *transformMap2[TOTAL_LEDS];
 
     uint8_t *globalBrightnessPointer;
+    uint8_t brightnessControlMode;
+    uint8_t brightnessControlIndex;
 
     int *frameTimeDelta;
     int time1;
@@ -25,7 +29,7 @@ typedef struct
     uint8_t timeMode1;
     uint8_t timeMode2;
 
-    int size;
+    uint16_t size;
 
     int currentPalette;
     int currentPaletteOffset; 

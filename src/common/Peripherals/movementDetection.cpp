@@ -12,6 +12,7 @@
 #include "../IO/serial.h"
 #include "../Observers/stepDectectedObserver.h"
 #include "../Observers/movementDetectedObserver.h"
+#include "../commonHeaders.h"
 #include "../settings.h"
 
 #define ACCELEROMETER_SENSITIVITY 2 // Available values are: 2, 4, 8, 16 (G)
@@ -122,7 +123,7 @@ void checkForMovement()
 
 inline void checkPedometer()
 {
-    uint16_t newStepCount;
+    uint16_t newStepCount = 0;
     
     #ifdef RP2040
     imu.Get_Step_Count(&newStepCount);
@@ -161,7 +162,7 @@ inline void checkMachineLearningCore()
 
 void checkFifo()
 {
-    uint8_t FifoTag;
+    uint8_t FifoTag = 0;
     int32_t acceleration[3];
     int32_t rotation[3];
     uint16_t numberOfSamplesInFifo;
@@ -209,7 +210,6 @@ void checkFifo()
             imu.Get_FIFO_X_Axes(acceleration);
             #endif
             uint32_t newAccelerometerDataReceivedTime = getTimestampOfLastFifoEvent();
-            uint32_t elapsedTime = newAccelerometerDataReceivedTime - lastGyroscopeDataReceivedTime;
             if (!lastAccelerometerDataReceivedTime)
             {
                 lastAccelerometerDataReceivedTime = newAccelerometerDataReceivedTime;
@@ -220,27 +220,26 @@ void checkFifo()
             int accelX = acceleration[0] >> ACCELERATION_SHIFT_AMOUNT;
             int accelY = acceleration[1] >> ACCELERATION_SHIFT_AMOUNT;
             int accelZ = acceleration[2] >> ACCELERATION_SHIFT_AMOUNT;
-            #ifdef RP2040
             xAccelerometerAngle = ((atan((accelY) / sqrt(pow((accelX), 2) + pow((accelZ), 2))) * 180 / PI)) - xAccelerometerError;
             yAccelerometerAngle = ((atan(-1 * (accelX) / sqrt(pow((accelY), 2) + pow((accelZ), 2))) * 180 / PI)) - yAccelerometerError;
-            #endif
         }
     }
 }
 
 uint32_t getTimestampOfLastFifoEvent()
 {
+    #ifdef RP2040
     uint8_t byte1;
     uint8_t byte2;
     uint8_t byte3;
     uint8_t byte4;
-    #ifdef RP2040
     imu.Read_Reg(LSM6DSOX_TIMESTAMP0, &byte1);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP1, &byte2);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP2, &byte3);
     imu.Read_Reg(LSM6DSOX_TIMESTAMP3, &byte4);
     return byte1 | byte2 << 8 |  byte3 << 16 | byte4 << 24; 
-    #else return 0
+    #else 
+    return 0;
     #endif
 }
 
@@ -283,11 +282,11 @@ void setupCalibration()
 
 void runCalibrationStep()
 {
+    #ifdef RP2040
     uint16_t numberOfSamplesInFifo = 0;
     uint8_t FifoTag;
     int32_t acceleration[3];
     int32_t rotation[3];
-    #ifdef RP2040
     imu.Get_FIFO_Num_Samples(&numberOfSamplesInFifo);
     for (uint16_t i = 0; i < numberOfSamplesInFifo; i++) 
     {

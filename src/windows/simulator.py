@@ -9,9 +9,10 @@ def parseLine(line):
     try:
         preLine = str(line)[2:-5].strip()
         arguments = preLine.split(",")
+        int(arguments[0])
         return arguments
     except Exception as e:
-        print(repr(e))
+        print(f"Error parsing program output: {line}")
         return []
 
 def main():
@@ -36,8 +37,9 @@ def main():
         if not line: break
         
         arguments = parseLine(line)
-        ledGridWindow.runCommand(arguments)
-        configurationStatusWindow.runCommand(arguments)
+        if len(arguments) > 0:
+            ledGridWindow.runCommand(arguments)
+            configurationStatusWindow.runCommand(arguments)
 
     parent = psutil.Process(program.pid)
     for child in parent.children(recursive=True):

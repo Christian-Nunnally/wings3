@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include "../Graphics/effects.h"
 #include "../Graphics/Effects/solidColorFillEffect.h"
 #include "../Graphics/Effects/lightChaseEffect.h"
@@ -9,9 +11,16 @@
 #include "../Graphics/Effects/meteorRainEffect.h"
 #include "../Graphics/Effects/gradientWaveEffect.h"
 #include "../Graphics/Effects/starFieldEffect.h"
+#include "../Graphics/savedEffectsSettings.h"
 #include "../Utility/fastRandom.h"
 
 int getRandomEffectNumberFromAllowedEffects();
+void setEffectA(uint8_t effectIndex);
+void setEffectB(uint8_t effectIndex);
+void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect);
+void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect);
+
+SavedEffectSettings preset1;
 
 Effect effectA1;
 Effect effectB1;
@@ -35,6 +44,8 @@ int getRandomEffectNumberFromAllowedEffects()
 
 void syncEffects(Effect *syncFrom, Effect *syncTo)
 {
+    syncTo->transformMap1Index = syncFrom->transformMap1Index;
+    syncTo->transformMap2Index = syncFrom->transformMap2Index;
     *syncTo->transformMap1 = *syncFrom->transformMap1;
     *syncTo->transformMap2 = *syncFrom->transformMap2;
     *syncTo->globalBrightnessPointer = *syncFrom->globalBrightnessPointer;
@@ -288,37 +299,104 @@ void setEffectBToLightChaseEffect()
 void pickRandomEffectA()
 {
     int effectSelection = getRandomEffectNumberFromAllowedEffects();
-    if (effectSelection == METEOR_RAIN_EFFECT_INDEX) setEffectAToMeteorRainEffect();
-    else if (effectSelection == METEOR_RAIN_EFFECT_2_INDEX) setEffectAToMeteorRainEffect2();
-    else if (effectSelection == STAR_FIELD_EFFECT_INDEX) setEffectAToStarFieldEffect();
-    else if (effectSelection == GRADIENT_WAVE_EFFECT_INDEX) setEffectAToGradientWaveEffect();
-    else if (effectSelection == RAIN_SHOWER_EFFECT_INDEX) setEffectAToRainShowerEffect();
-    else if (effectSelection == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectAToExpandingColorOrbEffect();
-    else if (effectSelection == LIGHTNING_BUG_EFFECT_INDEX) setEffectAToLightningBugEffect();
-    else if (effectSelection == FIRE_EFFECT_INDEX) setEffectAToFireEffect();
-    else if (effectSelection == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectAToSimpleSolidColorFillEffect();
-    else if (effectSelection == FIREWORKS_EFFECT_INDEX) setEffectAToFireworksEffect();
-    else if (effectSelection == LIGHT_CHASE_EFFECT_INDEX) setEffectAToLightChaseEffect();
+    setEffectA(effectSelection);
+}
+
+void setEffectA(uint8_t effectIndex)
+{
+    if (effectIndex == METEOR_RAIN_EFFECT_INDEX) setEffectAToMeteorRainEffect();
+    else if (effectIndex == METEOR_RAIN_EFFECT_2_INDEX) setEffectAToMeteorRainEffect2();
+    else if (effectIndex == STAR_FIELD_EFFECT_INDEX) setEffectAToStarFieldEffect();
+    else if (effectIndex == GRADIENT_WAVE_EFFECT_INDEX) setEffectAToGradientWaveEffect();
+    else if (effectIndex == RAIN_SHOWER_EFFECT_INDEX) setEffectAToRainShowerEffect();
+    else if (effectIndex == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectAToExpandingColorOrbEffect();
+    else if (effectIndex == LIGHTNING_BUG_EFFECT_INDEX) setEffectAToLightningBugEffect();
+    else if (effectIndex == FIRE_EFFECT_INDEX) setEffectAToFireEffect();
+    else if (effectIndex == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectAToSimpleSolidColorFillEffect();
+    else if (effectIndex == FIREWORKS_EFFECT_INDEX) setEffectAToFireworksEffect();
+    else if (effectIndex == LIGHT_CHASE_EFFECT_INDEX) setEffectAToLightChaseEffect();
 }
 
 void pickRandomEffectB()
 {
     int effectSelection = getRandomEffectNumberFromAllowedEffects();
-    if (effectSelection == METEOR_RAIN_EFFECT_INDEX) setEffectBToMeteorRainEffect();
-    else if (effectSelection == METEOR_RAIN_EFFECT_2_INDEX) setEffectBToMeteorRainEffect2();
-    else if (effectSelection == STAR_FIELD_EFFECT_INDEX) setEffectBToStarFieldEffect();
-    else if (effectSelection == GRADIENT_WAVE_EFFECT_INDEX) setEffectBToGradientWaveEffect();
-    else if (effectSelection == RAIN_SHOWER_EFFECT_INDEX) setEffectBToRainShowerEffect();
-    else if (effectSelection == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectBToExpandingColorOrbEffect();
-    else if (effectSelection == LIGHTNING_BUG_EFFECT_INDEX) setEffectBToLightningBugEffect();
-    else if (effectSelection == FIRE_EFFECT_INDEX) setEffectBToFireEffect();
-    else if (effectSelection == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectBToSimpleSolidColorFillEffect();
-    else if (effectSelection == FIREWORKS_EFFECT_INDEX) setEffectBToFireworksEffect();
-    else if (effectSelection == LIGHT_CHASE_EFFECT_INDEX) setEffectBToLightChaseEffect();
+    setEffectB(effectSelection);
+}
+
+void setEffectB(uint8_t effectIndex)
+{
+    if (effectIndex == METEOR_RAIN_EFFECT_INDEX) setEffectBToMeteorRainEffect();
+    else if (effectIndex == METEOR_RAIN_EFFECT_2_INDEX) setEffectBToMeteorRainEffect2();
+    else if (effectIndex == STAR_FIELD_EFFECT_INDEX) setEffectBToStarFieldEffect();
+    else if (effectIndex == GRADIENT_WAVE_EFFECT_INDEX) setEffectBToGradientWaveEffect();
+    else if (effectIndex == RAIN_SHOWER_EFFECT_INDEX) setEffectBToRainShowerEffect();
+    else if (effectIndex == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectBToExpandingColorOrbEffect();
+    else if (effectIndex == LIGHTNING_BUG_EFFECT_INDEX) setEffectBToLightningBugEffect();
+    else if (effectIndex == FIRE_EFFECT_INDEX) setEffectBToFireEffect();
+    else if (effectIndex == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectBToSimpleSolidColorFillEffect();
+    else if (effectIndex == FIREWORKS_EFFECT_INDEX) setEffectBToFireworksEffect();
+    else if (effectIndex == LIGHT_CHASE_EFFECT_INDEX) setEffectBToLightChaseEffect();
 }
 
 void pickRandomEffects()
 {
     pickRandomEffectA();
     pickRandomEffectB();
+}
+
+void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
+{
+    memcpy(&savedEffectSettings->effectSettings, &effectSettings, sizeof(SavedEffectSettings));
+    saveSingleEffect(&effectA1, &savedEffectSettings->savedEffectA1);
+    saveSingleEffect(&effectB1, &savedEffectSettings->savedEffectB1);
+    saveSingleEffect(&effectA2, &savedEffectSettings->savedEffectA2);
+    saveSingleEffect(&effectB2, &savedEffectSettings->savedEffectB2);
+}
+
+void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
+{
+    memcpy(&effectSettings, &savedEffectSettings->effectSettings, sizeof(SavedEffectSettings));
+    loadSingleEffect(&savedEffectSettings->savedEffectA1, &effectA1);
+    loadSingleEffect(&savedEffectSettings->savedEffectB1, &effectB1);
+    loadSingleEffect(&savedEffectSettings->savedEffectA2, &effectA2);
+    loadSingleEffect(&savedEffectSettings->savedEffectB2, &effectB2);
+    setEffectA(effectA1.effectFunctionIncrementUniqueId);
+    setEffectB(effectB1.effectFunctionIncrementUniqueId);
+    // Load transform screenMap
+    // load globalBrightnessPointer
+}
+
+void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
+{
+    savedEffect->effectFunctionIncrementUniqueId = fromEffect->effectFunctionIncrementUniqueId;
+    savedEffect->transformMap1Index = fromEffect->transformMap1Index;
+    savedEffect->transformMap2Index = fromEffect->transformMap2Index;
+    savedEffect->brightnessControlMode = fromEffect->brightnessControlMode;
+    savedEffect->brightnessControlIndex = fromEffect->brightnessControlIndex;
+    savedEffect->time1 = fromEffect->time1;
+    savedEffect->time2 = fromEffect->time2;
+    savedEffect->timeMode1 = fromEffect->timeMode1;
+    savedEffect->timeMode2 = fromEffect->timeMode2;
+    savedEffect->size = fromEffect->size;
+    savedEffect->currentPalette = fromEffect->currentPalette;
+    savedEffect->currentPaletteOffset = fromEffect->currentPaletteOffset;
+    savedEffect->currentPaletteOffsetTarget = fromEffect->currentPaletteOffsetTarget;
+}
+
+
+void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect)
+{
+    toEffect->effectFunctionIncrementUniqueId = savedEffect->effectFunctionIncrementUniqueId;
+    toEffect->transformMap1Index = savedEffect->transformMap1Index;
+    toEffect->transformMap2Index = savedEffect->transformMap2Index;
+    toEffect->brightnessControlMode = savedEffect->brightnessControlMode;
+    toEffect->brightnessControlIndex = savedEffect->brightnessControlIndex;
+    toEffect->time1 = savedEffect->time1;
+    toEffect->time2 = savedEffect->time2;
+    toEffect->timeMode1 = savedEffect->timeMode1;
+    toEffect->timeMode2 = savedEffect->timeMode2;
+    toEffect->size = savedEffect->size;
+    toEffect->currentPalette = savedEffect->currentPalette;
+    toEffect->currentPaletteOffset = savedEffect->currentPaletteOffset;
+    toEffect->currentPaletteOffsetTarget = savedEffect->currentPaletteOffsetTarget;
 }

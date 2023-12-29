@@ -1,7 +1,8 @@
 
 #include "../../Graphics/Effects/fireworksEffect.h"
 #include "../../Graphics/palettes.h"
-#include "../../Graphics/transformMaps.h"
+#include "../../Graphics/perPixelAngleTransformMaps.h"
+#include "../../Graphics/perPixelRadiusTransformMaps.h"
 #include "../../Utility/fastRandom.h"
 #include "../../settings.h"
 

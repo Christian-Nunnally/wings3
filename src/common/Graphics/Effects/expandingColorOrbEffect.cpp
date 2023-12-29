@@ -1,7 +1,7 @@
 
 #include "../../Graphics/Effects/expandingColorOrbEffect.h"
 #include "../../Graphics/palettes.h"
-#include "../../Graphics/transformMaps.h"
+#include "../../Graphics/perPixelRadiusTransformMaps.h"
 #include "../../Utility/fastRandom.h"
 
 const uint8_t MaxNumberOfColorOrbs = 10;

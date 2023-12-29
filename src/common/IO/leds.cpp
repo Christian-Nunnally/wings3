@@ -20,18 +20,19 @@
 #define DOUBLE_BUFFER               true
 #define PIO_CONTROLLER              pio1
 #define GAMMA_EXPONENT              2.2
-#define MAX_DUTY_CYCLE              110
+#define MAX_DUTY_CYCLE              255
 
 #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
 #define SPECIAL_LED_ORDER_OFFSET    63
 inline void specialLedOrderForWings();
 #endif
 
-static int8_t LED_PINS[8] =         {19, 20, 21, -1, -1, -1, -1, -1};
 #ifdef RP2040
+static int8_t LED_PINS[8] =         {19, 20, 21, -1, -1, -1, -1, -1};
 Adafruit_NeoPXL8HDR ledDisplay(LED_COUNT_PER_PIN, LED_PINS, COLOR_ORDER);
 #endif
 uint8_t currentBrightness = 255;
+uint8_t brightnessAdjustedForMaxDutyCycle = 255;
 bool ledsEnabled = true;
 
 inline void normalLedOrder();
@@ -63,12 +64,17 @@ void renderLeds()
 
 void setGlobalLedBrightness(uint8_t brightness)
 {
-  brightness = (brightness * MAX_DUTY_CYCLE) / UINT8_MAX;
+  brightnessAdjustedForMaxDutyCycle = (brightness * MAX_DUTY_CYCLE) / UINT8_MAX;
   if (currentBrightness != brightness)
   {
       currentBrightness = brightness;
-      setBrightness(brightness);
+      setBrightness(brightnessAdjustedForMaxDutyCycle);
   }
+}
+
+uint8_t getGlobalLedBrightness()
+{
+  return currentBrightness;
 }
 
 void refreshLeds()
@@ -137,7 +143,7 @@ inline void setBrightness(uint8_t brightness)
   #ifdef RP2040
   ledDisplay.SetBrightness(brightness << 8, GAMMA_EXPONENT);
   #else
-  setTestLedsBrightness(brightness << 8);
+  setTestLedsBrightness(brightness);
   #endif
 }
 

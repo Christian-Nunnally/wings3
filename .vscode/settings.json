@@ -120,7 +120,8 @@
         "xtr1common": "cpp",
         "*.tcc": "cpp",
         "memory_resource": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "complex": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }
