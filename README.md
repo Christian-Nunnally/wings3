@@ -32,4 +32,4 @@ This project can be built for two targets, either a RP4020 microcontroller, or o
 1. Install poetry to manage project dependencies with `pipx install poetry`.
     If you get a warning about your path, run `pipx ensurepath` and restart your terminal.
 1. Run `poetry install`
-1. Run `poetry run python wings3.py` to build and run the test program from the 2D grid simulator.
+1. Run `poetry run sim` to build and run the test program from the 2D grid simulator.

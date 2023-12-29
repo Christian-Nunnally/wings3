@@ -1,16 +1,10 @@
 #include "testMicrophone.h"
 #include "../common/settings.h"
 #include "../common/IO/tracing.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-//#include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <winsock2.h>
-#include <thread>
+//#include <thread>
 #include <queue>
 #include <mutex>
 #include <chrono>

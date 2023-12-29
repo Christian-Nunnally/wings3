@@ -10,8 +10,10 @@
         "facecolor",
         "frombuffer",
         "getdata",
+        "getpixel",
         "highlightthickness",
         "Leds",
+        "linestyle",
         "microcontroller",
         "padx",
         "pady",
@@ -20,6 +22,7 @@
         "psutil",
         "pyaudio",
         "tkagg",
+        "tobytes",
         "Unico",
         "WSADATA",
         "xlabel",
@@ -119,5 +122,5 @@
         "memory_resource": "cpp",
         "cinttypes": "cpp"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
 }

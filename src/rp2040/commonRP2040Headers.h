@@ -3,5 +3,6 @@
 
 #include <Arduino.h>
 #include <pgmspace.h>
+#include <ADCInput.h>
 
 #endif
