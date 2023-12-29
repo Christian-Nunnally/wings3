@@ -1,5 +1,5 @@
 import pyaudio
-import numpy as np
+import numpy
 import sys
 from OptionDialog import showOptionsDialog
 
@@ -13,8 +13,8 @@ useDefaultInputDevice = True
 def calculateRms(data):
     if len(data) == 0: 
         return None
-    dataArray = np.frombuffer(data, np.int16).astype(float)
-    rms = np.sqrt(np.mean(dataArray**2))
+    dataArray = numpy.frombuffer(data, numpy.int16).astype(float)
+    rms = numpy.sqrt(numpy.mean(dataArray**2))
     return int(rms)
 
 audio = pyaudio.PyAudio()
@@ -36,7 +36,7 @@ print("Listening to audio...")
 
 try:
     while True:
-        audio_data = np.frombuffer(stream.read(FRAMES_PER_BUFFER)).astype(float)
+        audio_data = numpy.frombuffer(stream.read(FRAMES_PER_BUFFER)).astype(float)
         rms = calculateRms(audio_data)
         print(f"{rms}")
         sys.stdout.flush()

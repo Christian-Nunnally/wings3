@@ -1,4 +1,4 @@
-#include "../Control/remoteCommandInterpreter.h"
+#include "remoteCommandInterpreter.h"
 #include "../IO/leds.h"
 #include "../Graphics/effectController.h"
 #include "../Peripherals/microphone.h"

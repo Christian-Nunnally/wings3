@@ -33,7 +33,7 @@ void setupTestMicrophone()
 
 DWORD WINAPI testMicrophoneThreadLoop(LPVOID lpParam)
 {
-    testMicrophonePipe = popen("poetry run python src\\windows\\FakeMicrophone.py", "r");
+    testMicrophonePipe = popen("poetry run python src\\windows\\audioDeviceInput.py", "r");
     if (!testMicrophonePipe) {
         fprintf(stderr, "Error: Failed to open pipe.\n");
     }
