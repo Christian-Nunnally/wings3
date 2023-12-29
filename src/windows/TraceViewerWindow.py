@@ -56,7 +56,10 @@ class TraceViewerWindow(SimpleWindow):
         if arguments[0] == STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC:
             self.update_single_status(arguments[1], f"{arguments[1]}: {arguments[2]}")
             if self.graphWindow is not None and arguments[1] == self.graphedMetricName:
-                self.graphWindow.insertData(float(arguments[2]))
+                try:
+                    self.graphWindow.insertData(float(arguments[2]))
+                except:
+                    pass
 
     def createRoot(self):
         super().createRoot()
