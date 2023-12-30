@@ -3,6 +3,7 @@
 
 #include "../Graphics/effect.h"
 #include "../Graphics/effectSettings.h"
+#include "../Graphics/savedEffectsSettings.h"
 
 #define METEOR_RAIN_EFFECT_INDEX 0
 #define METEOR_RAIN_EFFECT_2_INDEX 1
@@ -20,6 +21,11 @@ void setAudioIntensityLevel(float level);
 void pickRandomEffects();
 void syncEffects(Effect *syncFrom, Effect *syncTo);
 void incrementEffects();
+void setTransformMap1FromSettings(Effect* effect);
+void setTransformMap2FromSettings(Effect* effect);
+void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings);
+void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings);
+void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEffectSettings);
 
 extern Effect effectA1;
 extern Effect effectB1;

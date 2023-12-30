@@ -16,6 +16,8 @@ void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaul
     effect->effectFunctionIncrement = +[]{};
     effect->effectFunctionBonusTrigger = +[]{};
     effect->effectFunctionIncrementUniqueId = -1;
+    effect->isTransformMap1Mirrored = 0;
+    effect->isTransformMap2Mirrored = 0;
     effect->transformMap1Index = 0;
     effect->transformMap2Index = 0;
     *effect->transformMap1 = transformMaps[0];

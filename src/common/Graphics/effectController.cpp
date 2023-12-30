@@ -57,8 +57,9 @@ Effect currentSecondaryEffectB;
 EffectSettings effectSettingsStationary;
 EffectSettings effectSettingsMoving;
 
-// Screen Mode variables.
+// TODO: Save this to preset:
 uint8_t *currentScreenMap[TOTAL_LEDS];
+
 Color ledColorMap[TOTAL_LEDS];
 
 // Transition variables.
@@ -76,13 +77,16 @@ unsigned long currentTime;
 int lastPeakDetectorValue;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
+
+// move to effect settings
 bool primaryEffectToggle;
 float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
 float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
+bool isRandomizingEffectBasedOnElapsedTimeEnabled = true;
+
 unsigned long lastTimeEffectChangedDueToTimer;
 unsigned long lastTimeFrameIncremented;
 unsigned int millisecondsBetweenEffectChangeTimer = 1000;
-bool isRandomizingEffectBasedOnElapsedTimeEnabled = true;
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -365,38 +369,34 @@ void pickRandomTransformMaps()
 void pickRandomTransformMaps(Effect *effect, uint8_t likelihood)
 {
     D_emitMetricString("AreTransformMapsMirrored", "No");
-    if (fastRandomByte() < likelihood) 
+    if (fastRandomByte() < likelihood)
     {
-        int transformMap1Index = fastRandomInteger(transformMapsCount);
-        effect->transformMap1Index = transformMap1Index;
-        (*effect->transformMap1) = transformMaps[transformMap1Index];
-        D_emitIntegerMetric("fxTransformMap1", effect->effectId, transformMap1Index);
+        effect->transformMap1Index = fastRandomInteger(transformMapsCount);
+        effect->isTransformMap1Mirrored = false;
+        setTransformMap1FromSettings(effect);
     }
-    if (fastRandomByte() < likelihood) 
+    if (fastRandomByte() < likelihood)
     {
-        int transformMap2Index = fastRandomInteger(transformMapsCount);
-        effect->transformMap2Index = transformMap2Index;
-        (*effect->transformMap2) = transformMaps[transformMap2Index];
-        D_emitIntegerMetric("fxTransformMap2", effect->effectId, transformMap2Index);
+        effect->transformMap2Index = fastRandomInteger(transformMapsCount);
+        effect->isTransformMap1Mirrored = false;
+        setTransformMap2FromSettings(effect);
     }
 }
 
 void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood)
 {
     D_emitMetricString("AreTransformMapsMirrored", "Yes");
-    if (fastRandomByte() < likelihood) 
+    if (fastRandomByte() < likelihood)
     {
-        int transformMap1Index = fastRandomInteger(transformMapsCount);
-        effect->transformMap1Index = transformMap1Index;
-        (*effect->transformMap1) = mirroredTransformMaps[transformMap1Index];
-        D_emitIntegerMetric("fxTransformMap1", effect->effectId, transformMap1Index);
+        effect->transformMap1Index = fastRandomInteger(transformMapsCount);
+        effect->isTransformMap1Mirrored = true;
+        setTransformMap1FromSettings(effect);
     }
     if (fastRandomByte() < likelihood)
     { 
-        int transformMap1Index = fastRandomInteger(transformMapsCount);
-        effect->transformMap2Index = transformMap1Index;
-        (*effect->transformMap2) = mirroredTransformMaps[transformMap1Index];
-        D_emitIntegerMetric("fxTransformMap2", effect->effectId, transformMap1Index);
+        effect->transformMap2Index = fastRandomInteger(transformMapsCount);
+        effect->isTransformMap1Mirrored = true;
+        setTransformMap2FromSettings(effect);
     }
 }
 

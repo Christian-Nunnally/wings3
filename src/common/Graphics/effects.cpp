@@ -1,5 +1,8 @@
+#include "../settings.h"
+#include "../IO/tracing.h"
 #include <stdio.h>
 #include <string.h>
+#include "../Graphics/brightnessControlModes.h"
 #include "../Graphics/effects.h"
 #include "../Graphics/Effects/solidColorFillEffect.h"
 #include "../Graphics/Effects/lightChaseEffect.h"
@@ -12,6 +15,7 @@
 #include "../Graphics/Effects/gradientWaveEffect.h"
 #include "../Graphics/Effects/starFieldEffect.h"
 #include "../Graphics/savedEffectsSettings.h"
+#include "../Graphics/normalTransformMaps.h"
 #include "../Utility/fastRandom.h"
 
 int getRandomEffectNumberFromAllowedEffects();
@@ -19,8 +23,6 @@ void setEffectA(uint8_t effectIndex);
 void setEffectB(uint8_t effectIndex);
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect);
 void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect);
-
-SavedEffectSettings preset1;
 
 Effect effectA1;
 Effect effectB1;
@@ -346,7 +348,8 @@ void pickRandomEffects()
 
 void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 {
-    memcpy(&savedEffectSettings->effectSettings, &effectSettings, sizeof(SavedEffectSettings));
+    copyEffectSettings(&effectSettings, &(savedEffectSettings->effectSettings));
+    //memcpy(&savedEffectSettings->effectSettings, &effectSettings, sizeof(SavedEffectSettings));
     saveSingleEffect(&effectA1, &savedEffectSettings->savedEffectA1);
     saveSingleEffect(&effectB1, &savedEffectSettings->savedEffectB1);
     saveSingleEffect(&effectA2, &savedEffectSettings->savedEffectA2);
@@ -355,15 +358,28 @@ void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 
 void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 {
-    memcpy(&effectSettings, &savedEffectSettings->effectSettings, sizeof(SavedEffectSettings));
+    copyEffectSettings(&(savedEffectSettings->effectSettings), &effectSettings);
+    //memcpy(&effectSettings, &(savedEffectSettings->effectSettings), sizeof(SavedEffectSettings));
     loadSingleEffect(&savedEffectSettings->savedEffectA1, &effectA1);
     loadSingleEffect(&savedEffectSettings->savedEffectB1, &effectB1);
     loadSingleEffect(&savedEffectSettings->savedEffectA2, &effectA2);
     loadSingleEffect(&savedEffectSettings->savedEffectB2, &effectB2);
     setEffectA(effectA1.effectFunctionIncrementUniqueId);
     setEffectB(effectB1.effectFunctionIncrementUniqueId);
-    // Load transform screenMap
-    // load globalBrightnessPointer
+
+    setTransformMap1FromSettings(&effectA1);
+    setTransformMap1FromSettings(&effectB1);
+    setTransformMap1FromSettings(&effectA2);
+    setTransformMap1FromSettings(&effectB2);
+    setTransformMap2FromSettings(&effectA1);
+    setTransformMap2FromSettings(&effectB1);
+    setTransformMap2FromSettings(&effectA2);
+    setTransformMap2FromSettings(&effectB2);
+
+    setBrightnessPointerFromIndexForEffect(&effectA1);
+    setBrightnessPointerFromIndexForEffect(&effectB1);
+    setBrightnessPointerFromIndexForEffect(&effectA2);
+    setBrightnessPointerFromIndexForEffect(&effectB2);
 }
 
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
@@ -383,7 +399,6 @@ void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
     savedEffect->currentPaletteOffsetTarget = fromEffect->currentPaletteOffsetTarget;
 }
 
-
 void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect)
 {
     toEffect->effectFunctionIncrementUniqueId = savedEffect->effectFunctionIncrementUniqueId;
@@ -399,4 +414,98 @@ void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect)
     toEffect->currentPalette = savedEffect->currentPalette;
     toEffect->currentPaletteOffset = savedEffect->currentPaletteOffset;
     toEffect->currentPaletteOffsetTarget = savedEffect->currentPaletteOffsetTarget;
+}
+
+void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEffectSettings)
+{
+    toEffectSettings->LikelihoodEffectsAreRandomizedWhenBeatDetected = fromEffectSettings->LikelihoodEffectsAreRandomizedWhenBeatDetected;
+    toEffectSettings->LikelihoodEffectsAreRandomizedWhenAntiBeatDetected = fromEffectSettings->LikelihoodEffectsAreRandomizedWhenAntiBeatDetected;
+    toEffectSettings->LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero = fromEffectSettings->LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero;
+    toEffectSettings->LikelihoodEffectsAreRandomizedWhenStepIsDetected = fromEffectSettings->LikelihoodEffectsAreRandomizedWhenStepIsDetected;
+
+    toEffectSettings->LikelihoodNothingChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodNothingChangesWhenRandomizingEffect;
+    toEffectSettings->LikelihoodBlendingModeChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodBlendingModeChangesWhenRandomizingEffect;
+    toEffectSettings->LikelihoodSubPaletteChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodSubPaletteChangesWhenRandomizingEffect;
+    toEffectSettings->LikelihoodPaletteChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodPaletteChangesWhenRandomizingEffect;
+    toEffectSettings->LikelihoodTwoPalettesAreUsedWhenPaletteChanges = fromEffectSettings->LikelihoodTwoPalettesAreUsedWhenPaletteChanges;
+
+    toEffectSettings->LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect;
+    toEffectSettings->LikelihoodScreenMapChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodScreenMapChangesWhenRandomizingEffect;
+    toEffectSettings->LikelihoodEffectsAreSwappedWhenRandomizingEffect = fromEffectSettings->LikelihoodEffectsAreSwappedWhenRandomizingEffect;
+    toEffectSettings->LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped = fromEffectSettings->LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped;
+    toEffectSettings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched = fromEffectSettings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched;
+    toEffectSettings->LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect = fromEffectSettings->LikelihoodTransformMapsAreRandomizedWithoutFadeWhenRandomizingEffect;
+    toEffectSettings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized = fromEffectSettings->LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreRandomized;
+
+    toEffectSettings->LikelihoodTimeModesRandomizeWhenRandomizingEffect = fromEffectSettings->LikelihoodTimeModesRandomizeWhenRandomizingEffect;
+    toEffectSettings->LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes = fromEffectSettings->LikelihoodAnyIndividualTimeModeChangesWhenTimeModeRandomizes;
+
+    toEffectSettings->LikelihoodEffectsAreRandomizedWhenRandomizingEffect = fromEffectSettings->LikelihoodEffectsAreRandomizedWhenRandomizingEffect;
+
+    toEffectSettings->LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect = fromEffectSettings->LikelihoodSizeParameterForEffectsChangesWhenWhenRandomizingEffect;
+
+    toEffectSettings->LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect = fromEffectSettings->LikelihoodGlobalBrightnessModesChangeWhenRandomizingEffect;
+    toEffectSettings->LikelihoodIndividualGlobalBrightnessModesChange = fromEffectSettings->LikelihoodIndividualGlobalBrightnessModesChange;
+
+    toEffectSettings->LikelihoodTransitionDirectionChangesWhenRandomizingEffect = fromEffectSettings->LikelihoodTransitionDirectionChangesWhenRandomizingEffect;
+
+    toEffectSettings->LikelihoodMovementBasedBrightnessModeIsPicked = fromEffectSettings->LikelihoodMovementBasedBrightnessModeIsPicked;
+    toEffectSettings->LikelihoodMusicBasedBrightnessModeIsPicked = fromEffectSettings->LikelihoodMusicBasedBrightnessModeIsPicked;
+    toEffectSettings->LikelihoodMovementBasedTimeModeIsPicked = fromEffectSettings->LikelihoodMovementBasedTimeModeIsPicked;
+
+    toEffectSettings->MillisecondToMoveToNextPaletteFrame = fromEffectSettings->MillisecondToMoveToNextPaletteFrame;
+    toEffectSettings->MillisecondsForEffectTransitionsMinimum = fromEffectSettings->MillisecondsForEffectTransitionsMinimum;
+    toEffectSettings->MillisecondsForEffectTransitionsMaximum = fromEffectSettings->MillisecondsForEffectTransitionsMaximum;
+    toEffectSettings->MillisecondsForBlendingModeTransitionsMinimum = fromEffectSettings->MillisecondsForBlendingModeTransitionsMinimum;
+    toEffectSettings->MillisecondsForBlendingModeTransitionsMaximum = fromEffectSettings->MillisecondsForBlendingModeTransitionsMaximum;
+
+    toEffectSettings->GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = fromEffectSettings->GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps;
+    toEffectSettings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = fromEffectSettings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps;
+
+    toEffectSettings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect = fromEffectSettings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect;
+    toEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = fromEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMinimum;
+    toEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = fromEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMaximum;
+
+    for (int i = 0; i < NumberOfAllowedEffectsToPickBetween; i++)
+    {
+        toEffectSettings->AllowedEffects[i] = fromEffectSettings->AllowedEffects[i];
+    }
+    for (int i = 0; i < NumberOfAllowedEffectsToPickBetween; i++)
+    {
+        for (int j = 0; j < NumberOfAllowedEffectsToPickBetween + 1; j++)
+        {
+            toEffectSettings->AllowedPalettes[i][j] = fromEffectSettings->AllowedPalettes[i][j];
+        }
+    }
+
+    toEffectSettings->MinimumEffectSize = fromEffectSettings->MinimumEffectSize;
+    toEffectSettings->MaximumEffectSize = fromEffectSettings->MaximumEffectSize;
+
+    toEffectSettings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized = fromEffectSettings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized;
+}
+
+void setTransformMap1FromSettings(Effect* effect)
+{
+    if (effect->isTransformMap1Mirrored)
+    {
+        (*effect->transformMap1) = mirroredTransformMaps[effect->transformMap1Index];
+    }
+    else 
+    {
+        (*effect->transformMap1) = transformMaps[effect->transformMap1Index];
+    }
+    D_emitIntegerMetric("fxTransformMap1", effect->effectId, effect->transformMap1Index);
+}
+
+void setTransformMap2FromSettings(Effect* effect)
+{
+    if (effect->isTransformMap2Mirrored)
+    {
+        (*effect->transformMap2) = mirroredTransformMaps[effect->transformMap2Index];
+    }
+    else 
+    {
+        (*effect->transformMap2) = transformMaps[effect->transformMap2Index];
+    }
+    D_emitIntegerMetric("fxTransformMap2", effect->effectId, effect->transformMap2Index);
 }

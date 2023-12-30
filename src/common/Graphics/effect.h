@@ -13,6 +13,8 @@ typedef struct
     void (*effectFunctionBonusTrigger)() {};
     int effectFunctionIncrementUniqueId;
 
+    bool isTransformMap1Mirrored;
+    bool isTransformMap2Mirrored;
     uint8_t transformMap1Index;
     uint8_t transformMap2Index;
     uint8_t const *transformMap1[TOTAL_LEDS];

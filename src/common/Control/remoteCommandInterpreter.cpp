@@ -1,9 +1,15 @@
 #include "remoteCommandInterpreter.h"
 #include "../IO/leds.h"
 #include "../Graphics/effectController.h"
+#include "../Graphics/savedEffectsSettings.h"
+#include "../Graphics/effects.h"
 #include "../Peripherals/microphone.h"
 
 #define BRIGHTNESS_CHANGE_INCREMENT 10
+
+SavedEffectSettings preset1;
+SavedEffectSettings preset2;
+SavedEffectSettings preset3;
 
 void interpretRemoteCommand(uint8_t operationCode, int16_t value, uint8_t flags)
 {
@@ -73,6 +79,40 @@ void interpretRemoteCommand(uint8_t operationCode, int16_t value, uint8_t flags)
             case 1:
                 for (int i = 0; i < 100; i++) randomizeEffectsNaturally();
                 break;    
+            default:
+                break;
+        }
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_SET_PRESET)
+    {
+        switch (value)
+        {
+            case 1:
+                saveCurrentEffectsState(&preset1);
+                break;
+            case 2:
+                saveCurrentEffectsState(&preset2);
+                break;
+            case 3:
+                saveCurrentEffectsState(&preset3);
+                break;
+            default:
+                break;
+        }
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_SELECT_PRESET)
+    {
+        switch (value)
+        {
+            case 1:
+                loadCurrentEffectsState(&preset1);
+                break;
+            case 2:
+                loadCurrentEffectsState(&preset2);
+                break;
+            case 3:
+                loadCurrentEffectsState(&preset3);
+                break;
             default:
                 break;
         }
