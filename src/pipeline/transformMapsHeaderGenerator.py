@@ -163,13 +163,13 @@ def computeMapsAcrossAllCenters(layout, totalWidth, totalHeight, centers, onlyPo
 def mirrorTransformMap(transformMapToMirror):
     mirroredTransformMap = []
     for _ in range(2):
-        for i in range(128):
+        for i in range(TotalLedCount // 2):
             mirroredTransformMap.append(transformMapToMirror[i])
     return mirroredTransformMap
 
 def computeMaps(layout, totalWidth, totalHeight, centerX, centerY):
-    ledsWide = 26.0 * 2 - 1
-    ledsTall = 13.0 * 2 - 1
+    ledsWide = PhysicalLedIndexMappingWidth
+    ledsTall = PhysicalLedIndexMappingHeight
     mapRange = 255.0
 
     totalLeds = 0

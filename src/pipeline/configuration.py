@@ -31,14 +31,14 @@ PhysicalLedIndexMapping = [
     [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 42, -1, 43, -1,179, -1,178, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
-TotalLedCount = 272
-
 # PhysicalLedIndexMapping = [
-#     [  1, 2, ],
-#     [  3, 4, ],
+#     [  0, 1, ],
+#     [  2, 3, ],
 # ]
 
-# TotalLedCount = 4
+TotalLedCount = 0
+for y in range(len(PhysicalLedIndexMapping)):
+    TotalLedCount += len(PhysicalLedIndexMapping[y]) - PhysicalLedIndexMapping[y].count(-1)
 
 PhysicalLedIndexMappingWidth = len(PhysicalLedIndexMapping[0])
 PhysicalLedIndexMappingHeight = len(PhysicalLedIndexMapping)
