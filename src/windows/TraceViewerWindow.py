@@ -54,6 +54,7 @@ class TraceViewerWindow(SimpleWindow):
 
     def runCommand(self, arguments):
         if arguments[0] == STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC:
+            if not len(arguments) == 3: return
             self.update_single_status(arguments[1], f"{arguments[1]}: {arguments[2]}")
             if self.graphWindow is not None and arguments[1] == self.graphedMetricName:
                 try:

@@ -3,7 +3,7 @@ from src.pipeline.configuration import PhysicalLedIndexMappingWidth, PhysicalLed
 from src.windows.SimpleWindow import SimpleWindow
 
 colors = {}
-square_size = 350
+square_size = 30
 
 #STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC = 0
 STANDARD_OUTPUT_OPERATION_CODE_SET_LED = 1
@@ -57,8 +57,9 @@ class LedGridWindow(SimpleWindow):
         try:
             commandOperationCode = int(arguments[0])
             if commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SET_LED:
-                if (len(arguments) == 5):
-                    self.setColor(int(arguments[1]), int(arguments[2]), int(arguments[3]), int(arguments[4]))
+                if len(arguments) == 3:
+                    color = int(arguments[2])
+                    self.setColor(int(arguments[1]), (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
             elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS:
                 self.updateColors()
             elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS:

@@ -5,6 +5,8 @@
 #include <string>
 #include "../IO/standardOutputCommandOperationCodes.h"
 
+#define METRIC_NAME_ID_X 0
+
 #ifdef ENABLE_TRACING
 #define D_emitMetricString(...)    emitMetricString(__VA_ARGS__)
 #define D_emitIntegerMetric(...)   emitIntegerMetric(__VA_ARGS__)

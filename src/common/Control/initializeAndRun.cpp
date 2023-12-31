@@ -14,6 +14,8 @@
 #include "../Peripherals/movementDetection.h"
 #include "remoteCommandInterpreter.h"
 
+#include <time.h>
+
 void initialize()
 {
     D_serialBegin();
@@ -26,11 +28,19 @@ void initialize()
 
 void run()
 {
+    clock_t start, end;
+    float cpu_time_used = 0;
+
+    start = clock(); // Record the start time
     while(true)
     {
         setTime(getSystemTime());
         incrementEffectFrame();
+        start = clock(); // Record the start time
         renderLeds();
+        end = clock(); // Record the end time
+        cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC * 1000;
+        D_emitFloatMetric("renderTime", cpu_time_used);
         processAudioStream();
         checkForMovement();
         readAnalogValues();

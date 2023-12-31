@@ -5,23 +5,33 @@ from subprocess import Popen, PIPE, STDOUT
 import psutil
 import os
 
-def parseLine(line):
+def parseLine(program):
     try:
+        line = program.stdout.readline()
+        if not line: return []
         preLine = str(line)[2:-5].strip()
         arguments = preLine.split(",")
         int(arguments[0])
         return arguments
     except Exception as e:
         print(f"Error parsing program output: {line}")
+        maxErrorLinesToPrint = 100
+        linesPrinted = 0
+        while linesPrinted < maxErrorLinesToPrint:
+            line = program.stdout.readline()
+            if not line: return []
+            print(line)
+            linesPrinted += 1
         return []
 
 def main():
+    processPath = 'bin\\wings.exe'
     if os.system("make") != 0:
         exit()
     ledGridWindow = LedGridWindow()
     configurationStatusWindow = TraceViewerWindow()
     remoteControlWindow = RemoteControlWindow()
-    program = Popen('bin\\wings.exe', stdout = PIPE, stderr = STDOUT, stdin = PIPE, shell = True)
+    program = Popen(processPath, stdout = PIPE, stderr = STDOUT, stdin = PIPE, shell = True)
 
     while True:
         ledGridWindow.update()
@@ -33,20 +43,22 @@ def main():
         remoteControlWindow.update()
         if remoteControlWindow.isClosed: break
         
-        line = program.stdout.readline()
-        if not line: break
-        
-        arguments = parseLine(line)
+        arguments = parseLine(program)
         if len(arguments) > 0:
             ledGridWindow.runCommand(arguments)
             configurationStatusWindow.runCommand(arguments)
+        else:
+            break
 
-    parent = psutil.Process(program.pid)
-    for child in parent.children(recursive=True):
-        child.kill()
-        child.wait()
-    program.kill()
-    program.wait()
+    try:
+        parent = psutil.Process(program.pid)
+        for child in parent.children(recursive=True):
+            child.kill()
+            child.wait()
+        program.kill()
+        program.wait()
+    except psutil.NoSuchProcess:
+        print(f"Simulator Error: {processPath} died before the simulator could clean it up gracefully.")
 
     try:
         ledGridWindow.onClosing()

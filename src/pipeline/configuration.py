@@ -31,6 +31,13 @@ PhysicalLedIndexMapping = [
     [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 42, -1, 43, -1,179, -1,178, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
+# PhysicalLedIndexMapping = []
+# for i in range(11):
+#     PhysicalLedIndexMapping.append([])
+#     for j in range(11):
+#         PhysicalLedIndexMapping[i].append(i * 40 + j)
+
+
 # PhysicalLedIndexMapping = [
 #     [  0, 1, ],
 #     [  2, 3, ],
