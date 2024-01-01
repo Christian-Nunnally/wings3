@@ -8,7 +8,7 @@ CHANNELS = 1
 SAMPLES_PER_SECOND = 8000
 FRAMES_PER_BUFFER = 256
 
-useDefaultInputDevice = False
+useDefaultInputDevice = True
 useDefaultInputDeviceIndex = 4
 
 def calculateRms(data):
