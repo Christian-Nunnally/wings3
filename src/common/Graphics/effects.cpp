@@ -388,7 +388,7 @@ void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
     setBrightnessPointerFromIndexForEffect(&effectA2);
     setBrightnessPointerFromIndexForEffect(&effectB2);
 
-    //setCurrentScreenMapFromSettings();
+    setCurrentScreenMapFromSettings();
 }
 
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
@@ -476,6 +476,7 @@ void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEf
     toEffectSettings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect = fromEffectSettings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect;
     toEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = fromEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMinimum;
     toEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = fromEffectSettings->AudioLevelThresholdToShowMoreIntenseEffectMaximum;
+    toEffectSettings->CurrentScreenMapIndex = fromEffectSettings->CurrentScreenMapIndex;
 
     for (int i = 0; i < NumberOfAllowedEffectsToPickBetween; i++)
     {

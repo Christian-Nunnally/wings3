@@ -279,9 +279,8 @@ void randomizeEffectsNaturally()
 
 void pickRandomScreenMap()
 {
-    //effectSettings.CurrentScreenMapIndex = fastRandomInteger(getScreenMapCount());
-    effectSettings.CurrentScreenMapIndex = fastRandomInteger(0);
-    //setCurrentScreenMapFromSettings();
+    effectSettings.CurrentScreenMapIndex = fastRandomInteger(getScreenMapCount());
+    setCurrentScreenMapFromSettings();
     D_emitIntegerMetric(METRIC_NAME_ID_CURRENT_SCREEN_MAP, effectSettings.CurrentScreenMapIndex);
 }
 
