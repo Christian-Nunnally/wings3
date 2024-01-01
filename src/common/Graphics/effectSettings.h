@@ -66,6 +66,12 @@ typedef struct
   uint8_t MaximumEffectSize;
 
   uint8_t LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized;
+
+  uint8_t CurrentScreenMapIndex;
+
+  bool PrimaryEffectToggle = false;
+  bool RandomizeEffectsAutomaticallyOverTime = false;
+  uint16_t MillisecondsBetweenTimeBasedAutomaticEffectRandomization = 1000;
 }
 EffectSettings;
 

@@ -44,6 +44,10 @@ void setupNormalMood(EffectSettings *settings)
     settings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized = 200;
     settings->MinimumEffectSize = 3;
     settings->MaximumEffectSize = 200;
+    settings->CurrentScreenMapIndex = 0;
+    settings->PrimaryEffectToggle = false;
+    settings->RandomizeEffectsAutomaticallyOverTime = true;
+    settings->MillisecondsBetweenTimeBasedAutomaticEffectRandomization = 1000;
 
     settings->AllowedEffects[0] = METEOR_RAIN_EFFECT_INDEX;
     settings->AllowedEffects[1] = METEOR_RAIN_EFFECT_2_INDEX;

@@ -38,11 +38,14 @@ typedef struct
     int currentPaletteOffsetTarget; 
 
     uint8_t effectId;
+
+    float thresholdToShowMoreIntenseEffect;
 }
 Effect;
 
 void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int), uint8_t effectId);
 int getNormalTransformMapCount();
 int getMirroredTransformMapCount();
+
 
 #endif

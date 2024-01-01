@@ -3,7 +3,6 @@
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Graphics/effectController.h"
-#include "../Graphics/screenMaps.h"
 #include "../Graphics/effectSettings.h"
 #include "../Graphics/colorMixing.h"
 #include "../Graphics/palettes.h"
@@ -21,7 +20,7 @@
 #include "../Observers/movementDetectedObserver.h"
 #include "../Utility/fastRandom.h"
 
-inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index);
+inline Color getEffectWithAudioDrivenIntensity(Effect *effect, int index);
 void handleStepDetected();
 void handleMovementDetected();
 void incrementTime();
@@ -56,9 +55,6 @@ Effect currentSecondaryEffectB;
 EffectSettings effectSettingsStationary;
 EffectSettings effectSettingsMoving;
 
-// TODO: Save this to preset:
-uint8_t *currentScreenMap[TOTAL_LEDS];
-
 Color ledColorMap[TOTAL_LEDS];
 
 // Transition variables.
@@ -77,15 +73,8 @@ int lastPeakDetectorValue;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
 int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
 
-// move to effect settings
-bool primaryEffectToggle;
-float effectA1AudioLevelThresholdToShowMoreIntenseEffect = .98;
-float effectB1AudioLevelThresholdToShowMoreIntenseEffect = .6;
-bool isRandomizingEffectBasedOnElapsedTimeEnabled = true;
-
 unsigned long lastTimeEffectChangedDueToTimer;
 unsigned long lastTimeFrameIncremented;
-unsigned int millisecondsBetweenEffectChangeTimer = 1000;
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -112,15 +101,15 @@ Color getLedColorForFrame(int ledIndex)
     uint8_t currentScreen = (*currentScreenMap)[ledIndex];
     currentScreen = 1;
     if (currentScreen == 4) return {0, 0, 0};
-    else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
+    else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, ledIndex);
     
-    Color color1 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
-    Color color2 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
+    Color color1 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, ledIndex);
+    Color color2 = getEffectWithAudioDrivenIntensity(&currentPrimaryEffectB, ledIndex);
     Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2, percentOfEffectBToShow8Bit);
     if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
     {
-        Color color3 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
-        Color color4 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectB, effectB1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
+        Color color3 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectA, ledIndex);
+        Color color4 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectB, ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, percentOfSecondaryEffectToShow);
         ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
@@ -129,15 +118,19 @@ Color getLedColorForFrame(int ledIndex)
     return ledColorMap[ledIndex];
 }
 
-inline Color getEffectWithAudioDrivenIntensity(Effect *effect, float threshold, int index)
+inline Color getEffectWithAudioDrivenIntensity(Effect *effect, int index)
 {
-    return currentAudioIntensityLevel < threshold ? effect->effectFunction(index) : effect->effectFunctionHighlight(index);
+    return currentAudioIntensityLevel < effect->thresholdToShowMoreIntenseEffect ? effect->effectFunction(index) : effect->effectFunctionHighlight(index);
 }
 
+//#include <time.h>
+//clock_t start;
 void incrementEffectFrame()
 {
     incrementBrightnessModeLevels();
+    //start = clock(); // Record the start time
     incrementTime();
+    //D_emitFloatMetric(METRIC_NAME_ID_RENDER_TIME, ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000);
     incrementTransition();
     incrementMixingModeBlend(frameTimeDelta);
     incrementTransitionFromSecondaryToPrimaryEffect();
@@ -161,7 +154,6 @@ void setupEffects()
     setupTimeModes();
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
-    *currentScreenMap = normalScreenMap;
     effectSettingsStationary = effectSettings;
     effectSettingsMoving = effectSettings;
     setupNormalMood(&effectSettings);
@@ -250,8 +242,8 @@ void detectBeat()
 
 void randomizeEffectsBasedOnElapsedTime()
 {
-    if (!isRandomizingEffectBasedOnElapsedTimeEnabled) return;
-    if (currentTime - lastTimeEffectChangedDueToTimer > millisecondsBetweenEffectChangeTimer)
+    if (!effectSettings.RandomizeEffectsAutomaticallyOverTime) return;
+    if (currentTime - lastTimeEffectChangedDueToTimer > effectSettings.MillisecondsBetweenTimeBasedAutomaticEffectRandomization)
     {
         lastTimeEffectChangedDueToTimer = currentTime;
         randomizeEffectsNaturally();
@@ -287,9 +279,9 @@ void randomizeEffectsNaturally()
 
 void pickRandomScreenMap()
 {
-    int screenMapIndex = fastRandomInteger(screenMapsCount);
-    *currentScreenMap = screenMaps[screenMapIndex];
-    D_emitIntegerMetric(METRIC_NAME_ID_CURRENT_SCREEN_MAP, screenMapIndex);
+    effectSettings.CurrentScreenMapIndex = fastRandomInteger(getScreenMapCount());
+    setCurrentScreenMapFromSettings();
+    D_emitIntegerMetric(METRIC_NAME_ID_CURRENT_SCREEN_MAP, effectSettings.CurrentScreenMapIndex);
 }
 
 void pickRandomSubPalette()
@@ -405,10 +397,10 @@ void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood)
 
 void swapEffects()
 {
-    primaryEffectToggle = !primaryEffectToggle;
-    if (primaryEffectToggle)
+    effectSettings.PrimaryEffectToggle = !effectSettings.PrimaryEffectToggle;
+    D_emitMetricString(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, effectSettings.PrimaryEffectToggle ? "true" : "false");
+    if (effectSettings.PrimaryEffectToggle)
     {
-        D_emitMetricString(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, "True");
         syncEffects(&effectA2, &effectA1);
         syncEffects(&effectB2, &effectB1);
         currentPrimaryEffectA = effectA1;
@@ -418,7 +410,6 @@ void swapEffects()
     }
     else 
     {
-        D_emitMetricString(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, "False");
         syncEffects(&effectA1, &effectA2);
         syncEffects(&effectB1, &effectB2);
         currentPrimaryEffectA = effectA2;
@@ -429,7 +420,7 @@ void swapEffects()
 
     if (fastRandomByte() < effectSettings.LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped)
     {
-        if (primaryEffectToggle)
+        if (effectSettings.PrimaryEffectToggle)
         {
             pickRandomTransformMaps(&effectA1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
             pickRandomTransformMaps(&effectB1, effectSettings.LikelihoodAnyIndividualTransformMapChangesWhenTransformMapsAreSwitched);
@@ -483,18 +474,20 @@ void switchTransitionDirection()
 
 void pickRandomAudioLevelThresholdForMoreIntenseEffect()
 {
-    effectA1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
-    effectB1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
-    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_A1, effectA1AudioLevelThresholdToShowMoreIntenseEffect);
-    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_B1, effectB1AudioLevelThresholdToShowMoreIntenseEffect);
+    effectA1.thresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
+    effectA2.thresholdToShowMoreIntenseEffect = effectA1.thresholdToShowMoreIntenseEffect;
+    effectB1.thresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
+    effectB2.thresholdToShowMoreIntenseEffect = effectB1.thresholdToShowMoreIntenseEffect;
+    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_A1, effectA1.thresholdToShowMoreIntenseEffect);
+    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_B1, effectB1.thresholdToShowMoreIntenseEffect);
 }
 
 void enableRandomEffectChangeBasedOnElapsedTime()
 {
-    isRandomizingEffectBasedOnElapsedTimeEnabled = true;
+    effectSettings.RandomizeEffectsAutomaticallyOverTime = true;
 }
 
 void disableRandomEffectChangeBasedOnElapsedTime()
 {
-    isRandomizingEffectBasedOnElapsedTimeEnabled = false;
+    effectSettings.RandomizeEffectsAutomaticallyOverTime = false;
 }

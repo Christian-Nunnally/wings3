@@ -28,19 +28,16 @@ void initialize()
 
 void run()
 {
-    clock_t start, end;
-    float cpu_time_used = 0;
+    //clock_t start;
 
-    start = clock(); // Record the start time
+    //start = clock(); // Record the start time
     while(true)
     {
         setTime(getSystemTime());
         incrementEffectFrame();
-        start = clock(); // Record the start time
         renderLeds();
-        end = clock(); // Record the end time
-        cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC * 1000;
-        D_emitFloatMetric(METRIC_NAME_ID_RENDER_TIME, cpu_time_used);
+        // start = clock(); // Record the start time
+        // D_emitFloatMetric(METRIC_NAME_ID_RENDER_TIME, ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000);
         processAudioStream();
         checkForMovement();
         readAnalogValues();

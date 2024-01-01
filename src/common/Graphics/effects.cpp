@@ -16,7 +16,8 @@
 #include "../Graphics/Effects/starFieldEffect.h"
 #include "../Graphics/savedEffectsSettings.h"
 #include "../Graphics/normalTransformMaps.h"
-#include "../Graphics/mirroredTransformMaps.h"
+#include "../Graphics/mirroredTransformMaps.h"  
+#include "../Graphics/screenMaps.h"
 #include "../Utility/fastRandom.h"
 
 int getRandomEffectNumberFromAllowedEffects();
@@ -33,6 +34,8 @@ Effect effectB2;
 EffectSettings effectSettings;
 
 float currentAudioIntensityLevel;
+
+uint8_t *currentScreenMap[TOTAL_LEDS];
 
 void setAudioIntensityLevel(float level)
 {
@@ -379,6 +382,8 @@ void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
     setBrightnessPointerFromIndexForEffect(&effectB1);
     setBrightnessPointerFromIndexForEffect(&effectA2);
     setBrightnessPointerFromIndexForEffect(&effectB2);
+
+    setCurrentScreenMapFromSettings();
 }
 
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
@@ -396,6 +401,7 @@ void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
     savedEffect->currentPalette = fromEffect->currentPalette;
     savedEffect->currentPaletteOffset = fromEffect->currentPaletteOffset;
     savedEffect->currentPaletteOffsetTarget = fromEffect->currentPaletteOffsetTarget;
+    savedEffect->thresholdToShowMoreIntenseEffect = fromEffect->thresholdToShowMoreIntenseEffect;
 }
 
 void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect)
@@ -413,6 +419,7 @@ void loadSingleEffect(SavedEffect* savedEffect, Effect* toEffect)
     toEffect->currentPalette = savedEffect->currentPalette;
     toEffect->currentPaletteOffset = savedEffect->currentPaletteOffset;
     toEffect->currentPaletteOffsetTarget = savedEffect->currentPaletteOffsetTarget;
+    toEffect->thresholdToShowMoreIntenseEffect = savedEffect->thresholdToShowMoreIntenseEffect;
 }
 
 void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEffectSettings)
@@ -481,6 +488,11 @@ void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEf
     toEffectSettings->MaximumEffectSize = fromEffectSettings->MaximumEffectSize;
 
     toEffectSettings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized = fromEffectSettings->LikelihoodWingsAreMirroredWhenTransformMapsAreRandomized;
+
+    toEffectSettings->CurrentScreenMapIndex = fromEffectSettings->CurrentScreenMapIndex;
+    toEffectSettings->PrimaryEffectToggle = fromEffectSettings->PrimaryEffectToggle;
+    toEffectSettings->RandomizeEffectsAutomaticallyOverTime = fromEffectSettings->RandomizeEffectsAutomaticallyOverTime;
+    toEffectSettings->MillisecondsBetweenTimeBasedAutomaticEffectRandomization = fromEffectSettings->MillisecondsBetweenTimeBasedAutomaticEffectRandomization;
 }
 
 void setTransformMap1FromSettings(Effect* effect)
@@ -507,4 +519,14 @@ void setTransformMap2FromSettings(Effect* effect)
         (*effect->transformMap2) = transformMaps[effect->transformMap2Index];
     }
     D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_2, effect->effectId, effect->transformMap2Index);
+}
+
+void setCurrentScreenMapFromSettings()
+{
+    *currentScreenMap = screenMaps[effectSettings.CurrentScreenMapIndex];
+}
+
+int getScreenMapCount()
+{
+    return screenMapsCount;
 }
