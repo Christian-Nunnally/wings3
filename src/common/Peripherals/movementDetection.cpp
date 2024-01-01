@@ -259,6 +259,16 @@ int getCurrentRollPosition()
     return currentRoll;
 }
 
+int getCurrentYAngle()
+{
+    return yAccelerometerAngle;
+}
+
+int getCurrentXAngle()
+{
+    return xAccelerometerAngle;
+}
+
 void calibrateImu()
 {
     D_serialWriteNewLine("Calibrating IMU.");

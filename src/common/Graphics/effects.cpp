@@ -77,8 +77,6 @@ void incrementEffects()
     if (effectA1.effectFunctionIncrementUniqueId != effectB1.effectFunctionIncrementUniqueId) effectB1.effectFunctionIncrement();
 }
 
-/// ---------------------------------------------------------------------------------------------------------------
-
 void setEffectAToMeteorRainEffect()
 {
     effectA1.effectFunction = [](int index) { return meteorRainEffect(index, &effectA1, .12); };
@@ -191,8 +189,6 @@ void setEffectAToLightChaseEffect()
     effectA2.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
 }
 
-/// ---------------------------------------------------------------------------------------------------------------
-
 void setEffectBToMeteorRainEffect()
 {
     effectB1.effectFunction = [](int index) { return meteorRainEffect(index, &effectB1, .12); };
@@ -304,8 +300,6 @@ void setEffectBToLightChaseEffect()
     effectB1.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
     effectB2.effectFunctionIncrementUniqueId = LIGHT_CHASE_EFFECT_INDEX;
 }
-
-/// ---------------------------------------------------------------------------------------------------------------
 
 void pickRandomEffectA()
 {

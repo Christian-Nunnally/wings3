@@ -14,8 +14,6 @@
 #include "../Utility/time.h"
 #include "../Utility/fastmath.h"
 
-// TODO: Move code for reading pot.
-
 #define AUDIO_SAMPLE_BATCH_SIZE     128
 #define MICROPHONE_SAMPLE_FREQUENCY 8000
 #define MICROPHONE_CHANNELS         1
@@ -51,8 +49,7 @@ bool isMusicDetectedInternal = false;
 int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
 unsigned long lastRmsDecayTime;
 
-// EMA
-double ema = 10.0;
+double exponentialMovingAverage = 10.0;
 
 bool micDataReady = false;
 void onMicDataReady(void) {micDataReady = true;}
@@ -72,7 +69,7 @@ bool setupMicrophone()
 }
 
 void updateExponentialMovingAverage(double newValue) {
-    ema = EMA_FILTER_ALPHA * newValue + (1 - EMA_FILTER_ALPHA) * ema;
+    exponentialMovingAverage = EMA_FILTER_ALPHA * newValue + (1 - EMA_FILTER_ALPHA) * exponentialMovingAverage;
 }
 
 double getAudioIntensityRatio()
@@ -131,14 +128,10 @@ inline void applyFiltering()
     D_emitIntegerMetric(METRIC_NAME_ID_ROOT_MEAN_SQUARE, currentRootMeanSquare);
     #endif
     updateExponentialMovingAverage(currentRootMeanSquare);
-    peakDetector.add(ema);
-    D_emitFloatMetric(METRIC_NAME_ID_EXPONENTIAL_MOVING_AVERAGE, ema);
+    peakDetector.add(exponentialMovingAverage);
+    D_emitFloatMetric(METRIC_NAME_ID_EXPONENTIAL_MOVING_AVERAGE, exponentialMovingAverage);
     currentPeakDetectorValue = peakDetector.getPeak();
     currentFilteredAudioLevel = peakDetector.getFilt();
-}
-
-double exponentialMovingAverage(double new_data, double previous_ema, double alpha) {
-    return alpha * new_data + (1 - alpha) * previous_ema;
 }
 
 inline void setMaxRootMeanSquare()

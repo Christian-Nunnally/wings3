@@ -42,6 +42,7 @@
 #define METRIC_NAME_ID_CURRENT_SCREEN_MAP 33 // currentScreenMap
 #define METRIC_NAME_ID_EFFECT_CURRENT_PALETTE_OFFSET_TARGET 34 // fxCurrentPaletteOffsetTarget
 #define METRIC_NAME_ID_EFFECT_PALETTE 35 // fxPalette
+#define METRIC_NAME_ID_PROFILE_TIME 36 // profileTime
 
 #ifdef ENABLE_TRACING
 #define D_emitMetricString(...)    emitMetricString(__VA_ARGS__)

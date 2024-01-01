@@ -151,8 +151,6 @@ inline void refresh()
 {
   #ifdef RP2040
   ledDisplay.refresh();
-  #else
-  // This only really applies to hardware and should "just work". Does not need to be tested.
   #endif
 }
 

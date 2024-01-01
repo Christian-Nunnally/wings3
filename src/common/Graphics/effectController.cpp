@@ -54,27 +54,24 @@ Effect currentSecondaryEffectA;
 Effect currentSecondaryEffectB;
 EffectSettings effectSettingsStationary;
 EffectSettings effectSettingsMoving;
-
 Color ledColorMap[TOTAL_LEDS];
 
-// Transition variables.
+unsigned long currentTime;
 uint16_t percentOfEffectBToShow;
 uint8_t percentOfEffectBToShow8Bit;
 uint8_t percentOfSecondaryEffectToShow;
 uint16_t currentTransitionIncrement;
+int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
+int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
 bool transitionDirection;
+int lastPeakDetectorValue;
+unsigned long lastTimeEffectChangedDueToTimer;
+unsigned long lastTimeFrameIncremented;
 
 int effectsRandomizedCount = 0;
 int beatCount = 0;
 int frameNumber = 0;
 int frameTimeDelta;
-unsigned long currentTime;
-int lastPeakDetectorValue;
-int millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
-int millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
-
-unsigned long lastTimeEffectChangedDueToTimer;
-unsigned long lastTimeFrameIncremented;
 
 Color getLedColorForFrame(int ledIndex)
 {
@@ -122,14 +119,10 @@ inline Color getEffectWithAudioDrivenIntensity(Effect *effect, int index)
     return currentAudioIntensityLevel < effect->thresholdToShowMoreIntenseEffect ? effect->effectFunction(index) : effect->effectFunctionHighlight(index);
 }
 
-//#include <time.h>
-//clock_t start;
 void incrementEffectFrame()
 {
     incrementBrightnessModeLevels();
-    //start = clock(); // Record the start time
     incrementTime();
-    //D_emitFloatMetric(METRIC_NAME_ID_RENDER_TIME, ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000);
     incrementTransition();
     incrementMixingModeBlend(frameTimeDelta);
     incrementTransitionFromSecondaryToPrimaryEffect();
@@ -166,7 +159,6 @@ void handleStepDetected()
 
 void handleMovementDetected()
 {
-    // Probably doing this in an event is a bad idea.
     MovementType movementType = getCurrentMovementType();
     if (movementType == Stationary) effectSettings = effectSettingsStationary;
     else effectSettings = effectSettingsMoving;

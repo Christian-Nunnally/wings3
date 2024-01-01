@@ -6,16 +6,16 @@
 
 #define MAX_ANALOG_INPUT_SUBSCRIBERS 10
 
-#define BRIGHTNESS_ANALOG_INPUT_PIN (uint8_t)27U // This is dial 1
-#define MODE_ANALOG_INPUT_PIN (uint8_t)28U // This is dial 2
+#define BRIGHTNESS_ANALOG_INPUT_PIN (uint8_t)27U
+#define MODE_ANALOG_INPUT_PIN (uint8_t)28U
 #define ANALOG_INPUT_REFRESH_FREQUENCY 500
 #define ANALOG_INPUT_CHANGE_THRESHOLD_TO_TRIGGER_EVENT 4
 
 void (*brightnessAnalogInputChangedEventSubscribers[MAX_ANALOG_INPUT_SUBSCRIBERS])();
 uint8_t currentBrightnessAnalogInputChangedEventSubscribersCount = 0;
 
-int lastBrightnessAnalogValue; // Global brightness setting
-int lastModeAnalogValue; // global mode selection
+int lastBrightnessAnalogValue;
+int lastModeAnalogValue;
 
 int currentBrightnessAnalogValue;
 int currentSpeedAnalogValue;

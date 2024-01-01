@@ -76,7 +76,7 @@ Color fireEffect(int pixelIndex, Effect *effect, int sparks)
       if (southernLed1 != TOTAL_LEDS && fastRandomByte() < 100)
       {
         uint16_t southernLed2 = southernLedMap[southernLed1];
-        if (southernLed2 != TOTAL_LEDS) (*heatBPointer)[pixelIndex] = (((*heatAPointer)[southernLed1] / 2) + ((*heatAPointer)[southernLed2] / 2));// + ((*heatAPointer)[southernLed2] / 3));
+        if (southernLed2 != TOTAL_LEDS) (*heatBPointer)[pixelIndex] = (((*heatAPointer)[southernLed1] / 2) + ((*heatAPointer)[southernLed2] / 2));
         else (*heatBPointer)[pixelIndex] = (*heatAPointer)[southernLed1];
       }
       else (*heatBPointer)[pixelIndex] = (*heatAPointer)[pixelIndex];

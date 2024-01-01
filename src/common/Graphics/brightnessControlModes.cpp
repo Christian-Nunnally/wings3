@@ -10,13 +10,10 @@
 #define BRIGHTNESS_CONTROL_MODE_MUSIC_BASED 1
 #define BRIGHTNESS_CONTROL_MODE_MOVEMENT_BASED 2
 
-// Brightness Mode variables.
 const uint8_t NumberOfNormalGlobalBrightnessChangeModes = 3;
 const uint8_t NumberOfMovementBasedGlobalBrightnessChangeModes = 3;
 const uint8_t NumberOfMusicBasedGlobalBrightnessChangeModes = 3;
 uint8_t brightnessModeMaxBrightness = UINT8_MAX;
-
-// TODO: remove these or anything too dim.
 uint8_t brightnessModeAlmostMaxBrightness = 200;
 uint8_t brightnessModeHalfBrightness = UINT8_MAX / 2;
 uint8_t brightnessModeAudioLevelBasedBrightness;
