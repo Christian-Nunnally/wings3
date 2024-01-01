@@ -17,6 +17,7 @@
 #define FIREWORKS_EFFECT_INDEX 9
 #define LIGHT_CHASE_EFFECT_INDEX 10
 
+void initializeEffects();
 void setAudioIntensityLevel(float level);
 void pickRandomEffects();
 void syncEffects(Effect *syncFrom, Effect *syncTo);

@@ -99,7 +99,6 @@ Color getLedColorForFrame(int ledIndex)
         return ledColorMap[ledIndex];
     }
     uint8_t currentScreen = (*currentScreenMap)[ledIndex];
-    currentScreen = 1;
     if (currentScreen == 4) return {0, 0, 0};
     else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, ledIndex);
     
@@ -145,6 +144,7 @@ void incrementEffectFrame()
 
 void setupEffects()
 {
+    initializeEffects();
     initializeEffect(&effectA1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA1); }, 0);
     initializeEffect(&effectB1, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectB1); }, 1);
     initializeEffect(&effectA2, &frameTimeDelta, [](int index) { return gradientWaveEffectWithMaxGlobalBrightness(index, &effectA2); }, 2);
@@ -279,8 +279,9 @@ void randomizeEffectsNaturally()
 
 void pickRandomScreenMap()
 {
-    effectSettings.CurrentScreenMapIndex = fastRandomInteger(getScreenMapCount());
-    setCurrentScreenMapFromSettings();
+    //effectSettings.CurrentScreenMapIndex = fastRandomInteger(getScreenMapCount());
+    effectSettings.CurrentScreenMapIndex = fastRandomInteger(0);
+    //setCurrentScreenMapFromSettings();
     D_emitIntegerMetric(METRIC_NAME_ID_CURRENT_SCREEN_MAP, effectSettings.CurrentScreenMapIndex);
 }
 

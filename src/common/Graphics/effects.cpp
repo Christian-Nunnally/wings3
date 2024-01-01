@@ -37,6 +37,11 @@ float currentAudioIntensityLevel;
 
 uint8_t *currentScreenMap[TOTAL_LEDS];
 
+void initializeEffects()
+{
+    *currentScreenMap = normalScreenMap;
+}
+
 void setAudioIntensityLevel(float level)
 {
     currentAudioIntensityLevel = level;
@@ -383,7 +388,7 @@ void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
     setBrightnessPointerFromIndexForEffect(&effectA2);
     setBrightnessPointerFromIndexForEffect(&effectB2);
 
-    setCurrentScreenMapFromSettings();
+    //setCurrentScreenMapFromSettings();
 }
 
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
