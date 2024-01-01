@@ -34,6 +34,7 @@
 LSM6DSOXSensor imu(&Wire, (uint8_t)LSM6DSOX_I2C_ADD_L);
 #endif
 
+bool isMovementDetectionEnabled = false;
 volatile int mems_event;
 uint8_t lastMovementTypeStatus;
 MovementType currentMovementType = Stationary;
@@ -424,4 +425,22 @@ void updateMovementTypeFromMLCStatus(uint8_t status)
     else if (status == 12) currentMovementType = Driving;
     else currentMovementType = UnknownMovement;
     notifyMovementDetectedEvent();  
+}
+
+void enableMovementTypeDetection()
+{
+    isMovementDetectionEnabled = true;
+}
+
+void disableMovementTypeDetection()
+{
+    isMovementDetectionEnabled = false;
+}
+
+void enableStepDetection()
+{
+}
+
+void disableStepDetection()
+{
 }

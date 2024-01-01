@@ -3,9 +3,12 @@
 #include "../Graphics/effectController.h"
 #include "../Graphics/savedEffectsSettings.h"
 #include "../Graphics/effects.h"
+#include "../Graphics/timeModes.h"
 #include "../Peripherals/microphone.h"
+#include "../Peripherals/movementDetection.h"
 
 #define BRIGHTNESS_CHANGE_INCREMENT 10
+#define SPEED_CHANGE_INCREMENT .1
 
 SavedEffectSettings preset1;
 SavedEffectSettings preset2;
@@ -116,6 +119,48 @@ void interpretRemoteCommand(uint8_t operationCode, int16_t value, uint8_t flags)
             default:
                 break;
         }
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_INCREASE_SPEED)
+    {
+        float currentSpeed = getGlobalTimeFactor();
+        float incrementedSpeed = currentSpeed + SPEED_CHANGE_INCREMENT;
+        if (incrementedSpeed <= 2)
+        {
+            setGlobalTimeFactor(incrementedSpeed);
+        }
+        else 
+        {
+            setGlobalTimeFactor(2);
+        }
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_DECREASE_SPEED)
+    {
+        float currentSpeed = getGlobalTimeFactor();
+        float decrementedSpeed = currentSpeed - SPEED_CHANGE_INCREMENT;
+        if (decrementedSpeed >= .1)
+        {
+            setGlobalTimeFactor(decrementedSpeed);
+        }
+        else 
+        {
+            setGlobalTimeFactor(.1);
+        }
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION)
+    {
+        enableMovementTypeDetection();
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION)
+    {
+        disableMovementTypeDetection();
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION)
+    {
+        enableStepDetection();
+    }
+    else if (operationCode == REMOTE_OPERATION_CODE_DISABLE_STEP_DETECTION)
+    {
+        disableStepDetection();
     }
 }
 

@@ -128,11 +128,11 @@ inline void applyFiltering()
     currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
     #else
     currentRootMeanSquare = getLastTestMicrophoneRMS();
-    D_emitIntegerMetric("RMS", currentRootMeanSquare);
+    D_emitIntegerMetric(METRIC_NAME_ID_ROOT_MEAN_SQUARE, currentRootMeanSquare);
     #endif
     updateExponentialMovingAverage(currentRootMeanSquare);
     peakDetector.add(ema);
-    D_emitFloatMetric("EMA", ema);
+    D_emitFloatMetric(METRIC_NAME_ID_EXPONENTIAL_MOVING_AVERAGE, ema);
     currentPeakDetectorValue = peakDetector.getPeak();
     currentFilteredAudioLevel = peakDetector.getFilt();
 }

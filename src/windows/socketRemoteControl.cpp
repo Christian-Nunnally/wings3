@@ -136,7 +136,7 @@ void processFakeRemoteInput()
     }
 
     interpretRemoteCommand(operationCode, operationValue, operationFlags);
-    D_emitMetricString("Received opcode", line);
+    D_emitMetricString(METRIC_NAME_ID_REMOTE_OP_CODE, line);
 }
 
 DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)

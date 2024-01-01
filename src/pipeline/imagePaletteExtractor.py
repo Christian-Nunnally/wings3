@@ -18,6 +18,7 @@ def createPaletteFromImages(paletteFileNames):
         paletteHeight = int(pixelCount / paletteWidth)
         paletteStarts.append(currentIndex)
         paletteHeights.append(paletteHeight)
+        paletteNames.append(paletteFileName)
         for i in range(paletteHeight):
             for j in range(paletteWidth):
                 index = (i * paletteWidth) + j

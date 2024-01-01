@@ -40,7 +40,7 @@ void run()
         renderLeds();
         end = clock(); // Record the end time
         cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC * 1000;
-        D_emitFloatMetric("renderTime", cpu_time_used);
+        D_emitFloatMetric(METRIC_NAME_ID_RENDER_TIME, cpu_time_used);
         processAudioStream();
         checkForMovement();
         readAnalogValues();

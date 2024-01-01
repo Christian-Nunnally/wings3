@@ -146,7 +146,7 @@ void incrementEffectFrame()
     detectBeat();
     randomizeEffectsBasedOnElapsedTime();
     incrementEffects();
-    D_emitIntegerMetric("frameTime", currentTime - lastTimeFrameIncremented);
+    D_emitIntegerMetric(METRIC_NAME_ID_TOTAL_FRAME_TIME, currentTime - lastTimeFrameIncremented);
     lastTimeFrameIncremented = currentTime;
 }
 
@@ -174,6 +174,7 @@ void handleStepDetected()
 
 void handleMovementDetected()
 {
+    // Probably doing this in an event is a bad idea.
     MovementType movementType = getCurrentMovementType();
     if (movementType == Stationary) effectSettings = effectSettingsStationary;
     else effectSettings = effectSettingsMoving;
@@ -201,7 +202,7 @@ inline void incrementTransition()
     if (transitionDirection) percentOfEffectBToShow = (UINT16_MAX - percentOfEffectBToShow) > incrementAmount ? percentOfEffectBToShow + incrementAmount : UINT16_MAX;
     else percentOfEffectBToShow = (percentOfEffectBToShow > incrementAmount) ? percentOfEffectBToShow - incrementAmount : 0; 
     percentOfEffectBToShow8Bit = percentOfEffectBToShow >> 8;
-    D_emitIntegerMetric("\%EffectBToShow8Bit", percentOfEffectBToShow8Bit);
+    D_emitIntegerMetric(METRIC_NAME_ID_PERCENT_OF_EFFECT_B_TO_SHOW, percentOfEffectBToShow8Bit);
 }
 
 inline void incrementTransitionFromSecondaryToPrimaryEffect()
@@ -210,8 +211,8 @@ inline void incrementTransitionFromSecondaryToPrimaryEffect()
     else millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = 0;
     if (millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax != 0) percentOfSecondaryEffectToShow = (millisecondsLeftInTransitionFromSecondaryToPrimaryEffect / millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax) * 255;
     else percentOfSecondaryEffectToShow = 0;
-    D_emitIntegerMetric("msFor2ndTo1stEffect", millisecondsLeftInTransitionFromSecondaryToPrimaryEffect);
-    D_emitIntegerMetric("\%SecondaryEffectToShow", percentOfSecondaryEffectToShow);
+    D_emitIntegerMetric(METRIC_NAME_ID_MILLISECONDS_TO_TRANSITION_FROM_SECONDARY_TO_PRIMARY_EFFECT, millisecondsLeftInTransitionFromSecondaryToPrimaryEffect);
+    D_emitIntegerMetric(METRIC_NAME_ID_PERCENT_SECONDARY_EFFECT_TO_SHOW, percentOfSecondaryEffectToShow);
 }
 
 void incrementColorPalettesTowardsTargets()
@@ -230,7 +231,7 @@ void incrementColorPalettesTowardsTargetsForEffect(Effect *effect)
     if (effect->currentPaletteOffset > effect->currentPaletteOffsetTarget) effect->currentPaletteOffset -= PALETTE_LENGTH;
     else if (effect->currentPaletteOffset < effect->currentPaletteOffsetTarget) effect->currentPaletteOffset += PALETTE_LENGTH;
     else return;
-    D_emitIntegerMetric("fxPaletteOffset", effect->effectId, effect->currentPaletteOffset);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE_OFFSET, effect->effectId, effect->currentPaletteOffset);
 
 }
 
@@ -240,7 +241,7 @@ void detectBeat()
     if (!isMusicDetected()) return;
     int nextPeak = getCurrentPeakDetectorValue();
     if (nextPeak == lastPeakDetectorValue) return;
-    D_emitIntegerMetric("peakDetector", nextPeak);
+    D_emitIntegerMetric(METRIC_NAME_ID_PEAK_DETECTOR, nextPeak);
     lastPeakDetectorValue = nextPeak;
     if (nextPeak == PositivePeak) handleBeatDetected();
     else if (!nextPeak && fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetectorReturnsToZero) randomizeEffectsNaturally();
@@ -259,7 +260,7 @@ void randomizeEffectsBasedOnElapsedTime()
 
 void handleBeatDetected()
 {
-    D_emitIntegerMetric("beats", beatCount++);
+    D_emitIntegerMetric(METRIC_NAME_ID_BEAT_COUNT, beatCount++);
     if (fastRandomByte() < effectSettings.LikelihoodEffectsAreRandomizedWhenBeatDetected) randomizeEffectsNaturally();
     effectA1.effectFunctionBonusTrigger();
     if (effectA1.effectFunctionIncrementUniqueId != effectB1.effectFunctionIncrementUniqueId) effectB1.effectFunctionBonusTrigger();
@@ -281,14 +282,14 @@ void randomizeEffectsNaturally()
     if (fastRandomByte() < effectSettings.LikelihoodBackgroundTransitionTimeChangesWhenRandomizingEffect) pickRandomTransitionTime();
     if (fastRandomByte() < effectSettings.LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect) pickRandomAudioLevelThresholdForMoreIntenseEffect();
     if (fastRandomByte() < effectSettings.LikelihoodScreenMapChangesWhenRandomizingEffect) pickRandomScreenMap();
-    D_emitIntegerMetric("fxsRandomizedCount", effectsRandomizedCount++);
+    D_emitIntegerMetric(METRIC_NAME_ID_RANDOMIZATION_COUNT, effectsRandomizedCount++);
 }
 
 void pickRandomScreenMap()
 {
     int screenMapIndex = fastRandomInteger(screenMapsCount);
     *currentScreenMap = screenMaps[screenMapIndex];
-    D_emitIntegerMetric("currentScreenMap", screenMapIndex);
+    D_emitIntegerMetric(METRIC_NAME_ID_CURRENT_SCREEN_MAP, screenMapIndex);
 }
 
 void pickRandomSubPalette()
@@ -302,7 +303,7 @@ void pickRandomSubPalette()
 void pickRandomSubPaletteForEffect(Effect *effect)
 {
     effect->currentPaletteOffsetTarget = pickRandomSubPaletteFromPalette(effect->currentPalette);
-    D_emitIntegerMetric("fxCurrentPaletteOffsetTarget", effect->effectId, effect->currentPaletteOffsetTarget);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_CURRENT_PALETTE_OFFSET_TARGET, effect->effectId, effect->currentPaletteOffsetTarget);
 }
 
 void pickRandomPalette()
@@ -322,12 +323,12 @@ void pickRandomPalette()
         effectB1.currentPaletteOffset = effectA1.currentPaletteOffset;
         effectA2.currentPaletteOffset = effectA1.currentPaletteOffset;
         effectB2.currentPaletteOffset = effectA1.currentPaletteOffset;
-        D_emitIntegerMetric("fxPalette", effectB1.effectId, effectB1.currentPalette);
-        D_emitIntegerMetric("fxPalette", effectA2.effectId, effectA2.currentPalette);
-        D_emitIntegerMetric("fxPalette", effectB2.effectId, effectB2.currentPalette);
-        D_emitIntegerMetric("fxPaletteOffset", effectB1.effectId, effectB1.currentPaletteOffset);
-        D_emitIntegerMetric("fxPaletteOffset", effectA2.effectId, effectA2.currentPaletteOffset);
-        D_emitIntegerMetric("fxPaletteOffset", effectB2.effectId, effectB2.currentPaletteOffset);
+        D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE, effectB1.effectId, effectB1.currentPalette);
+        D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE, effectA2.effectId, effectA2.currentPalette);
+        D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE, effectB2.effectId, effectB2.currentPalette);
+        D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE_OFFSET, effectB1.effectId, effectB1.currentPaletteOffset);
+        D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE_OFFSET, effectA2.effectId, effectA2.currentPaletteOffset);
+        D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE_OFFSET, effectB2.effectId, effectB2.currentPaletteOffset);
     }
 }
 
@@ -338,8 +339,8 @@ void pickRandomPaletteForEffect(Effect *effect)
     uint8_t nextPalette = effectSettings.AllowedPalettes[effect->currentPalette][indexOfNextPalette];
     effect->currentPalette = nextPalette;
     effect->currentPaletteOffset = pickRandomSubPaletteFromPalette(effect->currentPalette);
-    D_emitIntegerMetric("fxPalette", effect->effectId, effect->currentPalette);
-    D_emitIntegerMetric("fxPaletteOffset", effect->effectId, effect->currentPaletteOffset);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE, effect->effectId, effect->currentPalette);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_PALETTE_OFFSET, effect->effectId, effect->currentPaletteOffset);
 }
 
 int pickRandomSubPaletteFromPalette(int palette)
@@ -368,34 +369,36 @@ void pickRandomTransformMaps()
 
 void pickRandomTransformMaps(Effect *effect, uint8_t likelihood)
 {
-    D_emitMetricString("AreTransformMapsMirrored", "No");
     if (fastRandomByte() < likelihood)
     {
         effect->transformMap1Index = fastRandomInteger(getNormalTransformMapCount());
         effect->isTransformMap1Mirrored = false;
+        emitIntegerMetric(METRIC_NAME_ID_USING_MIRRORED_TRANSFORM_MAPS_1, effect->effectId, 0);
         setTransformMap1FromSettings(effect);
     }
     if (fastRandomByte() < likelihood)
     {
         effect->transformMap2Index = fastRandomInteger(getNormalTransformMapCount());
-        effect->isTransformMap1Mirrored = false;
+        effect->isTransformMap2Mirrored = false;
+        emitIntegerMetric(METRIC_NAME_ID_USING_MIRRORED_TRANSFORM_MAPS_2, effect->effectId, 0);
         setTransformMap2FromSettings(effect);
     }
 }
 
 void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood)
 {
-    D_emitMetricString("AreTransformMapsMirrored", "Yes");
     if (fastRandomByte() < likelihood)
     {
         effect->transformMap1Index = fastRandomInteger(getMirroredTransformMapCount());
         effect->isTransformMap1Mirrored = true;
+        emitIntegerMetric(METRIC_NAME_ID_USING_MIRRORED_TRANSFORM_MAPS_1, effect->effectId, 1);
         setTransformMap1FromSettings(effect);
     }
     if (fastRandomByte() < likelihood)
     { 
         effect->transformMap2Index = fastRandomInteger(getMirroredTransformMapCount());
-        effect->isTransformMap1Mirrored = true;
+        effect->isTransformMap2Mirrored = true;
+        emitIntegerMetric(METRIC_NAME_ID_USING_MIRRORED_TRANSFORM_MAPS_2, effect->effectId, 1);
         setTransformMap2FromSettings(effect);
     }
 }
@@ -405,7 +408,7 @@ void swapEffects()
     primaryEffectToggle = !primaryEffectToggle;
     if (primaryEffectToggle)
     {
-        D_emitMetricString("primaryEffectToggle", "True");
+        D_emitMetricString(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, "True");
         syncEffects(&effectA2, &effectA1);
         syncEffects(&effectB2, &effectB1);
         currentPrimaryEffectA = effectA1;
@@ -415,7 +418,7 @@ void swapEffects()
     }
     else 
     {
-        D_emitMetricString("primaryEffectToggle", "False");
+        D_emitMetricString(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, "False");
         syncEffects(&effectA1, &effectA2);
         syncEffects(&effectB1, &effectB2);
         currentPrimaryEffectA = effectA2;
@@ -447,10 +450,10 @@ void pickRandomSizeParametersForEffects()
     effectB1.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
     effectA2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
     effectB2.size = fastRandomInteger(effectSettings.MinimumEffectSize, effectSettings.MaximumEffectSize);
-    D_emitIntegerMetric("fxSize", effectA1.effectId, effectA1.size);
-    D_emitIntegerMetric("fxSize", effectB1.effectId, effectB1.size);
-    D_emitIntegerMetric("fxSize", effectA2.effectId, effectA2.size);
-    D_emitIntegerMetric("fxSize", effectB2.effectId, effectB2.size);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_SIZE, effectA1.effectId, effectA1.size);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_SIZE, effectB1.effectId, effectB1.size);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_SIZE, effectA2.effectId, effectA2.size);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_SIZE, effectB2.effectId, effectB2.size);
 }
 
 void pickRandomGlobalBrightnessControlModes()
@@ -459,31 +462,31 @@ void pickRandomGlobalBrightnessControlModes()
     pickRandomGlobalBrightnessControlModesForEffect(&effectB1, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange, effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked, effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked);
     pickRandomGlobalBrightnessControlModesForEffect(&effectA2, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange, effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked, effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked);
     pickRandomGlobalBrightnessControlModesForEffect(&effectB2, effectSettings.LikelihoodIndividualGlobalBrightnessModesChange, effectSettings.LikelihoodMusicBasedBrightnessModeIsPicked, effectSettings.LikelihoodMovementBasedBrightnessModeIsPicked);
-    D_emitIntegerMetric("fxBrightnessMode", effectA1.effectId, *effectA1.globalBrightnessPointer);
-    D_emitIntegerMetric("fxBrightnessMode", effectB1.effectId, *effectB1.globalBrightnessPointer);
-    D_emitIntegerMetric("fxBrightnessMode", effectA2.effectId, *effectA2.globalBrightnessPointer);
-    D_emitIntegerMetric("fxBrightnessMode", effectB2.effectId, *effectB2.globalBrightnessPointer);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_BRIGHTNESS_MODE, effectA1.effectId, *effectA1.globalBrightnessPointer);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_BRIGHTNESS_MODE, effectB1.effectId, *effectB1.globalBrightnessPointer);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_BRIGHTNESS_MODE, effectA2.effectId, *effectA2.globalBrightnessPointer);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_BRIGHTNESS_MODE, effectB2.effectId, *effectB2.globalBrightnessPointer);
 }
 
 void pickRandomTransitionTime()
 {
     int desiredMillisecondTransitionDuration = fastRandomInteger(effectSettings.MillisecondsForBlendingModeTransitionsMinimum, effectSettings.MillisecondsForBlendingModeTransitionsMaximum) + 1; 
     currentTransitionIncrement = UINT16_MAX / desiredMillisecondTransitionDuration;
-    D_emitIntegerMetric("desiredMillisecondTransitionDuration", desiredMillisecondTransitionDuration);
+    D_emitIntegerMetric(METRIC_NAME_ID_DESIRED_MILLISECOND_TRANSITION_DIRECTION, desiredMillisecondTransitionDuration);
 }
 
 void switchTransitionDirection()
 {
     transitionDirection = !transitionDirection;
-    D_emitIntegerMetric("transitionDirection", transitionDirection);
+    D_emitIntegerMetric(METRIC_NAME_ID_TRANSITION_DIRECTION, transitionDirection);
 }
 
 void pickRandomAudioLevelThresholdForMoreIntenseEffect()
 {
     effectA1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
     effectB1AudioLevelThresholdToShowMoreIntenseEffect = (float)fastRandomInteger(effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMinimum, effectSettings.AudioLevelThresholdToShowMoreIntenseEffectMaximum) / (float)UINT8_MAX;
-    D_emitFloatMetric("fxA1AudioLevelThresholdToShowMoreIntenseEffect", effectA1AudioLevelThresholdToShowMoreIntenseEffect);
-    D_emitFloatMetric("fxB1AudioLevelThresholdToShowMoreIntenseEffect", effectB1AudioLevelThresholdToShowMoreIntenseEffect);
+    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_A1, effectA1AudioLevelThresholdToShowMoreIntenseEffect);
+    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_B1, effectB1AudioLevelThresholdToShowMoreIntenseEffect);
 }
 
 void enableRandomEffectChangeBasedOnElapsedTime()

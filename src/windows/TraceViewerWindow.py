@@ -12,6 +12,45 @@ class TraceViewerWindow(SimpleWindow):
     indexToKeyMap = {}
     graphWindow = None
     graphedMetricName = ""
+    keyToUserFriendlyNameMap = {}
+    keyToUserFriendlyNameMap[0] = "unknown"
+    keyToUserFriendlyNameMap[1 ] = "usingMirroredTransformMaps1"
+    keyToUserFriendlyNameMap[2 ] = "usingMirroredTransformMaps2"
+    keyToUserFriendlyNameMap[3 ] = "primaryEffectToggle"
+    keyToUserFriendlyNameMap[4 ] = "remoteOpCode"
+    keyToUserFriendlyNameMap[5 ] = "renderTime"
+    keyToUserFriendlyNameMap[6 ] = "fxA1AudioLevelThresholdToShowMoreIntenseEffect"
+    keyToUserFriendlyNameMap[7 ] = "fxB1AudioLevelThresholdToShowMoreIntenseEffect"
+    keyToUserFriendlyNameMap[8 ] = "transitionDirection"
+    keyToUserFriendlyNameMap[9 ] = "desiredMillisecondTransitionDuration"
+    keyToUserFriendlyNameMap[10] = "fxBrightnessMode"
+    keyToUserFriendlyNameMap[11] = "fxSize"
+    keyToUserFriendlyNameMap[12] = "exponentialMovingAverage"
+    keyToUserFriendlyNameMap[13] = "currentRootMeanSquare"
+    keyToUserFriendlyNameMap[14] = "currentAudioIntensityLevel"
+    keyToUserFriendlyNameMap[15] = "fxTime1"
+    keyToUserFriendlyNameMap[16] = "fxTime2"
+
+    keyToUserFriendlyNameMap[17] = "fxTimeMode1"
+    keyToUserFriendlyNameMap[18] = "fxTimeMode2"
+    keyToUserFriendlyNameMap[19] = "percentOfOldMixingModeToMixIn8Bit"
+    keyToUserFriendlyNameMap[20] = "millisecondsLeftInMixingModeBlend"
+    keyToUserFriendlyNameMap[21] = "mixingModeBlendFunction"
+    keyToUserFriendlyNameMap[22] = "millisecondsLeftInMixingModeBlendTotalDuration"
+    keyToUserFriendlyNameMap[23] = "fxTransformMap1"
+    keyToUserFriendlyNameMap[24] = "remoteOpCode"
+    keyToUserFriendlyNameMap[25] = "totalFrameTime"
+    keyToUserFriendlyNameMap[26] = "percentOfEffectBToShow8Bit"
+    keyToUserFriendlyNameMap[27] = "msFor2ndTo1stEffect"
+    keyToUserFriendlyNameMap[28] = "percentSecondaryEffectToShow"
+    keyToUserFriendlyNameMap[29] = "fxPaletteOffset"
+    keyToUserFriendlyNameMap[30] = "peakDetector"
+    keyToUserFriendlyNameMap[31] = "beatCount"
+    keyToUserFriendlyNameMap[32] = "fxsRandomizedCount"
+    keyToUserFriendlyNameMap[33] = "currentScreenMap"
+    keyToUserFriendlyNameMap[34] = "fxCurrentPaletteOffsetTarget"
+    keyToUserFriendlyNameMap[35] = "fxPalette"
+    keyToUserFriendlyNameMap[36] = "fxPaletteOffset"
 
     def __init__(self):
         self.createRoot()
@@ -54,8 +93,10 @@ class TraceViewerWindow(SimpleWindow):
 
     def runCommand(self, arguments):
         if arguments[0] == STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC:
-            if not len(arguments) == 3: return
-            self.update_single_status(arguments[1], f"{arguments[1]}: {arguments[2]}")
+            if len(arguments) == 3:
+                self.update_single_status(arguments[1], f"{self.keyToUserFriendlyNameMap[int(arguments[1])]}: {arguments[2]}")
+            elif len(arguments) == 4:
+                self.update_single_status(arguments[1], f"{arguments[2]}: {arguments[3]}")
             if self.graphWindow is not None and arguments[1] == self.graphedMetricName:
                 try:
                     self.graphWindow.insertData(float(arguments[2]))

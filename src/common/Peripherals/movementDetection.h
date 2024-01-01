@@ -28,5 +28,9 @@ int getCurrentYawPosition();
 int getCurrentRollPosition();
 void subscribeToStepDetectedEvent(void (*subscriber)());
 void unsubscribeFromStepDetectedEvent(void (*subscriber)());
+void enableMovementTypeDetection();
+void disableMovementTypeDetection();
+void enableStepDetection();
+void disableStepDetection();
 
 #endif

@@ -350,7 +350,6 @@ void pickRandomEffects()
 void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 {
     copyEffectSettings(&effectSettings, &(savedEffectSettings->effectSettings));
-    //memcpy(&savedEffectSettings->effectSettings, &effectSettings, sizeof(SavedEffectSettings));
     saveSingleEffect(&effectA1, &savedEffectSettings->savedEffectA1);
     saveSingleEffect(&effectB1, &savedEffectSettings->savedEffectB1);
     saveSingleEffect(&effectA2, &savedEffectSettings->savedEffectA2);
@@ -360,7 +359,6 @@ void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 {
     copyEffectSettings(&(savedEffectSettings->effectSettings), &effectSettings);
-    //memcpy(&effectSettings, &(savedEffectSettings->effectSettings), sizeof(SavedEffectSettings));
     loadSingleEffect(&savedEffectSettings->savedEffectA1, &effectA1);
     loadSingleEffect(&savedEffectSettings->savedEffectB1, &effectB1);
     loadSingleEffect(&savedEffectSettings->savedEffectA2, &effectA2);
@@ -495,7 +493,7 @@ void setTransformMap1FromSettings(Effect* effect)
     {
         (*effect->transformMap1) = transformMaps[effect->transformMap1Index];
     }
-    D_emitIntegerMetric("fxTransformMap1", effect->effectId, effect->transformMap1Index);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_1, effect->effectId, effect->transformMap1Index);
 }
 
 void setTransformMap2FromSettings(Effect* effect)
@@ -508,5 +506,5 @@ void setTransformMap2FromSettings(Effect* effect)
     {
         (*effect->transformMap2) = transformMaps[effect->transformMap2Index];
     }
-    D_emitIntegerMetric("fxTransformMap2", effect->effectId, effect->transformMap2Index);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_2, effect->effectId, effect->transformMap2Index);
 }

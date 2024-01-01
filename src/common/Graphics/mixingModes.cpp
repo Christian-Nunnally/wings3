@@ -51,8 +51,8 @@ void incrementMixingModeBlend(int frameTimeDelta)
     if (!millisecondsLeftInMixingModeBlend) return;
     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlend > frameTimeDelta ? millisecondsLeftInMixingModeBlend - frameTimeDelta : 0;
     percentOfOldMixingModeToMixIn8Bit = (millisecondsLeftInMixingModeBlend / millisecondsLeftInMixingModeBlendTotalDuration) * UINT8_MAX;
-    D_emitIntegerMetric("millisecondsLeftInMixingModeBlend", millisecondsLeftInMixingModeBlend);
-    D_emitIntegerMetric("percentOfOldMixingModeToMixIn8Bit", percentOfOldMixingModeToMixIn8Bit);
+    D_emitIntegerMetric(METRIC_NAME_ID_MILLISECONDS_LEFT_IN_MIXING_MODE_BLEND, millisecondsLeftInMixingModeBlend);
+    D_emitIntegerMetric(METRIC_NAME_ID_PERCENT_OF_OLD_MIXING_MODE, percentOfOldMixingModeToMixIn8Bit);
 }
 
 void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMillisecondsForTransition)
@@ -61,6 +61,6 @@ void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMilli
     mixingModeBlendFunction = mixingModeBlendFunctions[mixingModeBlendFunctionIndex];
     millisecondsLeftInMixingModeBlendTotalDuration = fastRandomInteger(minimumMillisecondsForTransition, maximumMillisecondsForTransition) + 1;
     millisecondsLeftInMixingModeBlend = millisecondsLeftInMixingModeBlendTotalDuration;
-    D_emitIntegerMetric("mixingModeBlendFunction", mixingModeBlendFunctionIndex);
-    D_emitIntegerMetric("millisecondsLeftInMixingModeBlendTotalDuration", millisecondsLeftInMixingModeBlendTotalDuration);
+    D_emitIntegerMetric(METRIC_NAME_ID_MIXING_MODE_BLEND_FUNCTION, mixingModeBlendFunctionIndex);
+    D_emitIntegerMetric(METRIC_NAME_ID_MILLISECONDS_LEFT_IN_MIXING_MODE_BLEND_TOTAL, millisecondsLeftInMixingModeBlendTotalDuration);
 }

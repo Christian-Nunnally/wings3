@@ -8,6 +8,7 @@
 
 const int TimeDeltaResolutionIncreaseFactor = 64;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
+float globalTimeScaler = 1.0;
 const uint8_t MaxNumberOfTimeModes = 40;
 uint8_t numberOfBasicTimeModes;
 uint8_t numberOfMusicBasedTimeModes;
@@ -124,17 +125,17 @@ void pickRandomTimeModesForEffect(Effect *effect, bool pickFromBasicTimeModes, b
             }
         }
     }
-    D_emitIntegerMetric("fxTimeMode1", effect->effectId, effect->timeMode1);
-    D_emitIntegerMetric("fxTimeMode2", effect->effectId, effect->timeMode2);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TIME_MODE_1, effect->effectId, effect->timeMode1);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TIME_MODE_2, effect->effectId, effect->timeMode2);
 }
 
 void incrementTimesForEffect(Effect *effect, int timeDelta)
 {
-    int increasedResolutionTimeDelta = (timeDelta * TimeDeltaResolutionIncreaseFactor);
+    int increasedResolutionTimeDelta = timeDelta * TimeDeltaResolutionIncreaseFactor * globalTimeScaler;
     effect->time1 = timeModeIncrementFunctions[effect->timeMode1](effect->time1 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
     effect->time2 = timeModeIncrementFunctions[effect->timeMode2](effect->time2 * TimeDeltaResolutionIncreaseFactor, increasedResolutionTimeDelta) / TimeDeltaResolutionIncreaseFactor;
-    D_emitIntegerMetric("fxTime1", effect->effectId, effect->time1 & 0xffff);
-    D_emitIntegerMetric("fxTime2", effect->effectId, effect->time2 & 0xffff);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TIME_1, effect->effectId, effect->time1 & 0xffff);
+    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TIME_2, effect->effectId, effect->time2 & 0xffff);
 }
 
 void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *effect3, Effect *effect4, uint8_t likelihoodMovementBaseModeIsPicked, uint8_t likelihoodMusicBaseModeIsPicked, uint8_t likelihoodIndividualModeChanges, bool shouldTryToPickMovementMode, bool shouldTryToPickMusicMode)
@@ -143,4 +144,14 @@ void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *
     pickRandomTimeModesForEffect(effect2, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
     pickRandomTimeModesForEffect(effect3, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
     pickRandomTimeModesForEffect(effect4, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
+}
+
+float getGlobalTimeFactor()
+{
+    return globalTimeScaler;
+}
+
+void setGlobalTimeFactor(float newTimeFactor)
+{
+    globalTimeScaler = newTimeFactor;
 }

@@ -1,6 +1,7 @@
 from src.windows.LedGridWindow import LedGridWindow
 from src.windows.TraceViewerWindow import TraceViewerWindow
 from src.windows.RemoteControlWindow import RemoteControlWindow
+from src.windows.paletteViewerWindow import PaletteViewerWindow
 from subprocess import Popen, PIPE, STDOUT
 import psutil
 import os
@@ -31,6 +32,7 @@ def main():
     ledGridWindow = LedGridWindow()
     configurationStatusWindow = TraceViewerWindow()
     remoteControlWindow = RemoteControlWindow()
+    paletteViewerWindow = PaletteViewerWindow()
     program = Popen(processPath, stdout = PIPE, stderr = STDOUT, stdin = PIPE, shell = True)
 
     while True:
@@ -43,10 +45,14 @@ def main():
         remoteControlWindow.update()
         if remoteControlWindow.isClosed: break
         
+        paletteViewerWindow.update()
+        if paletteViewerWindow.isClosed: break
+
         arguments = parseLine(program)
         if len(arguments) > 0:
             ledGridWindow.runCommand(arguments)
             configurationStatusWindow.runCommand(arguments)
+            paletteViewerWindow.runCommand(arguments)
         else:
             break
 

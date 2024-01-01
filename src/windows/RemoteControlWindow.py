@@ -31,6 +31,9 @@ REMOTE_OPERATION_CODE_NAVIGATE_LEFT = 21
 REMOTE_OPERATION_CODE_NAVIGATE_RIGHT = 22
 REMOTE_OPERATION_CODE_NAVIGATE_ENTER = 23
 REMOTE_OPERATION_CODE_NAVIGATE_BACK = 24
+# Ideas
+#REMOTE_OPERATION_CODE_SET_COLOR = 24
+
 
 class RemoteControlWindow(SimpleWindow):
     def __init__(self):
@@ -91,16 +94,16 @@ class RemoteControlWindow(SimpleWindow):
         self.makeButton(root, "Disable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_LEDS))
         self.makeButton(root, "Enable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MUSIC_DETECTION))
         self.makeButton(root, "Disable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MUSIC_DETECTION))
-        # self.makeButton(root, "Enable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION))
-        # self.makeButton(root, "Disable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION))
-        # self.makeButton(root, "Enable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION))
-        # self.makeButton(root, "Disable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_STEP_DETECTION))
+        self.makeButton(root, "Enable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION))
+        self.makeButton(root, "Disable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION))
+        self.makeButton(root, "Enable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION))
+        self.makeButton(root, "Disable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_STEP_DETECTION))
         self.makeButton(root, "Enable random effect change", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_RANDOM_EFFECT_CHANGE))
         self.makeButton(root, "Disable random effect change", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_RANDOM_EFFECT_CHANGE))
         self.makeButton(root, "Increase brightness", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_BRIGHTNESS))
         self.makeButton(root, "Decrease brightness", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_BRIGHTNESS))
-        # self.makeButton(root, "Increase speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_SPEED))
-        # self.makeButton(root, "Decrease speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_SPEED))
+        self.makeButton(root, "Increase speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_SPEED))
+        self.makeButton(root, "Decrease speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_SPEED))
         self.makeButton(root, "Randomize effect randomly", lambda : self.runCommand(REMOTE_OPERATION_CODE_RANDOMIZE_EFFECTS))
         self.makeButton(root, "Save to preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 1))
         self.makeButton(root, "Save to preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 2))

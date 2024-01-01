@@ -61,7 +61,7 @@ void incrementBrightnessModeLevels()
     brightnessModePitchBasedMovement = (getCurrentPitchPosition() >> 19) & 0xff;
     brightnessModeRollBasedMovement = (getCurrentRollPosition() >> 19) & 0xff;
     brightnessModeYawBasedMovement = (getCurrentYawPosition() >> 19) & 0xff;
-    D_emitDoubleMetric("currentAudioIntensityLevel", currentAudioIntensityLevel);
+    D_emitDoubleMetric(METRIC_NAME_ID_AUDIO_INTENSITY_RATIO, currentAudioIntensityLevel);
 }
 
 void setBrightnessPointerFromIndexForEffect(Effect *effect)

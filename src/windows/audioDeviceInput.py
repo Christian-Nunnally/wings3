@@ -9,6 +9,7 @@ SAMPLES_PER_SECOND = 8000
 FRAMES_PER_BUFFER = 256
 
 useDefaultInputDevice = True
+useDefaultInputDeviceIndex = 4
 
 def calculateRms(data):
     if len(data) == 0: 
@@ -30,6 +31,8 @@ if not useDefaultInputDevice:
     option = showOptionsDialog(devicesNames)
     deviceIndex = int(option[0])
     stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER, input_device_index=deviceIndex)
+elif not (useDefaultInputDeviceIndex == -1):
+    stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER, input_device_index=useDefaultInputDeviceIndex)
 else:
     stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER)
 print("Listening to audio...")
