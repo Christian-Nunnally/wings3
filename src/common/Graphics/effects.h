@@ -17,6 +17,7 @@
 #define FIREWORKS_EFFECT_INDEX 9
 #define LIGHT_CHASE_EFFECT_INDEX 10
 
+void initializeEffects();
 void setAudioIntensityLevel(float level);
 void pickRandomEffects();
 void syncEffects(Effect *syncFrom, Effect *syncTo);
@@ -26,6 +27,8 @@ void setTransformMap2FromSettings(Effect* effect);
 void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings);
 void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings);
 void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEffectSettings);
+void setCurrentScreenMapFromSettings();
+int getScreenMapCount();
 
 extern Effect effectA1;
 extern Effect effectB1;
@@ -33,6 +36,8 @@ extern Effect effectA2;
 extern Effect effectB2;
 
 extern EffectSettings effectSettings;
+
+extern uint8_t *currentScreenMap[TOTAL_LEDS];
 
 extern float currentAudioIntensityLevel;
 

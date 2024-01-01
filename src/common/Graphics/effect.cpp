@@ -36,6 +36,7 @@ void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaul
     effect->currentPaletteOffset = 0;
     effect->currentPaletteOffsetTarget = 0;
     effect->effectId = effectId;
+    effect->thresholdToShowMoreIntenseEffect = .98;
 }
 
 int getNormalTransformMapCount()
