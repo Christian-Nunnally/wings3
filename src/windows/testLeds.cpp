@@ -9,13 +9,13 @@ void setTestLedsPixelColor(int pixelIndex, uint8_t red, uint8_t green, uint8_t b
 {
     std::cout << STANDARD_OUTPUT_OPERATION_CODE_SET_LED;
     std::cout << ",";
-    std::cout << std::hex << pixelIndex << std::dec;
+ pixelIndex;
     std::cout << ",";
     uint8_t brightnessAdjustedRed = (red * testLedGlobalBrightnessValue) >> 8;
     uint8_t brightnessAdjustedGreen = (green * testLedGlobalBrightnessValue) >> 8;
     uint8_t brightnessAdjustedBlue = (blue * testLedGlobalBrightnessValue) >> 8;
     uint32_t colorAsNumber = (uint32_t)((brightnessAdjustedRed << 16) | (brightnessAdjustedGreen << 8) | (brightnessAdjustedBlue << 0));
-    std::cout << std::hex << colorAsNumber << std::dec;
+    std::cout << colorAsNumber;
     std::cout << "\n";
 }
 
