@@ -75,4 +75,6 @@ typedef struct
 }
 EffectSettings;
 
+extern EffectSettings effectSettings;
+
 #endif

@@ -35,8 +35,6 @@ extern Effect effectB1;
 extern Effect effectA2;
 extern Effect effectB2;
 
-extern EffectSettings effectSettings;
-
 extern uint8_t *currentScreenMap[TOTAL_LEDS];
 
 extern float currentAudioIntensityLevel;

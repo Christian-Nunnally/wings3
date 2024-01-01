@@ -17,6 +17,7 @@
 #include "../Graphics/savedEffectsSettings.h"
 #include "../Graphics/normalTransformMaps.h"
 #include "../Graphics/mirroredTransformMaps.h"  
+#include "../Graphics/effectSettings.h"  
 #include "../Graphics/screenMaps.h"
 #include "../Utility/fastRandom.h"
 
@@ -30,8 +31,6 @@ Effect effectA1;
 Effect effectB1;
 Effect effectA2;
 Effect effectB2;
-
-EffectSettings effectSettings;
 
 float currentAudioIntensityLevel;
 

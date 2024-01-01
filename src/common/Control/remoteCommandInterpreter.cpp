@@ -4,6 +4,7 @@
 #include "../Graphics/savedEffectsSettings.h"
 #include "../Graphics/effects.h"
 #include "../Graphics/timeModes.h"
+#include "../Graphics/effectSettings.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
 
@@ -66,11 +67,11 @@ void interpretRemoteCommand(uint8_t operationCode, int16_t value, uint8_t flags)
 
     else if (operationCode == REMOTE_OPERATION_CODE_ENABLE_RANDOM_EFFECT_CHANGE)
     {
-        enableRandomEffectChangeBasedOnElapsedTime();
+        effectSettings.RandomizeEffectsAutomaticallyOverTime = true;
     }
     else if (operationCode == REMOTE_OPERATION_CODE_DISABLE_RANDOM_EFFECT_CHANGE)
     {
-        disableRandomEffectChangeBasedOnElapsedTime();
+        effectSettings.RandomizeEffectsAutomaticallyOverTime = false;
     }
     else if (operationCode == REMOTE_OPERATION_CODE_EFFECT_TRIGGER)
     {

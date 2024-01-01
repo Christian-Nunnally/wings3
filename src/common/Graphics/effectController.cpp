@@ -473,13 +473,3 @@ void pickRandomAudioLevelThresholdForMoreIntenseEffect()
     D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_A1, effectA1.thresholdToShowMoreIntenseEffect);
     D_emitFloatMetric(METRIC_NAME_ID_AUDIO_THRESHOLD_TO_SHOW_INTENSE_EFFECT_B1, effectB1.thresholdToShowMoreIntenseEffect);
 }
-
-void enableRandomEffectChangeBasedOnElapsedTime()
-{
-    effectSettings.RandomizeEffectsAutomaticallyOverTime = true;
-}
-
-void disableRandomEffectChangeBasedOnElapsedTime()
-{
-    effectSettings.RandomizeEffectsAutomaticallyOverTime = false;
-}
