@@ -65,7 +65,8 @@ class LedGridWindow(SimpleWindow):
             elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS:
                 colors.clear()
                 self.updateColors()
-        except:
+        except Exception as e:
+            print(e)
             print("ERROR Invalid arguments: ")
             print(arguments)
 

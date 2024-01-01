@@ -13,14 +13,14 @@ def error(text):
 def validateArgumentsAndOpenFile():
     if len(sys.argv) < 3:
         error(f"Error: Not enough arguments (expected 3, got {len(sys.argv)}): {sys.argv}")
-        error = True
     elif len(sys.argv) > 3:
         error(f"Error: Too many arguments (expected 3, got {len(sys.argv)}): {sys.argv}")
-    elif not sys.argv[2] in options:
+    elif sys.argv[2] not in options:
         error(f"Error: Expected second argument to be one of {options} (got '{sys.argv[2]}')")
     try:
         return open(sys.argv[1], 'w')
-    except:
+    except Exception as e:
+        print(e)
         error(f"Error: Could not open file at location {sys.argv[1]} for writing.")
 
 def printCommonHeader(name):
@@ -185,8 +185,10 @@ def computeMaps(layout, totalWidth, totalHeight, centerX, centerY):
                     transformMapX.append(mappedX)
                     transformMapY.append(mappedY)
                     foundLed = True
-                if foundLed: break
-            if foundLed: break
+                if foundLed: 
+                    break
+            if foundLed: 
+                break
 
     for i in range(totalLeds):
         for y in range(len(layout)):

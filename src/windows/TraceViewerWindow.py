@@ -76,13 +76,14 @@ class TraceViewerWindow(SimpleWindow):
         self.keyToIndexMap = newKeyToIndexMap
 
     def getOrAssignIndexForKey(self, key):
-        if key in self.keyToIndexMap: return self.keyToIndexMap[key]
+        if key in self.keyToIndexMap: 
+            return self.keyToIndexMap[key]
         self.keyToIndexMap[key] = len(self.keyToIndexMap)
         self.indexToKeyMap[self.keyToIndexMap[key]] = key
         return self.keyToIndexMap[key]
 
     def update_single_status(self, key, newStatus):
-        if (self.graphWindow == None or self.graphWindow.isClosed):
+        if (self.graphWindow is None or self.graphWindow.isClosed):
             index = self.getOrAssignIndexForKey(key)
             self.listbox.delete(index)
             self.listbox.insert(index, newStatus)
@@ -100,8 +101,8 @@ class TraceViewerWindow(SimpleWindow):
             if self.graphWindow is not None and arguments[1] == self.graphedMetricName:
                 try:
                     self.graphWindow.insertData(float(arguments[2]))
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
     def createRoot(self):
         super().createRoot()
@@ -122,15 +123,17 @@ class TraceViewerWindow(SimpleWindow):
         sortButton.pack()
 
     def update(self):
-        if self.root is not None: self.root.update()
-        if (self.graphWindow is not None): self.graphWindow.update()
+        if self.root is not None: 
+            self.root.update()
+        if (self.graphWindow is not None): 
+            self.graphWindow.update()
 
     def onSelect(self, event):
         index = event.widget.curselection()[0]
         if index >= 0 and index < len(self.indexToKeyMap):
             key = self.indexToKeyMap[index]
         self.graphedMetricName = key
-        if (self.graphWindow == None or self.graphWindow.isClosed):
+        if (self.graphWindow is None or self.graphWindow.isClosed):
             self.graphWindow = MetricGraphWindow()
         else:
             pass

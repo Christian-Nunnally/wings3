@@ -9,18 +9,21 @@ import os
 def parseLine(program):
     try:
         line = program.stdout.readline()
-        if not line: return []
+        if not line: 
+            return []
         preLine = str(line)[2:-5].strip()
         arguments = preLine.split(",")
         int(arguments[0])
         return arguments
     except Exception as e:
+        print(e)
         print(f"Error parsing program output: {line}")
         maxErrorLinesToPrint = 100
         linesPrinted = 0
         while linesPrinted < maxErrorLinesToPrint:
             line = program.stdout.readline()
-            if not line: return []
+            if not line: 
+                return []
             print(line)
             linesPrinted += 1
         return []
@@ -37,16 +40,20 @@ def main():
 
     while True:
         ledGridWindow.update()
-        if ledGridWindow.isClosed: break
+        if ledGridWindow.isClosed: 
+            break
 
         configurationStatusWindow.update()
-        if configurationStatusWindow.isClosed: break
+        if configurationStatusWindow.isClosed: 
+            break
 
         remoteControlWindow.update()
-        if remoteControlWindow.isClosed: break
+        if remoteControlWindow.isClosed: 
+            break
         
         paletteViewerWindow.update()
-        if paletteViewerWindow.isClosed: break
+        if paletteViewerWindow.isClosed: 
+            break
 
         arguments = parseLine(program)
         if len(arguments) > 0:
@@ -69,15 +76,15 @@ def main():
     try:
         ledGridWindow.onClosing()
         ledGridWindow.destroy()
-    except:
-        pass
+    except Exception as e:
+        print(e)
     try:
         configurationStatusWindow.onClosing()
         configurationStatusWindow.destroy()
-    except:
-        pass
+    except Exception as e:
+        print(e)
     try:
         remoteControlWindow.onClosing()
         remoteControlWindow.destroy()
-    except:
-        pass
+    except Exception as e:
+        print(e)

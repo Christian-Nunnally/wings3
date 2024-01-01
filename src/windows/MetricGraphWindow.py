@@ -68,8 +68,10 @@ class MetricGraphWindow(SimpleWindow):
 
     def insertData(self, value):
         self.dataQueue.put(value)
-        if (value > self.yMax): self.yMax = value
-        if (value < self.yMin): self.yMin = value
+        if (value > self.yMax): 
+            self.yMax = value
+        if (value < self.yMin): 
+            self.yMin = value
         if self.shouldResetMinMax:
             self.yMax = value + 0.001
             self.yMin = value

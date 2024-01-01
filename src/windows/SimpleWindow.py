@@ -19,7 +19,8 @@ class SimpleWindow:
         self.isClosed = True
 
     def update(self):
-        if self.root is not None: self.root.update()
+        if self.root is not None: 
+            self.root.update()
 
     def center(self):
         self.root.update_idletasks()

@@ -16,6 +16,9 @@ matplotlib = "^3.8.2"
 sim = "src.windows.simulator:main"
 simulator = "src.windows.simulator:main"
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.9"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

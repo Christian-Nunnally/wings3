@@ -36,7 +36,7 @@ for fileName in bitmapFiles:
                     R = image.palette.tobytes()[RGB * 3 + 0]
                     G = image.palette.tobytes()[RGB * 3 + 1]
                     B = image.palette.tobytes()[RGB * 3 + 2]
-                    screenValue = 0 if R > 128 and G > 128 and B > 128 else screenValue
+                    screenValue = 0 if R > 128 and G > 128 and B > 128 else 0
                     screenValue = 1 if R < 128 and G > 128 and B < 128 else screenValue
                     screenValue = 2 if R < 128 and G < 128 and B > 128 else screenValue
                     screenValue = 3 if R > 128 and G < 128 and B < 128 else screenValue
