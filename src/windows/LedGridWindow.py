@@ -59,7 +59,7 @@ class LedGridWindow(SimpleWindow):
             if commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SET_LED:
                 if len(arguments) == 3:
                     color = int(arguments[2], 16)
-                    self.setColor(int(arguments[1],16), (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
+                    self.setColor(int(arguments[1], 16), (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
             elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS:
                 self.updateColors()
             elif commandOperationCode == STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS:

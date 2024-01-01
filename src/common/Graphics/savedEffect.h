@@ -26,6 +26,8 @@ typedef struct
     int currentPaletteOffsetTarget; 
 
     uint8_t effectId;
+
+    float thresholdToShowMoreIntenseEffect;
 }
 SavedEffect;
 
