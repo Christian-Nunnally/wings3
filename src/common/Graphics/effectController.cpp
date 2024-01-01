@@ -3,7 +3,6 @@
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
 #include "../Graphics/effectController.h"
-#include "../Graphics/normalTransformMaps.h"
 #include "../Graphics/screenMaps.h"
 #include "../Graphics/effectSettings.h"
 #include "../Graphics/colorMixing.h"
@@ -111,6 +110,7 @@ Color getLedColorForFrame(int ledIndex)
         return ledColorMap[ledIndex];
     }
     uint8_t currentScreen = (*currentScreenMap)[ledIndex];
+    currentScreen = 1;
     if (currentScreen == 4) return {0, 0, 0};
     else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, effectA1AudioLevelThresholdToShowMoreIntenseEffect, ledIndex);
     
@@ -371,13 +371,13 @@ void pickRandomTransformMaps(Effect *effect, uint8_t likelihood)
     D_emitMetricString("AreTransformMapsMirrored", "No");
     if (fastRandomByte() < likelihood)
     {
-        effect->transformMap1Index = fastRandomInteger(transformMapsCount);
+        effect->transformMap1Index = fastRandomInteger(getNormalTransformMapCount());
         effect->isTransformMap1Mirrored = false;
         setTransformMap1FromSettings(effect);
     }
     if (fastRandomByte() < likelihood)
     {
-        effect->transformMap2Index = fastRandomInteger(transformMapsCount);
+        effect->transformMap2Index = fastRandomInteger(getNormalTransformMapCount());
         effect->isTransformMap1Mirrored = false;
         setTransformMap2FromSettings(effect);
     }
@@ -388,13 +388,13 @@ void pickRandomMirroredTransformMaps(Effect *effect, uint8_t likelihood)
     D_emitMetricString("AreTransformMapsMirrored", "Yes");
     if (fastRandomByte() < likelihood)
     {
-        effect->transformMap1Index = fastRandomInteger(transformMapsCount);
+        effect->transformMap1Index = fastRandomInteger(getMirroredTransformMapCount());
         effect->isTransformMap1Mirrored = true;
         setTransformMap1FromSettings(effect);
     }
     if (fastRandomByte() < likelihood)
     { 
-        effect->transformMap2Index = fastRandomInteger(transformMapsCount);
+        effect->transformMap2Index = fastRandomInteger(getMirroredTransformMapCount());
         effect->isTransformMap1Mirrored = true;
         setTransformMap2FromSettings(effect);
     }

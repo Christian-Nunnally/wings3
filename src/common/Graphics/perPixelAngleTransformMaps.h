@@ -1,5 +1,5 @@
-#ifndef PER_PIXEL_ANGLE_TRANSFORM_MAPS_H
-#define PER_PIXEL_ANGLE_TRANSFORM_MAPS_H
+#ifndef PERPIXELANGLE_TRANSFORM_MAPS_H
+#define PERPIXELANGLE_TRANSFORM_MAPS_H
 
 #include "../commonHeaders.h"
 #include "../settings.h"

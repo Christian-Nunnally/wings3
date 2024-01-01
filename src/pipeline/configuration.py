@@ -31,17 +31,19 @@ PhysicalLedIndexMapping = [
     [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 42, -1, 43, -1,179, -1,178, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
+# Defines the aspect ratio of the virtual canvas.
+VirtualCanvasWidth = 256.0
+VirtualCanvasHeight = 128.0
+
 # PhysicalLedIndexMapping = []
-# for i in range(11):
+# width = 40
+# height = 20
+# for i in range(height):
 #     PhysicalLedIndexMapping.append([])
-#     for j in range(11):
-#         PhysicalLedIndexMapping[i].append(i * 40 + j)
+#     for j in range(width):
+#         PhysicalLedIndexMapping[i].append(i * width + j)
 
-
-# PhysicalLedIndexMapping = [
-#     [  0, 1, ],
-#     [  2, 3, ],
-# ]
+# print(PhysicalLedIndexMapping)
 
 TotalLedCount = 0
 for y in range(len(PhysicalLedIndexMapping)):

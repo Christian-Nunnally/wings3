@@ -1,5 +1,5 @@
-#ifndef PER_PIXEL_RADIUS_TRANSFORM_MAPS_H
-#define PER_PIXEL_RADIUS_TRANSFORM_MAPS_H
+#ifndef PERPIXELRADIUS_TRANSFORM_MAPS_H
+#define PERPIXELRADIUS_TRANSFORM_MAPS_H
 
 #include "../commonHeaders.h"
 #include "../settings.h"

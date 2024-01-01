@@ -16,6 +16,4 @@ typedef struct
 }
 SavedEffectSettings;
 
-//void initializeSavedEffectSetting(SavedEffectSettings* savedEffectSettings);
-
 #endif

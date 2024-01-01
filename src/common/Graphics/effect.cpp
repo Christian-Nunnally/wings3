@@ -1,6 +1,7 @@
 
 #include "../Graphics/effect.h"
 #include "../Graphics/normalTransformMaps.h"
+#include "../Graphics/mirroredTransformMaps.h"
 
 #ifdef RP2040
 #else
@@ -35,4 +36,14 @@ void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaul
     effect->currentPaletteOffset = 0;
     effect->currentPaletteOffsetTarget = 0;
     effect->effectId = effectId;
+}
+
+int getNormalTransformMapCount()
+{
+    return transformMapsCount;
+}
+
+int getMirroredTransformMapCount()
+{
+    return mirroredTransformMapsCount;
 }

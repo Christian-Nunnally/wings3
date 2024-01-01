@@ -53,7 +53,7 @@ $(executablePath): $(objectsFilesList)
 	@if not exist $(binariesDirectory) mkdir $(binariesDirectory)
 	$(compiler) $(compilerFlags) $^ -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
-$(objectsDirectory)/%.o: %.cpp src/common/Graphics/palettes.h src/common/Graphics/screenMaps.h src/common/Graphics/normalTransformMaps.h src/common/Graphics/perPixelAngleTransformMaps.h src/common/Graphics/perPixelRadiusTransformMaps.h src/common/Graphics/directionMaps.h
+$(objectsDirectory)/%.o: %.cpp src/common/Graphics/palettes.h src/common/Graphics/screenMaps.h src/common/Graphics/normalTransformMaps.h src/common/Graphics/mirroredTransformMaps.h src/common/Graphics/perPixelAngleTransformMaps.h src/common/Graphics/perPixelRadiusTransformMaps.h src/common/Graphics/directionMaps.h
 	@if not exist $(objectsDirectory)\$(dir $<) mkdir $(objectsDirectory)\$(dir $<)
 	$(compiler) $(compilerFlags) -c $< -o $@ $(ompilerFlagsThatGoAfterObjectFiles)
 
@@ -67,6 +67,9 @@ src/common/Graphics/screenMaps.h: resources/ScreenMaps $(screenMapFiles) src/pip
 
 src/common/Graphics/normalTransformMaps.h: src/pipeline/transformMapsHeaderGenerator.py src/pipeline/configuration.py
 	python ./src/pipeline/transformMapsHeaderGenerator.py src/common/Graphics/normalTransformMaps.h normal
+
+src/common/Graphics/mirroredTransformMaps.h: src/pipeline/transformMapsHeaderGenerator.py src/pipeline/configuration.py
+	python ./src/pipeline/transformMapsHeaderGenerator.py src/common/Graphics/mirroredTransformMaps.h mirrored
 
 src/common/Graphics/perPixelRadiusTransformMaps.h: src/pipeline/transformMapsHeaderGenerator.py src/pipeline/configuration.py
 	python ./src/pipeline/transformMapsHeaderGenerator.py src/common/Graphics/perPixelRadiusTransformMaps.h perPixelRadius

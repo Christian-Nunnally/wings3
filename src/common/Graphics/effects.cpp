@@ -16,6 +16,7 @@
 #include "../Graphics/Effects/starFieldEffect.h"
 #include "../Graphics/savedEffectsSettings.h"
 #include "../Graphics/normalTransformMaps.h"
+#include "../Graphics/mirroredTransformMaps.h"
 #include "../Utility/fastRandom.h"
 
 int getRandomEffectNumberFromAllowedEffects();

@@ -42,5 +42,7 @@ typedef struct
 Effect;
 
 void initializeEffect(Effect *effect, int *frameTimeDeltaPointer, Color (*defaultEffect)(int), uint8_t effectId);
+int getNormalTransformMapCount();
+int getMirroredTransformMapCount();
 
 #endif
