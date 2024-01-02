@@ -1,5 +1,5 @@
 from src.windows.LedGridWindow import LedGridWindow
-from src.windows.TraceViewerWindow import TraceViewerWindow
+from src.windows.MetricViewerWindow import MetricViewerWindow
 from src.windows.RemoteControlWindow import RemoteControlWindow
 from src.windows.paletteViewerWindow import PaletteViewerWindow
 from subprocess import Popen, PIPE, STDOUT
@@ -33,7 +33,7 @@ def main():
     if os.system("make") != 0:
         exit()
     ledGridWindow = LedGridWindow()
-    configurationStatusWindow = TraceViewerWindow()
+    configurationStatusWindow = MetricViewerWindow()
     remoteControlWindow = RemoteControlWindow()
     paletteViewerWindow = PaletteViewerWindow()
     program = Popen(processPath, stdout = PIPE, stderr = STDOUT, stdin = PIPE, shell = True)

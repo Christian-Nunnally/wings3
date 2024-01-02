@@ -1,9 +1,7 @@
 #include "initializeAndRun.h"
-#include "../../windows/socketRemoteControl.h"
+#include "remoteControl.h"
 #include "../commonHeaders.h"
 #include "../settings.h"
-#include "../../windows/testLeds.h"
-#include "../../windows/socketRemoteControl.h"
 #include "../IO/leds.h"
 #include "../IO/analogInput.h"
 #include "../Graphics/effectController.h"
@@ -12,7 +10,6 @@
 #include "../IO/serial.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
-#include "remoteCommandInterpreter.h"
 
 void initialize()
 {
@@ -35,11 +32,6 @@ void run()
         checkForMovement();
         readAnalogValues();
         D_serialRead();
-
-        #ifdef RP2040
-        //processRealRemoteInput();
-        #else
-        processFakeRemoteInput();
-        #endif
+        processRemoteInput();
     }
 }

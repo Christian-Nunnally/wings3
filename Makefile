@@ -13,6 +13,7 @@ sourceFilesList := \
 	src\windows\socketRemoteControl.cpp \
 	src\common\Control\remoteCommandInterpreter.cpp \
 	src\common\Control\initializeAndRun.cpp \
+	src\common\Control\remoteControl.cpp \
 	src\common\IO\leds.cpp \
 	src\common\Peripherals\microphone.cpp \
 	src\common\Peripherals\movementDetection.cpp \
@@ -25,6 +26,7 @@ sourceFilesList := \
 	src\common\Graphics\timeModes.cpp \
 	src\common\Graphics\mixingModes.cpp \
 	src\common\Graphics\brightnessControlModes.cpp \
+	src\common\Graphics\effectSettings.cpp \
 	src\common\IO\analogInput.cpp \
 	src\common\IO\tracing.cpp \
 	src\common\Observers\stepDectectedObserver.cpp \

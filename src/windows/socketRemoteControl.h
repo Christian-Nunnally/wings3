@@ -12,7 +12,9 @@
 #include <cstring>
 #include <unistd.h>
 #include <sstream>
+#include "../common/Control/remoteControl.h"
 
-void processFakeRemoteInput();
+bool isSocketInputReady();
+RemoteControlCommand getSocketInput();
 
 #endif

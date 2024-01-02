@@ -72,6 +72,18 @@ typedef struct
   bool PrimaryEffectToggle = false;
   bool RandomizeEffectsAutomaticallyOverTime = false;
   uint16_t MillisecondsBetweenTimeBasedAutomaticEffectRandomization = 1000;
+
+  uint16_t millisecondsLeftInMixingModeBlend;
+  uint16_t desiredDurationOfMixingModeBlendInMilliseconds = 1;
+  uint8_t mixingModeBlendFunctionIndex = 0;
+  uint8_t oldMixingModeBlendFunctionIndex = 0;
+
+  uint16_t percentOfEffectBToShow;
+  uint8_t percentOfSecondaryEffectToShow;
+  uint16_t currentTransitionIncrement;
+  uint16_t millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
+  uint16_t millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = 1;
+  bool transitionDirection;
 }
 EffectSettings;
 

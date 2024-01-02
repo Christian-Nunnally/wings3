@@ -7,7 +7,7 @@ STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC = "0"
 #define STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS = 2
 #define STANDARD_OUTPUT_OPERATION_CODE_CLEAR_LEDS = 3
 
-class TraceViewerWindow(SimpleWindow):
+class MetricViewerWindow(SimpleWindow):
     keyToIndexMap = {}
     indexToKeyMap = {}
     graphWindow = None
@@ -51,6 +51,8 @@ class TraceViewerWindow(SimpleWindow):
     keyToUserFriendlyNameMap[34] = "fxCurrentPaletteOffsetTarget"
     keyToUserFriendlyNameMap[35] = "fxPalette"
     keyToUserFriendlyNameMap[36] = "fxPaletteOffset"
+    keyToUserFriendlyNameMap[36] = "profileTime"
+    keyToUserFriendlyNameMap[37] = "fadeSettingAmount"
 
     def __init__(self):
         self.createRoot()

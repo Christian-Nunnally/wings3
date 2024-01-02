@@ -25,7 +25,8 @@ print(file=outFile)
 for fileName in bitmapFiles:
     image = Image.open(fileName, 'r')
     pixels = list(image.getdata())
-    image.palette
+    if image.palette is None:
+        image = image.convert('RGB')
     
     screenMap = []
     for i in range(TotalLedCount):
@@ -33,9 +34,18 @@ for fileName in bitmapFiles:
             for y in range(PhysicalLedIndexMappingWidth):
                 if (PhysicalLedIndexMapping[x][y] == i):
                     RGB = image.getpixel((y,x))
-                    R = image.palette.tobytes()[RGB * 3 + 0]
-                    G = image.palette.tobytes()[RGB * 3 + 1]
-                    B = image.palette.tobytes()[RGB * 3 + 2]
+                    R = 0
+                    G = 0
+                    B = 0
+                    if image.palette is None:
+                        R = RGB[0]
+                        G = RGB[1]
+                        B = RGB[2]
+                        pass
+                    else:
+                        R = image.palette.tobytes()[RGB * 3 + 0]
+                        G = image.palette.tobytes()[RGB * 3 + 1]
+                        B = image.palette.tobytes()[RGB * 3 + 2]
                     screenValue = 0 if R > 128 and G > 128 and B > 128 else 0
                     screenValue = 1 if R < 128 and G > 128 and B < 128 else screenValue
                     screenValue = 2 if R < 128 and G < 128 and B > 128 else screenValue

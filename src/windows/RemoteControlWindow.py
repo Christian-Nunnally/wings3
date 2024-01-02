@@ -31,8 +31,13 @@ REMOTE_OPERATION_CODE_NAVIGATE_LEFT = 21
 REMOTE_OPERATION_CODE_NAVIGATE_RIGHT = 22
 REMOTE_OPERATION_CODE_NAVIGATE_ENTER = 23
 REMOTE_OPERATION_CODE_NAVIGATE_BACK = 24
-# Ideas
-#REMOTE_OPERATION_CODE_SET_COLOR = 24
+REMOTE_OPERATION_CODE_INCREASE_FADE = 25
+REMOTE_OPERATION_CODE_DECREASE_FADE = 26
+REMOTE_OPERATION_CODE_SET_FADE = 27
+REMOTE_OPERATION_CODE_ENABLE_SECONDARY_EFFECT = 28
+REMOTE_OPERATION_CODE_DISABLE_SECONDARY_EFFECT = 29
+REMOTE_OPERATION_CODE_ENABLE_BACKGROUND_EFFECT = 30
+REMOTE_OPERATION_CODE_DISABLE_BACKGROUND_EFFECT = 31
 
 
 class RemoteControlWindow(SimpleWindow):
@@ -84,42 +89,52 @@ class RemoteControlWindow(SimpleWindow):
         self.root.title("Simulated Remote Control")
         self.create_grid(self.root)
 
-    def makeButton(self, root, text, command):
-        button = tk.Button(root, width=30, height=2, background="black", foreground="white", text=text, command=command)
+    def makeButton(self, text, command):
+        button = tk.Button(self.root, width=30, height=2, background="black", foreground="white", text=text, command=command)
         button.grid(row=self.buttonCount, column=0)
         self.buttonCount += 1
 
+    def makeSlider(self, label, updateCommand):
+        label = tk.Label(self.root, text=label, background="black", foreground="white")
+        label.grid(row=self.buttonCount, column=0)
+        self.buttonCount += 1
+
+        slider = tk.Scale(self.root, from_=0, to=255, orient=tk.HORIZONTAL, command=updateCommand, background="black", foreground="white", length=200)
+        slider.grid(row=self.buttonCount, column=0)
+        self.buttonCount += 1
+
     def create_grid(self, root):
-        self.makeButton(root, "Enable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_LEDS))
-        self.makeButton(root, "Disable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_LEDS))
-        self.makeButton(root, "Enable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MUSIC_DETECTION))
-        self.makeButton(root, "Disable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MUSIC_DETECTION))
-        self.makeButton(root, "Enable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION))
-        self.makeButton(root, "Disable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION))
-        self.makeButton(root, "Enable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION))
-        self.makeButton(root, "Disable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_STEP_DETECTION))
-        self.makeButton(root, "Enable random effect change", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_RANDOM_EFFECT_CHANGE))
-        self.makeButton(root, "Disable random effect change", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_RANDOM_EFFECT_CHANGE))
-        self.makeButton(root, "Increase brightness", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_BRIGHTNESS))
-        self.makeButton(root, "Decrease brightness", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_BRIGHTNESS))
-        self.makeButton(root, "Increase speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_SPEED))
-        self.makeButton(root, "Decrease speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_SPEED))
-        self.makeButton(root, "Randomize effect randomly", lambda : self.runCommand(REMOTE_OPERATION_CODE_RANDOMIZE_EFFECTS))
-        self.makeButton(root, "Save to preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 1))
-        self.makeButton(root, "Save to preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 2))
-        self.makeButton(root, "Save to preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 3))
-        self.makeButton(root, "Load from preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 1))
-        self.makeButton(root, "Load from preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 2))
-        self.makeButton(root, "Load from preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 3))
-        self.makeButton(root, "Trigger effect",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 0))
-        self.makeButton(root, "Trigger effect 2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 1))
-        # self.makeButton(root, "Settings",  lambda : self.runCommand(REMOTE_OPERATION_CODE_ENTER_SETTINGS))
-        # self.makeButton(root, "Up",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_UP))
-        # self.makeButton(root, "Right",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_RIGHT))
-        # self.makeButton(root, "Down",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_DOWN))
-        # self.makeButton(root, "Left",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_LEFT))
-        # self.makeButton(root, "Enter",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_ENTER))
-        # self.makeButton(root, "Back",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_BACK))
+        self.makeButton("Enable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_LEDS))
+        self.makeButton("Disable leds", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_LEDS))
+        self.makeButton("Enable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MUSIC_DETECTION))
+        self.makeButton("Disable music detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MUSIC_DETECTION))
+        self.makeButton("Enable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_MOVEMENT_DETECTION))
+        self.makeButton("Disable movement detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_MOVEMENT_DETECTION))
+        self.makeButton("Enable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_STEP_DETECTION))
+        self.makeButton("Disable step detection", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_STEP_DETECTION))
+        self.makeButton("Enable random effect change", lambda : self.runCommand(REMOTE_OPERATION_CODE_ENABLE_RANDOM_EFFECT_CHANGE))
+        self.makeButton("Disable random effect change", lambda : self.runCommand(REMOTE_OPERATION_CODE_DISABLE_RANDOM_EFFECT_CHANGE))
+        self.makeButton("Increase brightness", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_BRIGHTNESS))
+        self.makeButton("Decrease brightness", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_BRIGHTNESS))
+        self.makeButton("Increase speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_SPEED))
+        self.makeButton("Decrease speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_SPEED))
+        self.makeButton("Randomize effect randomly", lambda : self.runCommand(REMOTE_OPERATION_CODE_RANDOMIZE_EFFECTS))
+        self.makeButton("Save to preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 1))
+        self.makeButton("Save to preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 2))
+        self.makeButton("Save to preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 3))
+        self.makeButton("Load from preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 1))
+        self.makeButton("Load from preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 2))
+        self.makeButton("Load from preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 3))
+        self.makeButton("Trigger effect",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 0))
+        self.makeButton("Trigger effect 2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 1))
+        # self.makeButton("Settings",  lambda : self.runCommand(REMOTE_OPERATION_CODE_ENTER_SETTINGS))
+        # self.makeButton("Up",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_UP))
+        # self.makeButton("Right",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_RIGHT))
+        # self.makeButton("Down",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_DOWN))
+        # self.makeButton("Left",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_LEFT))
+        # self.makeButton("Enter",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_ENTER))
+        # self.makeButton("Back",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_BACK))
+        self.makeSlider("Set fade",  lambda v : self.runCommand(REMOTE_OPERATION_CODE_SET_FADE, v))
 
 if __name__ == "__main__":
     RemoteControlWindow()

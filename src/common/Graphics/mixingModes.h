@@ -8,5 +8,6 @@ void setupMixingModes();
 Color blendIncorporatingOldMixingMode(Color color1, Color color2, uint8_t percentOfEffectBToShow);
 void incrementMixingModeBlend(int frameTimeDelta);
 void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMillisecondsForTransition);
+void setMixingModeBlendFunctionFromIndex();
 
 #endif

@@ -10,7 +10,7 @@ class SimpleWindow:
 
     def createRoot(self):
         self.root = tk.Tk()
-        self.dark_title_bar(self.root)
+        self.darkenTitleBar(self.root)
         self.root.configure(background='black')
         self.root.protocol("WM_DELETE_WINDOW", self.onClosing)
 
@@ -25,23 +25,19 @@ class SimpleWindow:
     def center(self):
         self.root.update_idletasks()
         user32 = ctypes.windll.user32
-        screen_width = user32.GetSystemMetrics(0)
-        screen_height = user32.GetSystemMetrics(1)
+        screenWidth = user32.GetSystemMetrics(0)
+        screenHeight = user32.GetSystemMetrics(1)
 
         size = tuple(int(_) for _ in self.root.geometry().split('+')[0].split('x'))
-        x = screen_width/2 - size[0]/2
-        y = screen_height/2 - size[1]/2
+        x = screenWidth/2 - size[0]/2
+        y = screenHeight/2 - size[1]/2
         self.root.geometry("+%d+%d" % (x, y))
 
-    def dark_title_bar(self, window):
-        """
-        MORE INFO:
-        https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
-        """
+    def darkenTitleBar(self, window):
         window.update()
-        set_window_attribute = ctypes.windll.dwmapi.DwmSetWindowAttribute
-        get_parent = ctypes.windll.user32.GetParent
-        hwnd = get_parent(window.winfo_id())
+        setWindowAttribute = ctypes.windll.dwmapi.DwmSetWindowAttribute
+        getParent = ctypes.windll.user32.GetParent
+        hwnd = getParent(window.winfo_id())
         value = 2
         value = ctypes.c_int(value)
-        set_window_attribute(hwnd, 20, ctypes.byref(value), 4)
+        setWindowAttribute(hwnd, 20, ctypes.byref(value), 4)

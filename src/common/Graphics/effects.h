@@ -29,6 +29,7 @@ void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings);
 void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEffectSettings);
 void setCurrentScreenMapFromSettings();
 int getScreenMapCount();
+bool doEffectsNeedToRefresh();
 
 extern Effect effectA1;
 extern Effect effectB1;

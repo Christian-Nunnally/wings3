@@ -6,6 +6,7 @@
 std::queue<std::string> fifoQueue;
 SOCKET clientSocket;
 bool hasSocketRemoteBeenInitialized = false;
+std::string lastReadLineFromSocket;
 
 void startSocketReader();
 bool stopSocketReader();
@@ -98,19 +99,23 @@ void runInNewThread()
     }
 }
 
-void processFakeRemoteInput() 
+bool isSocketInputReady() 
 {
     if (!hasSocketRemoteBeenInitialized)
     {
         hasSocketRemoteBeenInitialized = true;
         runInNewThread();
-        return;
+        return false;
     }
 
-    std::string line;
-    line = readLineNonBlocking();
-    if (line.empty()) return;
-    std::stringstream ss(line);
+    lastReadLineFromSocket = readLineNonBlocking();
+    if (lastReadLineFromSocket.empty()) return false;
+    return true;
+}
+
+RemoteControlCommand getSocketInput() 
+{
+    std::stringstream ss(lastReadLineFromSocket);
 
     std::string token;
     uint8_t operationCode = 0;
@@ -134,9 +139,7 @@ void processFakeRemoteInput()
     {
         operationFlags = static_cast<uint8_t>(std::stoi(token));
     }
-
-    interpretRemoteCommand(operationCode, operationValue, operationFlags);
-    D_emitMetricString(METRIC_NAME_ID_REMOTE_OP_CODE, line);
+    return {operationCode, operationValue, operationFlags};
 }
 
 DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)

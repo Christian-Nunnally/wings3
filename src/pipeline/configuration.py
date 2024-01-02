@@ -32,8 +32,8 @@ PhysicalLedIndexMapping = [
 ]
 
 # Defines the aspect ratio of the virtual canvas.
-VirtualCanvasWidth = 256.0
-VirtualCanvasHeight = 128.0
+VirtualCanvasWidth = 255.0
+VirtualCanvasHeight = 127.0
 
 # PhysicalLedIndexMapping = []
 # width = 40

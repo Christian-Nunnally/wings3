@@ -19,6 +19,7 @@
 #include "../Graphics/mirroredTransformMaps.h"  
 #include "../Graphics/effectSettings.h"  
 #include "../Graphics/screenMaps.h"
+#include "../Graphics/mixingModes.h"
 #include "../Utility/fastRandom.h"
 
 int getRandomEffectNumberFromAllowedEffects();
@@ -31,6 +32,8 @@ Effect effectA1;
 Effect effectB1;
 Effect effectA2;
 Effect effectB2;
+
+bool haveNewEffectsBeenLoaded = false;
 
 float currentAudioIntensityLevel;
 
@@ -382,6 +385,8 @@ void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
     setBrightnessPointerFromIndexForEffect(&effectB2);
 
     setCurrentScreenMapFromSettings();
+    setMixingModeBlendFunctionFromIndex();
+    haveNewEffectsBeenLoaded = true;
 }
 
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect)
@@ -492,6 +497,18 @@ void copyEffectSettings(EffectSettings* fromEffectSettings, EffectSettings* toEf
     toEffectSettings->PrimaryEffectToggle = fromEffectSettings->PrimaryEffectToggle;
     toEffectSettings->RandomizeEffectsAutomaticallyOverTime = fromEffectSettings->RandomizeEffectsAutomaticallyOverTime;
     toEffectSettings->MillisecondsBetweenTimeBasedAutomaticEffectRandomization = fromEffectSettings->MillisecondsBetweenTimeBasedAutomaticEffectRandomization;
+
+    toEffectSettings->millisecondsLeftInMixingModeBlend = fromEffectSettings->millisecondsLeftInMixingModeBlend;
+    toEffectSettings->desiredDurationOfMixingModeBlendInMilliseconds = fromEffectSettings->desiredDurationOfMixingModeBlendInMilliseconds;
+    toEffectSettings->mixingModeBlendFunctionIndex = fromEffectSettings->mixingModeBlendFunctionIndex;
+    toEffectSettings->oldMixingModeBlendFunctionIndex = fromEffectSettings->oldMixingModeBlendFunctionIndex;
+
+    toEffectSettings->percentOfEffectBToShow = fromEffectSettings->percentOfEffectBToShow;
+    toEffectSettings->percentOfSecondaryEffectToShow = fromEffectSettings->percentOfSecondaryEffectToShow;
+    toEffectSettings->currentTransitionIncrement = fromEffectSettings->currentTransitionIncrement;
+    toEffectSettings->millisecondsLeftInTransitionFromSecondaryToPrimaryEffect = fromEffectSettings->millisecondsLeftInTransitionFromSecondaryToPrimaryEffect;
+    toEffectSettings->millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax = fromEffectSettings->millisecondsLeftInTransitionFromSecondaryToPrimaryEffectMax;
+    toEffectSettings->transitionDirection = fromEffectSettings->transitionDirection;
 }
 
 void setTransformMap1FromSettings(Effect* effect)
@@ -528,4 +545,13 @@ void setCurrentScreenMapFromSettings()
 int getScreenMapCount()
 {
     return screenMapsCount;
+}
+
+bool doEffectsNeedToRefresh()
+{
+    if (haveNewEffectsBeenLoaded)
+    {
+        haveNewEffectsBeenLoaded = false;
+        return true;
+    }
 }
