@@ -34,3 +34,11 @@ This project can be built for two targets, either a RP4020 microcontroller, or o
 
 1. Compile and upload `wings3.ino` to the microcontroller
 
+
+`choco install make`
+`choco install mingw`
+`pip install pipx`
+`pipx install poetry`
+`pipx ensurepath`
+`poetry install`
+`poetry run sim`
