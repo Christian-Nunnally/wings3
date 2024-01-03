@@ -51,14 +51,14 @@ void pickRandomGlobalBrightnessControlModesForEffect(Effect *effect, uint8_t lik
 void incrementBrightnessModeLevels()
 {
     const uint8_t half8BitMax = UINT8_MAX / 2;
-    double currentAudioIntensityLevel = getAudioIntensityRatio();
+    float currentAudioIntensityLevel = getAudioIntensityRatio();
     brightnessModeAudioLevelBasedBrightness = currentAudioIntensityLevel * UINT8_MAX;
     brightnessModeAudioLevelBasedBrightnessBrighter = half8BitMax + half8BitMax * currentAudioIntensityLevel;
     brightnessModeAudioLevelBasedBrightnessInverse = UINT8_MAX - (currentAudioIntensityLevel * UINT8_MAX);
     brightnessModePitchBasedMovement = (getCurrentPitchPosition() >> 19) & 0xff;
     brightnessModeRollBasedMovement = (getCurrentRollPosition() >> 19) & 0xff;
     brightnessModeYawBasedMovement = (getCurrentYawPosition() >> 19) & 0xff;
-    D_emitDoubleMetric(METRIC_NAME_ID_AUDIO_INTENSITY_RATIO, currentAudioIntensityLevel);
+    D_emitFloatMetric(METRIC_NAME_ID_AUDIO_INTENSITY_RATIO, currentAudioIntensityLevel);
 }
 
 void setBrightnessPointerFromIndexForEffect(Effect *effect)

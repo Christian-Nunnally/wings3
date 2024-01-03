@@ -38,18 +38,18 @@ ADCInput microphoneADCInput(MICROPHONE_PIN);
 
 int samplesRead;
 float sumOfSquaredSample;
-double currentRootMeanSquare = 1.0;
-double currentPeakRootMeanSquare = 1.0;
-double currentMinRootMeanSquare = 0.0;
-double currentFilteredAudioLevel;
-double currentMinAccelRate = 0.0;
-double currentMaxAccelRate = 0.0;
+float currentRootMeanSquare = 1.0;
+float currentPeakRootMeanSquare = 1.0;
+float currentMinRootMeanSquare = 0.0;
+float currentFilteredAudioLevel;
+float currentMinAccelRate = 0.0;
+float currentMaxAccelRate = 0.0;
 int currentPeakDetectorValue;
 bool isMusicDetectedInternal = false;
 int musicDetectionCountdown = MUSIC_DETECTION_COUNTDOWN;
 unsigned long lastRmsDecayTime;
 
-double exponentialMovingAverage = 10.0;
+float exponentialMovingAverage = 10.0;
 
 bool micDataReady = false;
 void onMicDataReady(void) {micDataReady = true;}
@@ -68,11 +68,11 @@ bool setupMicrophone()
     return result;
 }
 
-void updateExponentialMovingAverage(double newValue) {
+void updateExponentialMovingAverage(float newValue) {
     exponentialMovingAverage = EMA_FILTER_ALPHA * newValue + (1 - EMA_FILTER_ALPHA) * exponentialMovingAverage;
 }
 
-double getAudioIntensityRatio()
+float getAudioIntensityRatio()
 {
     if (isMusicDetected()) 
     {
@@ -125,11 +125,11 @@ inline void applyFiltering()
     currentRootMeanSquare = ((sqrt(sumOfSquaredSample / samplesRead) - 830) * .7) + (currentRootMeanSquare * .3);
     #else
     currentRootMeanSquare = getLastTestMicrophoneRMS();
-    D_emitIntegerMetric(METRIC_NAME_ID_ROOT_MEAN_SQUARE, currentRootMeanSquare);
     #endif
+    D_emitMetric(METRIC_NAME_ID_ROOT_MEAN_SQUARE, currentRootMeanSquare);
     updateExponentialMovingAverage(currentRootMeanSquare);
     peakDetector.add(exponentialMovingAverage);
-    D_emitFloatMetric(METRIC_NAME_ID_EXPONENTIAL_MOVING_AVERAGE, exponentialMovingAverage);
+    D_emitMetric(METRIC_NAME_ID_EXPONENTIAL_MOVING_AVERAGE, exponentialMovingAverage);
     currentPeakDetectorValue = peakDetector.getPeak();
     currentFilteredAudioLevel = peakDetector.getFilt();
 }

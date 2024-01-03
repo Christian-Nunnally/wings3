@@ -35,20 +35,20 @@ class PeakDetection {
     PeakDetection();
     ~PeakDetection();
     void begin();
-    void begin(int, int, double); //lag, threshold, influence
-    //void add(double);
-    double add(double);
-    double getFilt();
+    void begin(int, int, float); //lag, threshold, influence
+    //void add(float);
+    float add(float);
+    float getFilt();
     int getPeak();
-    void setEpsilon(double);
-    double getEpsilon();
+    void setEpsilon(float);
+    float getEpsilon();
 
   private:
     int index, lag, threshold, peak;
-    double influence, EPSILON, *data, *avg, *std;
-    double getAvg(int, int);
-    double getPoint(int, int);
-    double getStd(int, int);
+    float influence, EPSILON, *data, *avg, *std;
+    float getAvg(int, int);
+    float getPoint(int, int);
+    float getStd(int, int);
 };
 
 #endif

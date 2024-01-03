@@ -98,8 +98,6 @@ class MetricViewerWindow(SimpleWindow):
         if arguments[0] == STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC:
             if len(arguments) == 3:
                 self.update_single_status(arguments[1], f"{self.keyToUserFriendlyNameMap[int(arguments[1])]}: {arguments[2]}")
-            elif len(arguments) == 4:
-                self.update_single_status(arguments[1], f"{arguments[2]}: {arguments[3]}")
             if self.graphWindow is not None and arguments[1] == self.graphedMetricName:
                 try:
                     self.graphWindow.insertData(float(arguments[2]))

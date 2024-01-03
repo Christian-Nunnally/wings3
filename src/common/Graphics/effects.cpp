@@ -521,7 +521,7 @@ void setTransformMap1FromSettings(Effect* effect)
     {
         (*effect->transformMap1) = transformMaps[effect->transformMap1Index];
     }
-    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_1, effect->effectId, effect->transformMap1Index);
+    D_emitMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_1, effect->transformMap1Index);
 }
 
 void setTransformMap2FromSettings(Effect* effect)
@@ -534,7 +534,7 @@ void setTransformMap2FromSettings(Effect* effect)
     {
         (*effect->transformMap2) = transformMaps[effect->transformMap2Index];
     }
-    D_emitIntegerMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_2, effect->effectId, effect->transformMap2Index);
+    D_emitMetric(METRIC_NAME_ID_EFFECT_TRANSFORM_MAP_2, effect->transformMap2Index);
 }
 
 void setCurrentScreenMapFromSettings()

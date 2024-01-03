@@ -46,21 +46,14 @@
 #define METRIC_NAME_ID_FADE_SETTING_AMOUNT 37 // fadeSettingAmount
 
 #ifdef ENABLE_TRACING
-#define D_emitMetricString(...)    emitMetricString(__VA_ARGS__)
-#define D_emitIntegerMetric(...)   emitIntegerMetric(__VA_ARGS__)
-#define D_emitDoubleMetric(...)   emitDoubleMetric(__VA_ARGS__)
-#define D_emitFloatMetric(...)   emitFloatMetric(__VA_ARGS__)
+#define D_emitMetric(...)    emitMetric(__VA_ARGS__)
 #else
-#define D_emitMetricString(...)
-#define D_emitIntegerMetric(...)
-#define D_emitDoubleMetric(...)
-#define D_emitFloatMetric(...)
+#define D_emitMetric(...)
 #endif
 
-void emitMetricString(uint16_t metricNameId, std::string value);
-void emitIntegerMetric(uint16_t metricNameId, int value);
-void emitIntegerMetric(uint16_t metricNameId, uint8_t id, int value);
-void emitDoubleMetric(uint16_t metricNameId, double value);
-void emitFloatMetric(uint16_t metricNameId, float value);
+void emitMetric(uint16_t metricNameId, std::string value);
+void emitMetric(uint16_t metricNameId, int value);
+void emitMetric(uint16_t metricNameId, float value);
+void processMetrics();
 
 #endif

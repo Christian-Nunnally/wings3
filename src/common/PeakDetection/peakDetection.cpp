@@ -25,12 +25,14 @@
 */
 
 #include "PeakDetection.h"
-
 using namespace std;
+
+#define TwoToThePowerOf14 16383
+
 const int DEFAULT_LAG = 32;
 const int DEFAULT_THRESHOLD = 2;
-const double DEFAULT_INFLUENCE = 0.5;
-const double DEFAULT_EPSILON = 0.01;
+const float DEFAULT_INFLUENCE = 0.5;
+const float DEFAULT_EPSILON = 0.01;
 
 PeakDetection::PeakDetection() {
   index = 0;
@@ -48,9 +50,9 @@ PeakDetection::~PeakDetection() {
 }
 
 void PeakDetection::begin() {
-  data = (double *)malloc(sizeof(double) * (lag + 1));
-  avg = (double *)malloc(sizeof(double) * (lag + 1));
-  std = (double *)malloc(sizeof(double) * (lag + 1));
+  data = (float *)malloc(sizeof(float) * (lag + 1));
+  avg = (float *)malloc(sizeof(float) * (lag + 1));
+  std = (float *)malloc(sizeof(float) * (lag + 1));
   for (int i = 0; i < lag; ++i) {
     data[i] = 0.0;
     avg[i] = 0.0;
@@ -58,13 +60,13 @@ void PeakDetection::begin() {
   }
 }
 
-void PeakDetection::begin(int lag, int threshold, double influence) {
+void PeakDetection::begin(int lag, int threshold, float influence) {
   this->lag = lag;
   this->threshold = threshold;
   this->influence = influence;
-  data = (double *)malloc(sizeof(double) * (lag + 1));
-  avg = (double *)malloc(sizeof(double) * (lag + 1));
-  std = (double *)malloc(sizeof(double) * (lag + 1));
+  data = (float *)malloc(sizeof(float) * (lag + 1));
+  avg = (float *)malloc(sizeof(float) * (lag + 1));
+  std = (float *)malloc(sizeof(float) * (lag + 1));
   for (int i = 0; i < lag; ++i) {
     data[i] = 0.0;
     avg[i] = 0.0;
@@ -72,39 +74,38 @@ void PeakDetection::begin(int lag, int threshold, double influence) {
   }
 }
 
-void PeakDetection::setEpsilon(double epsilon) {
+void PeakDetection::setEpsilon(float epsilon) {
   this->EPSILON = epsilon;
 }
 
-double PeakDetection::getEpsilon() {
+float PeakDetection::getEpsilon() {
   return(EPSILON);
 }
 
-//void PeakDetection::add(double newSample) {
-double PeakDetection::add(double newSample) {
+float PeakDetection::add(float newSample) {
   peak = 0;
-  int i = index % lag; //current index
-  int j = (index + 1) % lag; //next index
-  double deviation = newSample - avg[i];
-  if (deviation > threshold * std[i]) {
-    data[j] = influence * newSample + (1.0 - influence) * data[i];
+  int currentIndex = index % lag;
+  int nextIndex = (index + 1) % lag;
+  float deviation = newSample - avg[currentIndex];
+  if (deviation > threshold * std[currentIndex]) {
+    data[nextIndex] = influence * newSample + (1.0 - influence) * data[currentIndex];
     peak = 1;
   }
-  else if (deviation < -threshold * std[i]) {
-    data[j] = influence * newSample + (1.0 - influence) * data[i];
+  else if (deviation < -threshold * std[currentIndex]) {
+    data[nextIndex] = influence * newSample + (1.0 - influence) * data[currentIndex];
     peak = -1;
   }
   else
-    data[j] = newSample;
-  avg[j] = getAvg(j, lag);
-  std[j] = getStd(j, lag);
+    data[nextIndex] = newSample;
+  avg[nextIndex] = getAvg(nextIndex, lag);
+  std[nextIndex] = getStd(nextIndex, lag);
   index++;
-  if (index >= 16383) //2^14
-    index = lag + j;
-  return(std[j]);
+  if (index >= TwoToThePowerOf14)
+    index = lag + nextIndex;
+  return(std[nextIndex]);
 }
 
-double PeakDetection::getFilt() {
+float PeakDetection::getFilt() {
   int i = index % lag;
   return avg[i];
 }
@@ -113,25 +114,25 @@ int PeakDetection::getPeak() {
   return peak;
 }
 
-double PeakDetection::getAvg(int start, int len) {
-  double x = 0.0;
+float PeakDetection::getAvg(int start, int len) {
+  float x = 0.0;
   for (int i = 0; i < len; ++i)
     x += data[(start + i) % lag];
   return x / len;
 }
 
-double PeakDetection::getPoint(int start, int len) {
-  double xi = 0.0;
+float PeakDetection::getPoint(int start, int len) {
+  float xi = 0.0;
   for (int i = 0; i < len; ++i)
     xi += data[(start + i) % lag] * data[(start + i) % lag];
   return xi / len;
 }
 
-double PeakDetection::getStd(int start, int len) {
-  double x1 = getAvg(start, len);
-  double x2 = getPoint(start, len);
-  double powx1 = x1 * x1;
-  double std = x2 - powx1;
+float PeakDetection::getStd(int start, int len) {
+  float x1 = getAvg(start, len);
+  float x2 = getPoint(start, len);
+  float powx1 = x1 * x1;
+  float std = x2 - powx1;
   if (std > -EPSILON && std < EPSILON)
     if(std < 0.0)
         return(-EPSILON);

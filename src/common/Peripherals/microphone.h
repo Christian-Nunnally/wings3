@@ -4,7 +4,7 @@
 bool setupMicrophone();
 void processAudioStream();
 void onAudioDataReceived();
-double getAudioIntensityRatio();
+float getAudioIntensityRatio();
 int getCurrentPeakDetectorValue();
 int getCurrentPeakRootMeanSquare();
 int getCurrentFilteredAudioLevel();

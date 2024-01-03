@@ -2,6 +2,7 @@ import pyaudio
 import numpy
 import sys
 from OptionDialog import showOptionsDialog
+import time
 
 AUDIO_FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -42,6 +43,8 @@ except OSError as e:
         stream = audio.open(format=AUDIO_FORMAT, channels=CHANNELS, rate=SAMPLES_PER_SECOND, input=True, frames_per_buffer=FRAMES_PER_BUFFER, input_device_index=deviceIndex)
     except OSError as e2:
         exit(1)
+
+time.sleep(1)
 
 try:
     while True:

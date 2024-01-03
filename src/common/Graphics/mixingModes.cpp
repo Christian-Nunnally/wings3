@@ -49,8 +49,8 @@ void incrementMixingModeBlend(int frameTimeDelta)
     if (!effectSettings.millisecondsLeftInMixingModeBlend) return;
     effectSettings.millisecondsLeftInMixingModeBlend = effectSettings.millisecondsLeftInMixingModeBlend > frameTimeDelta ? effectSettings.millisecondsLeftInMixingModeBlend - frameTimeDelta : 0;
     percentOfOldMixingModeToMixIn8Bit = (effectSettings.millisecondsLeftInMixingModeBlend / effectSettings.desiredDurationOfMixingModeBlendInMilliseconds) * UINT8_MAX;
-    D_emitIntegerMetric(METRIC_NAME_ID_MILLISECONDS_LEFT_IN_MIXING_MODE_BLEND, effectSettings.millisecondsLeftInMixingModeBlend);
-    D_emitIntegerMetric(METRIC_NAME_ID_PERCENT_OF_OLD_MIXING_MODE, percentOfOldMixingModeToMixIn8Bit);
+    D_emitMetric(METRIC_NAME_ID_MILLISECONDS_LEFT_IN_MIXING_MODE_BLEND, effectSettings.millisecondsLeftInMixingModeBlend);
+    D_emitMetric(METRIC_NAME_ID_PERCENT_OF_OLD_MIXING_MODE, percentOfOldMixingModeToMixIn8Bit);
 }
 
 void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMillisecondsForTransition)
@@ -60,8 +60,8 @@ void pickRandomMixingMode(int minimumMillisecondsForTransition, int maximumMilli
     setMixingModeBlendFunctionFromIndex();
     effectSettings.desiredDurationOfMixingModeBlendInMilliseconds = fastRandomInteger(minimumMillisecondsForTransition, maximumMillisecondsForTransition) + 1;
     effectSettings.millisecondsLeftInMixingModeBlend = effectSettings.desiredDurationOfMixingModeBlendInMilliseconds;
-    D_emitIntegerMetric(METRIC_NAME_ID_MIXING_MODE_BLEND_FUNCTION, effectSettings.mixingModeBlendFunctionIndex);
-    D_emitIntegerMetric(METRIC_NAME_ID_MILLISECONDS_LEFT_IN_MIXING_MODE_BLEND_TOTAL, effectSettings.desiredDurationOfMixingModeBlendInMilliseconds);
+    D_emitMetric(METRIC_NAME_ID_MIXING_MODE_BLEND_FUNCTION, effectSettings.mixingModeBlendFunctionIndex);
+    D_emitMetric(METRIC_NAME_ID_MILLISECONDS_LEFT_IN_MIXING_MODE_BLEND_TOTAL, effectSettings.desiredDurationOfMixingModeBlendInMilliseconds);
 }
 
 void setMixingModeBlendFunctionFromIndex()

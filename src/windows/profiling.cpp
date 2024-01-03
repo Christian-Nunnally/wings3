@@ -10,5 +10,5 @@ void startProfile()
 
 void stopProfile()
 {
-    D_emitFloatMetric(METRIC_NAME_ID_PROFILE_TIME, ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000);
+    D_emitFloatMetric(METRIC_NAME_ID_PROFILE_TIME, ((float)(clock() - start)) / CLOCKS_PER_SEC * 1000);
 }

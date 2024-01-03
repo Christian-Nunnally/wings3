@@ -33,5 +33,8 @@ void run()
         readAnalogValues();
         D_serialRead();
         processRemoteInput();
+        #ifdef ENABLE_TRACING
+        processMetrics();
+        #endif
     }
 }

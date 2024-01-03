@@ -170,7 +170,7 @@ void interpretRemoteCommand(RemoteControlCommand command)
     {
         effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = command.value;
         effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = command.value;
-        D_emitIntegerMetric(METRIC_NAME_ID_FADE_SETTING_AMOUNT, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
+        D_emitMetric(METRIC_NAME_ID_FADE_SETTING_AMOUNT, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
     }
 }
 
