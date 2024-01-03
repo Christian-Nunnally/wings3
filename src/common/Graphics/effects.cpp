@@ -22,7 +22,7 @@
 #include "../Graphics/mixingModes.h"
 #include "../Utility/fastRandom.h"
 
-int getRandomEffectNumberFromAllowedEffects();
+uint8_t getRandomEffectNumberFromAllowedEffects();
 void setEffectA(uint8_t effectIndex);
 void setEffectB(uint8_t effectIndex);
 void saveSingleEffect(Effect* fromEffect, SavedEffect* savedEffect);
@@ -49,7 +49,7 @@ void setAudioIntensityLevel(float level)
     currentAudioIntensityLevel = level;
 }
 
-int getRandomEffectNumberFromAllowedEffects()
+uint8_t getRandomEffectNumberFromAllowedEffects()
 {
     int effectRandom = fastRandomInteger(NumberOfAllowedEffectsToPickBetween);
     return effectSettings.AllowedEffects[effectRandom];
@@ -318,7 +318,7 @@ void setEffectA(uint8_t effectIndex)
     else if (effectIndex == RAIN_SHOWER_EFFECT_INDEX) setEffectAToRainShowerEffect();
     else if (effectIndex == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectAToExpandingColorOrbEffect();
     else if (effectIndex == LIGHTNING_BUG_EFFECT_INDEX) setEffectAToLightningBugEffect();
-    else if (effectIndex == FIRE_EFFECT_INDEX) setEffectAToFireEffect();
+    //else if (effectIndex == FIRE_EFFECT_INDEX) setEffectAToFireEffect();
     else if (effectIndex == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectAToSimpleSolidColorFillEffect();
     else if (effectIndex == FIREWORKS_EFFECT_INDEX) setEffectAToFireworksEffect();
     else if (effectIndex == LIGHT_CHASE_EFFECT_INDEX) setEffectAToLightChaseEffect();
@@ -339,7 +339,7 @@ void setEffectB(uint8_t effectIndex)
     else if (effectIndex == RAIN_SHOWER_EFFECT_INDEX) setEffectBToRainShowerEffect();
     else if (effectIndex == EXPANDING_COLOR_ORB_EFFECT_INDEX) setEffectBToExpandingColorOrbEffect();
     else if (effectIndex == LIGHTNING_BUG_EFFECT_INDEX) setEffectBToLightningBugEffect();
-    else if (effectIndex == FIRE_EFFECT_INDEX) setEffectBToFireEffect();
+    //else if (effectIndex == FIRE_EFFECT_INDEX) setEffectBToFireEffect();
     else if (effectIndex == SIMPLE_SOLID_COLOR_FILL_EFFECT_INDEX) setEffectBToSimpleSolidColorFillEffect();
     else if (effectIndex == FIREWORKS_EFFECT_INDEX) setEffectBToFireworksEffect();
     else if (effectIndex == LIGHT_CHASE_EFFECT_INDEX) setEffectBToLightChaseEffect();
