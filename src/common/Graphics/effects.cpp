@@ -354,19 +354,19 @@ void pickRandomEffects()
 void saveCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 {
     copyEffectSettings(&effectSettings, &(savedEffectSettings->effectSettings));
-    saveSingleEffect(&effectA1, &savedEffectSettings->savedEffectA1);
-    saveSingleEffect(&effectB1, &savedEffectSettings->savedEffectB1);
-    saveSingleEffect(&effectA2, &savedEffectSettings->savedEffectA2);
-    saveSingleEffect(&effectB2, &savedEffectSettings->savedEffectB2);
+    saveSingleEffect(&effectA1, &(savedEffectSettings->savedEffectA1));
+    saveSingleEffect(&effectB1, &(savedEffectSettings->savedEffectB1));
+    saveSingleEffect(&effectA2, &(savedEffectSettings->savedEffectA2));
+    saveSingleEffect(&effectB2, &(savedEffectSettings->savedEffectB2));
 }
 
 void loadCurrentEffectsState(SavedEffectSettings *savedEffectSettings)
 {
     copyEffectSettings(&(savedEffectSettings->effectSettings), &effectSettings);
-    loadSingleEffect(&savedEffectSettings->savedEffectA1, &effectA1);
-    loadSingleEffect(&savedEffectSettings->savedEffectB1, &effectB1);
-    loadSingleEffect(&savedEffectSettings->savedEffectA2, &effectA2);
-    loadSingleEffect(&savedEffectSettings->savedEffectB2, &effectB2);
+    loadSingleEffect(&(savedEffectSettings->savedEffectA1), &effectA1);
+    loadSingleEffect(&(savedEffectSettings->savedEffectB1), &effectB1);
+    loadSingleEffect(&(savedEffectSettings->savedEffectA2), &effectA2);
+    loadSingleEffect(&(savedEffectSettings->savedEffectB2), &effectB2);
     setEffectA(effectA1.effectFunctionIncrementUniqueId);
     setEffectB(effectB1.effectFunctionIncrementUniqueId);
 
