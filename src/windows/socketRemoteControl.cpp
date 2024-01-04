@@ -116,36 +116,13 @@ bool isSocketInputReady()
 RemoteControlCommand getSocketInput() 
 {
     std::stringstream ss(lastReadLineFromSocket);
-
     std::string token;
-    uint32_t commandCode = 0;
-    uint8_t operationCode = 0;
-    uint8_t operationType = 0;
-    int16_t operationValue = 0;
-
-    D_emitMetric(METRIC_NAME_ID_MISC_METRIC, lastReadLineFromSocket);
     std::getline(ss, token, ',');
-    if (!token.empty()) 
-    {
-        commandCode = static_cast<uint32_t>(std::stoi(token));
-        operationCode = commandCode >> 24 & 0xFF;
-        operationType = commandCode >> 16 & 0xFF;
-        operationValue = commandCode >> 0 & 0xFFFF;
-    }
-    D_emitMetric(METRIC_NAME_ID_MISC_METRIC, operationCode);
-
-    // std::getline(ss, token, ',');
-    // if (!token.empty()) 
-    // {
-    //     operationType = static_cast<uint8_t>(std::stoi(token));
-    // }
-    
-    // std::getline(ss, token, ',');
-    // if (!token.empty()) 
-    // {
-    //     operationValue = static_cast<int16_t>(std::stoi(token));
-    // }
-
+    if (token.empty()) return {REMOTE_OPERATION_CODE_NO_OP, REMOTE_COMMAND_ACTION_NOT_APPLICABLE, 0};
+    uint32_t commandCode = static_cast<uint32_t>(std::stoi(token));
+    uint8_t operationCode = commandCode >> 24 & 0xFF;
+    uint8_t operationType = commandCode >> 16 & 0xFF;
+    int16_t operationValue = commandCode >> 0 & 0xFFFF;
     return {operationCode, operationType, operationValue};
 }
 

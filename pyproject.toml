@@ -13,8 +13,7 @@ psutil = "^5.9.7"
 matplotlib = "^3.8.2"
 
 [tool.poetry.scripts]
-sim = "src.windows.simulator:main"
-simulator = "src.windows.simulator:main"
+wings = "src.windows.simulator:main"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.9"

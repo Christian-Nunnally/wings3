@@ -6,6 +6,9 @@
 #include "../Peripherals/movementDetection.h"
 #include "../Utility/fastRandom.h"
 
+#define MIN_GLOBAL_TIME_FACTOR 0.1
+#define MAX_GLOBAL_TIME_FACTOR 2.0
+
 const int TimeDeltaResolutionIncreaseFactor = 64;
 const float AudioInfluenceFactorForAudioScaledTime = 2.0;
 float globalTimeScaler = 1.0;
@@ -153,5 +156,16 @@ float getGlobalTimeFactor()
 
 void setGlobalTimeFactor(float newTimeFactor)
 {
-    globalTimeScaler = newTimeFactor;
+    if (newTimeFactor < MIN_GLOBAL_TIME_FACTOR)
+    {
+        globalTimeScaler = MIN_GLOBAL_TIME_FACTOR;
+    }
+    else if (newTimeFactor > MAX_GLOBAL_TIME_FACTOR)
+    {
+        globalTimeScaler = MAX_GLOBAL_TIME_FACTOR;
+    }
+    else 
+    {
+        globalTimeScaler = newTimeFactor;
+    }
 }

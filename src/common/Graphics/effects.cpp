@@ -554,4 +554,5 @@ bool doEffectsNeedToRefresh()
         haveNewEffectsBeenLoaded = false;
         return true;
     }
+    return false;
 }
