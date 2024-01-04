@@ -169,7 +169,6 @@ void interpretRemoteCommand(RemoteControlCommand command)
     else if (command.operationCode == REMOTE_OPERATION_CODE_SET_FADE)
     {
         effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = command.value;
-        effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = command.value;
         D_emitMetric(METRIC_NAME_ID_FADE_SETTING_AMOUNT, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
     }
 }

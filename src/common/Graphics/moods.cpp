@@ -37,7 +37,7 @@ void setupNormalMood(EffectSettings *settings)
     settings->MillisecondsForBlendingModeTransitionsMinimum = 200;
     settings->MillisecondsForBlendingModeTransitionsMaximum = 2000;
     settings->GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = 200;
-    settings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = 50;
+    settings->GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps = 10;
     settings->LikelihoodAudioLevelThresholdsForMoreIntenseEffectChangeWhenRandomizingEffect = 9;
     settings->AudioLevelThresholdToShowMoreIntenseEffectMinimum = 80;
     settings->AudioLevelThresholdToShowMoreIntenseEffectMaximum = 255;

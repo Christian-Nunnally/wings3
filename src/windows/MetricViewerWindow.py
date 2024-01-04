@@ -53,6 +53,7 @@ class MetricViewerWindow(SimpleWindow):
     keyToUserFriendlyNameMap[36] = "fxPaletteOffset"
     keyToUserFriendlyNameMap[36] = "profileTime"
     keyToUserFriendlyNameMap[37] = "fadeSettingAmount"
+    keyToUserFriendlyNameMap[38] = "misc"
 
     def __init__(self):
         self.createRoot()

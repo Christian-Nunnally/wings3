@@ -118,28 +118,35 @@ RemoteControlCommand getSocketInput()
     std::stringstream ss(lastReadLineFromSocket);
 
     std::string token;
+    uint32_t commandCode = 0;
     uint8_t operationCode = 0;
+    uint8_t operationType = 0;
     int16_t operationValue = 0;
-    uint8_t operationFlags = 0;
 
+    D_emitMetric(METRIC_NAME_ID_MISC_METRIC, lastReadLineFromSocket);
     std::getline(ss, token, ',');
     if (!token.empty()) 
     {
-        operationCode = static_cast<uint8_t>(std::stoi(token));
+        commandCode = static_cast<uint32_t>(std::stoi(token));
+        operationCode = commandCode >> 24 & 0xFF;
+        operationType = commandCode >> 16 & 0xFF;
+        operationValue = commandCode >> 0 & 0xFFFF;
     }
+    D_emitMetric(METRIC_NAME_ID_MISC_METRIC, operationCode);
 
-    std::getline(ss, token, ',');
-    if (!token.empty()) 
-    {
-        operationValue = static_cast<int16_t>(std::stoi(token));
-    }
+    // std::getline(ss, token, ',');
+    // if (!token.empty()) 
+    // {
+    //     operationType = static_cast<uint8_t>(std::stoi(token));
+    // }
+    
+    // std::getline(ss, token, ',');
+    // if (!token.empty()) 
+    // {
+    //     operationValue = static_cast<int16_t>(std::stoi(token));
+    // }
 
-    std::getline(ss, token, ',');
-    if (!token.empty()) 
-    {
-        operationFlags = static_cast<uint8_t>(std::stoi(token));
-    }
-    return {operationCode, operationValue, operationFlags};
+    return {operationCode, operationType, operationValue};
 }
 
 DWORD WINAPI socketReaderThreadLoop(LPVOID lpParam)

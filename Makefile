@@ -86,6 +86,7 @@ diagram.svg: diagram.dot
 	dot ./diagram.dot -Tsvg -o diagram.svg
 
 clean:
-	rm -rf $(objectsDirectory) $(binariesDirectory)
+	@if exist $(objectsDirectory) del -Force -Recurse $(objectsDirectory)/
+	@if exist $(binariesDirectory) del -Force -Recurse $(binariesDirectory)/
 
 .PHONY: all clean

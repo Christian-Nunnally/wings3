@@ -66,17 +66,9 @@ class RemoteControlWindow(SimpleWindow):
             else:
                 time.sleep(.2)
 
-    def change_color(self, button):
-        colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange']
-        new_color = random.choice(colors)
-        self.sendCommand()
-        button.config(bg=new_color)
-
-    def sendCommand(self):
-        self.messageQueue.put("new_color")
-
-    def runCommand(self, operationCode, operationValue = 0, operationFlags = 0):
-        self.messageQueue.put(f"{operationCode},{operationValue},{operationFlags}")
+    def runCommand(self, operationCode, operationType = 0, operationValue = 0):
+        commandCode = (operationCode << 24) | (operationType << 16) | (operationValue)
+        self.messageQueue.put(f"{commandCode}")
 
     def onClosing(self):
         self.client_socket.close()
@@ -119,14 +111,14 @@ class RemoteControlWindow(SimpleWindow):
         self.makeButton("Increase speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_INCREASE_SPEED))
         self.makeButton("Decrease speed", lambda : self.runCommand(REMOTE_OPERATION_CODE_DECREASE_SPEED))
         self.makeButton("Randomize effect randomly", lambda : self.runCommand(REMOTE_OPERATION_CODE_RANDOMIZE_EFFECTS))
-        self.makeButton("Save to preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 1))
-        self.makeButton("Save to preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 2))
-        self.makeButton("Save to preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 3))
-        self.makeButton("Load from preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 1))
-        self.makeButton("Load from preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 2))
-        self.makeButton("Load from preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 3))
-        self.makeButton("Trigger effect",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 0))
-        self.makeButton("Trigger effect 2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 1))
+        self.makeButton("Save to preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 0, 1))
+        self.makeButton("Save to preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 0, 2))
+        self.makeButton("Save to preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SET_PRESET, 0, 3))
+        self.makeButton("Load from preset #1",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 0, 1))
+        self.makeButton("Load from preset #2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 0, 2))
+        self.makeButton("Load from preset #3",  lambda : self.runCommand(REMOTE_OPERATION_CODE_SELECT_PRESET, 0, 3))
+        self.makeButton("Trigger effect",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 0, 0))
+        self.makeButton("Trigger effect 2",  lambda : self.runCommand(REMOTE_OPERATION_CODE_EFFECT_TRIGGER, 0, 1))
         # self.makeButton("Settings",  lambda : self.runCommand(REMOTE_OPERATION_CODE_ENTER_SETTINGS))
         # self.makeButton("Up",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_UP))
         # self.makeButton("Right",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_RIGHT))
@@ -134,7 +126,7 @@ class RemoteControlWindow(SimpleWindow):
         # self.makeButton("Left",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_LEFT))
         # self.makeButton("Enter",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_ENTER))
         # self.makeButton("Back",  lambda : self.runCommand(REMOTE_OPERATION_CODE_NAVIGATE_BACK))
-        self.makeSlider("Set fade",  lambda v : self.runCommand(REMOTE_OPERATION_CODE_SET_FADE, v))
+        self.makeSlider("Set fade",  lambda v : self.runCommand(REMOTE_OPERATION_CODE_SET_FADE, 0, v))
 
 if __name__ == "__main__":
     RemoteControlWindow()

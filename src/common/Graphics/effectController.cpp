@@ -125,7 +125,7 @@ void incrementEffectFrame()
     detectBeat();
     randomizeEffectsBasedOnElapsedTime();
     incrementEffects();
-    if (doEffectsNeedToRefresh)
+    if (doEffectsNeedToRefresh())
     {
         setAppropriatePrimaryAndSecondaryEffect();
     }

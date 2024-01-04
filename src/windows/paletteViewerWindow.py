@@ -75,7 +75,7 @@ class PaletteViewerWindow(SimpleWindow):
         self.label4.pack()
     
     def runCommand(self, arguments):
-        if arguments[0] == STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC and int(arguments[1]) == 35:
+        if len(arguments) == 0 and arguments[0] == STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC and int(arguments[1]) == 35:
             if len(arguments) == 4:
                 if (int(arguments[2][3:]) == 0):
                     try: 

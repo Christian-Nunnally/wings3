@@ -6,8 +6,8 @@
 typedef struct
 {
     uint8_t operationCode;
+    uint8_t operationType;
     int16_t value;
-    uint8_t flags;
 }
 RemoteControlCommand;
 

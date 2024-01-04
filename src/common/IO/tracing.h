@@ -44,6 +44,7 @@
 #define METRIC_NAME_ID_EFFECT_PALETTE 35 // fxPalette
 #define METRIC_NAME_ID_PROFILE_TIME 36 // profileTime
 #define METRIC_NAME_ID_FADE_SETTING_AMOUNT 37 // fadeSettingAmount
+#define METRIC_NAME_ID_MISC_METRIC 38 // misc
 
 #ifdef ENABLE_TRACING
 #define D_emitMetric(...)    emitMetric(__VA_ARGS__)
