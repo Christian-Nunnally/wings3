@@ -12,7 +12,7 @@
 #include "remoteControl.h"
 
 #define BRIGHTNESS_CHANGE_INCREMENT 10
-#define SPEED_CHANGE_INCREMENT .1
+#define SPEED_CHANGE_INCREMENT 10
 
 #define REMOTE_OPERATION_CODE_NO_OP 0
 #define REMOTE_OPERATION_CODE_CONTROL_LEDS 1
@@ -45,6 +45,7 @@ void interpretRemoteCommand(RemoteControlCommand command)
 {
     if (command.operationCode == REMOTE_OPERATION_CODE_CONTROL_LEDS)
     {
+        D_emitMetric(METRIC_NAME_ID_MISC_METRIC, command.operationType);
         if (command.operationType == REMOTE_OPERATION_TYPE_ENABLE) enableLeds();
         else if (command.operationType == REMOTE_OPERATION_TYPE_DISABLE) disableLeds();
     }
@@ -72,12 +73,12 @@ void interpretRemoteCommand(RemoteControlCommand command)
     {
         if (command.operationType == REMOTE_OPERATION_TYPE_INCREMENT)
         {
-            float incrementedSpeed = getGlobalTimeFactor() + SPEED_CHANGE_INCREMENT;
+            int incrementedSpeed = getGlobalTimeFactor() + SPEED_CHANGE_INCREMENT;
             setGlobalTimeFactor(incrementedSpeed);
         }
         else if (command.operationType == REMOTE_OPERATION_TYPE_DECREMENT)
         {
-            float decrementedSpeed = getGlobalTimeFactor() - SPEED_CHANGE_INCREMENT;
+            int decrementedSpeed = getGlobalTimeFactor() - SPEED_CHANGE_INCREMENT;
             setGlobalTimeFactor(decrementedSpeed);
         }
         else if (command.operationType == REMOTE_OPERATION_TYPE_SET)
@@ -115,7 +116,7 @@ void interpretRemoteCommand(RemoteControlCommand command)
         }
         else if (command.operationType == REMOTE_OPERATION_TYPE_SET)
         {
-            setGlobalLedBrightness(command.value);
+            setGlobalLedBrightness(command.value & 0xFF);
         }
     }
     else if (command.operationCode == REMOTE_OPERATION_CODE_EFFECT_TRIGGER)
@@ -173,7 +174,7 @@ void interpretRemoteCommand(RemoteControlCommand command)
     {
         if (command.operationType == REMOTE_OPERATION_TYPE_SET)
         {
-            effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = command.value;
+            effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps = 255 - command.value;
             D_emitMetric(METRIC_NAME_ID_FADE_SETTING_AMOUNT, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
         }
     }

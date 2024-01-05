@@ -149,13 +149,14 @@ void pickRandomTimeModesForAllEffects(Effect *effect1, Effect *effect2, Effect *
     pickRandomTimeModesForEffect(effect4, true, (fastRandomByte() < likelihoodMusicBaseModeIsPicked) && shouldTryToPickMusicMode, (fastRandomByte() < likelihoodMovementBaseModeIsPicked) && shouldTryToPickMovementMode, likelihoodIndividualModeChanges);
 }
 
-float getGlobalTimeFactor()
+int getGlobalTimeFactor()
 {
-    return globalTimeScaler;
+    return ((globalTimeScaler * 255.0) - (MIN_GLOBAL_TIME_FACTOR * 255.0)) / (MAX_GLOBAL_TIME_FACTOR - MIN_GLOBAL_TIME_FACTOR);
 }
 
-void setGlobalTimeFactor(float newTimeFactor)
+void setGlobalTimeFactor(int newTimeFactorInteger)
 {
+    float newTimeFactor = (newTimeFactorInteger / 255.0) * (MAX_GLOBAL_TIME_FACTOR - MIN_GLOBAL_TIME_FACTOR) + MIN_GLOBAL_TIME_FACTOR;
     if (newTimeFactor < MIN_GLOBAL_TIME_FACTOR)
     {
         globalTimeScaler = MIN_GLOBAL_TIME_FACTOR;

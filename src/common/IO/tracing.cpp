@@ -57,46 +57,49 @@ void emitMetric(uint16_t metricNameId, float value)
 
 void processMetrics()
 {
-    while (!stringMetricsQueue.empty()) {
-        #ifdef RP2040
-        printOpCodeAndKeyRP2040(stringMetricNameIdsQueue.front());
-        D_serialWrite(stringMetricsQueue.front());
-        D_serialWrite("\n");
-        #else
-        printOpCodeAndKeyWindows(stringMetricNameIdsQueue.front());
-        std::cout << stringMetricsQueue.front();
-        std::cout << "\n";
-        #endif
-        stringMetricNameIdsQueue.pop();
-        stringMetricsQueue.pop();
-    }
+    for (int i = 0; i < 20; i++)
+    {
+        if (!stringMetricsQueue.empty()) {
+            #ifdef RP2040
+            printOpCodeAndKeyRP2040(stringMetricNameIdsQueue.front());
+            D_serialWrite(stringMetricsQueue.front());
+            D_serialWrite("\n");
+            #else
+            printOpCodeAndKeyWindows(stringMetricNameIdsQueue.front());
+            std::cout << stringMetricsQueue.front();
+            std::cout << "\n";
+            #endif
+            stringMetricNameIdsQueue.pop();
+            stringMetricsQueue.pop();
+        }
 
-    while (!integerMetricsQueue.empty()) {
-        #ifdef RP2040
-        printOpCodeAndKeyRP2040(integerMetricNameIdsQueue.front());
-        D_serialWrite(integerMetricsQueue.front());
-        D_serialWrite("\n");
-        #else
-        printOpCodeAndKeyWindows(integerMetricNameIdsQueue.front());
-        std::cout << integerMetricsQueue.front();
-        std::cout << "\n";
-        #endif
-        integerMetricNameIdsQueue.pop();
-        integerMetricsQueue.pop();
-    }
+        if (!integerMetricsQueue.empty()) {
+            #ifdef RP2040
+            printOpCodeAndKeyRP2040(integerMetricNameIdsQueue.front());
+            D_serialWrite(integerMetricsQueue.front());
+            D_serialWrite("\n");
+            #else
+            printOpCodeAndKeyWindows(integerMetricNameIdsQueue.front());
+            std::cout << integerMetricsQueue.front();
+            std::cout << "\n";
+            #endif
+            integerMetricNameIdsQueue.pop();
+            integerMetricsQueue.pop();
+        }
 
-    while (!floatMetricsQueue.empty()) {
-        #ifdef RP2040
-        printOpCodeAndKeyRP2040(floatMetricNameIdsQueue.front());
-        D_serialWrite(floatMetricsQueue.front());
-        D_serialWrite("\n");
-        #else
-        printOpCodeAndKeyWindows(floatMetricNameIdsQueue.front());
-        std::cout << floatMetricsQueue.front();
-        std::cout << "\n";
-        #endif
-        floatMetricNameIdsQueue.pop();
-        floatMetricsQueue.pop();
+        if (!floatMetricsQueue.empty()) {
+            #ifdef RP2040
+            printOpCodeAndKeyRP2040(floatMetricNameIdsQueue.front());
+            D_serialWrite(floatMetricsQueue.front());
+            D_serialWrite("\n");
+            #else
+            printOpCodeAndKeyWindows(floatMetricNameIdsQueue.front());
+            std::cout << floatMetricsQueue.front();
+            std::cout << "\n";
+            #endif
+            floatMetricNameIdsQueue.pop();
+            floatMetricsQueue.pop();
+        }
     }
 
     while (!stringMetricsQueue.empty()) {

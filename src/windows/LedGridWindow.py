@@ -3,7 +3,7 @@ from src.pipeline.configuration import PhysicalLedIndexMappingWidth, PhysicalLed
 from src.windows.SimpleWindow import SimpleWindow
 
 colors = {}
-square_size = 52
+square_size = 25
 
 #STANDARD_OUTPUT_OPERATION_CODE_SET_METRIC = 0
 STANDARD_OUTPUT_OPERATION_CODE_SET_LED = 1

@@ -53,7 +53,11 @@ void setupLeds()
 
 void renderLeds()
 {
-  if (!ledsEnabled) return; 
+  if (!ledsEnabled) 
+  {
+    clearLeds();
+    return;
+  } 
   #ifdef USE_SPECIAL_LED_ORDER_FOR_WINGS
   specialLedOrderForWings();
   #else
