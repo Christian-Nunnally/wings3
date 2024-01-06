@@ -11,6 +11,7 @@ sourceFilesList := \
 	src\windows\testLeds.cpp \
 	src\windows\testMicrophone.cpp \
 	src\windows\socketRemoteControl.cpp \
+	src\windows\profiling.cpp \
 	src\common\Control\remoteCommandInterpreter.cpp \
 	src\common\Control\initializeAndRun.cpp \
 	src\common\Control\remoteControl.cpp \

@@ -52,7 +52,6 @@
 #define D_emitMetric(...)
 #endif
 
-void emitMetric(uint16_t metricNameId, std::string value);
 void emitMetric(uint16_t metricNameId, int value);
 void emitMetric(uint16_t metricNameId, float value);
 void processMetrics();

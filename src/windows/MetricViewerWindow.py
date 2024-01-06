@@ -50,7 +50,6 @@ class MetricViewerWindow(SimpleWindow):
     keyToUserFriendlyNameMap[33] = "currentScreenMap"
     keyToUserFriendlyNameMap[34] = "fxCurrentPaletteOffsetTarget"
     keyToUserFriendlyNameMap[35] = "fxPalette"
-    keyToUserFriendlyNameMap[36] = "fxPaletteOffset"
     keyToUserFriendlyNameMap[36] = "profileTime"
     keyToUserFriendlyNameMap[37] = "fadeSettingAmount"
     keyToUserFriendlyNameMap[38] = "misc"

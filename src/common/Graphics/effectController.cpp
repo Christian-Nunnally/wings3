@@ -104,7 +104,7 @@ Color getLedColorForFrame(int ledIndex)
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, effectSettings.percentOfSecondaryEffectToShow);
         ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
     } 
-    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
+    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps * currentAudioIntensityLevel);
     return ledColorMap[ledIndex];
 }
 
@@ -386,7 +386,7 @@ void swapEffects()
 {
     effectSettings.PrimaryEffectToggle = !effectSettings.PrimaryEffectToggle;
     setAppropriatePrimaryAndSecondaryEffect();
-    D_emitMetric(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, effectSettings.PrimaryEffectToggle ? "true" : "false");
+    D_emitMetric(METRIC_NAME_ID_PRIMARY_EFFECT_TOGGLE, effectSettings.PrimaryEffectToggle);
 
     if (fastRandomByte() < effectSettings.LikelihoodTransformMapsAreSwitchedWhenEffectsAreSwapped)
     {

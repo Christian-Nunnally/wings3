@@ -10,6 +10,7 @@
 #include "../IO/serial.h"
 #include "../Peripherals/microphone.h"
 #include "../Peripherals/movementDetection.h"
+#include "../../windows/profiling.h"
 
 void initialize()
 {
@@ -27,12 +28,15 @@ void run()
     {
         setTime(getSystemTime());
         incrementEffectFrame();
+        startProfile();
         renderLeds();
+        stopProfile();
         processAudioStream();
         checkForMovement();
         readAnalogValues();
         D_serialRead();
         processRemoteInput();
+
         #ifdef ENABLE_TRACING
         processMetrics();
         #endif

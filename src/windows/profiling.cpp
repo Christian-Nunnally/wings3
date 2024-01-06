@@ -1,5 +1,7 @@
 #include "profiling.h"
-#include "tracing.h"
+#include <time.h>
+#include "../common/settings.h"
+#include "../common/IO/tracing.h"
 
 clock_t start;
 
@@ -10,5 +12,5 @@ void startProfile()
 
 void stopProfile()
 {
-    D_emitFloatMetric(METRIC_NAME_ID_PROFILE_TIME, ((float)(clock() - start)) / CLOCKS_PER_SEC * 1000);
+    D_emitMetric(METRIC_NAME_ID_PROFILE_TIME, (float)(clock() - start));
 }
