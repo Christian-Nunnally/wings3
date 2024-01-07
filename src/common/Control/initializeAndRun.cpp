@@ -28,7 +28,7 @@ void run()
     {
         setTime(getSystemTime());
         incrementEffectFrame();
-        startProfile();
+        startProfile(100);
         renderLeds();
         stopProfile();
         processAudioStream();

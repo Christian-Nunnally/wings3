@@ -5,12 +5,29 @@
 
 clock_t start;
 
-void startProfile()
+int numberOfProfilesLeftToTake = 0;
+int sumOfProfileSamplesTaken = 0;
+int totalProfileSamplesTaken = 0;
+
+void startProfile(int numberOfSamples)
 {
+    if (numberOfProfilesLeftToTake == 0)
+    {
+        numberOfProfilesLeftToTake = numberOfSamples;
+    }
     start = clock();
 }
 
 void stopProfile()
 {
-    D_emitMetric(METRIC_NAME_ID_PROFILE_TIME, (float)(clock() - start));
+    sumOfProfileSamplesTaken += (int)(clock() - start);
+    totalProfileSamplesTaken++;
+    numberOfProfilesLeftToTake--;
+    if (numberOfProfilesLeftToTake <= 0)
+    {
+        D_emitMetric(METRIC_NAME_ID_PROFILE_TIME, sumOfProfileSamplesTaken / totalProfileSamplesTaken);
+        totalProfileSamplesTaken = 0;
+        sumOfProfileSamplesTaken = 0;
+        numberOfProfilesLeftToTake = 0;
+    }
 }
