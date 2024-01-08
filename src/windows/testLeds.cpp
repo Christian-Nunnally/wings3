@@ -1,18 +1,14 @@
+#include "../common/settings.h"
 #include "../windows/testLeds.h"
 
 uint8_t testLedGlobalBrightnessValue = 255;
-
+uint32_t testLedBuffer[TOTAL_LEDS];
 void setTestLedsPixelColor(int pixelIndex, uint8_t red, uint8_t green, uint8_t blue)
 {
-    std::cout << STANDARD_OUTPUT_OPERATION_CODE_SET_LED;
-    std::cout << ",";
-    std::cout << std::hex << pixelIndex << std::dec;
-    std::cout << ",";
     uint8_t brightnessAdjustedRed = (red * testLedGlobalBrightnessValue) >> 8;
     uint8_t brightnessAdjustedGreen = (green * testLedGlobalBrightnessValue) >> 8;
     uint8_t brightnessAdjustedBlue = (blue * testLedGlobalBrightnessValue) >> 8;
-    std::cout << std::hex <<(uint32_t)((brightnessAdjustedRed << 16) | (brightnessAdjustedGreen << 8) | (brightnessAdjustedBlue << 0))  << std::dec;
-    std::cout << "\n";
+    testLedBuffer[pixelIndex] = (brightnessAdjustedRed << 16) | (brightnessAdjustedGreen << 8) | (brightnessAdjustedBlue << 0);
 }
 
 void setTestLedsBrightness(uint8_t brightness)
@@ -23,7 +19,17 @@ void setTestLedsBrightness(uint8_t brightness)
 void showTestLeds()
 {
     std::cout << STANDARD_OUTPUT_OPERATION_CODE_SHOW_LEDS;
+    std::cout << ",";
+    for (int i = 0; i < TOTAL_LEDS; i++)
+    {
+        std::cout << std::hex << testLedBuffer[i] << std::dec;
+        if (i != TOTAL_LEDS - 1)
+        {
+            std::cout << ",";
+        }
+    }
     std::cout << "\n";
+    
 }
 
 void clearTestLeds()
