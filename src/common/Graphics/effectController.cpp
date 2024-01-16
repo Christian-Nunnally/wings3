@@ -67,28 +67,34 @@ int beatCount = 0;
 int frameNumber = 0;
 int frameTimeDelta;
 
-Color getLedColorForFrame(int ledIndex)
+Color (*getLedColorForFrame)(int pixel);
+
+Color getLedColorForFrameStaticMode(int ledIndex);
+Color getLedColorForFrameMusicMode(int ledIndex);
+
+Color getLedColorForFrameStaticMode(int ledIndex)
 {
-    if (!isMusicDetected())
+    uint8_t currentScreen = (*currentScreenMap)[ledIndex];
+    if (currentScreen == 4) return {0, 0, 0};
+    else if (currentScreen & 1) return currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
+    
+    Color color1 = currentPrimaryEffectA.effectFunction(ledIndex);
+    Color color2 = currentPrimaryEffectB.effectFunction(ledIndex);
+    Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2, percentOfEffectBToShow8Bit);
+    if (effectSettings.millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
     {
-        uint8_t currentScreen = (*currentScreenMap)[ledIndex];
-        if (currentScreen == 4) return {0, 0, 0};
-        else if (currentScreen & 1) return currentPrimaryEffectA.effectFunctionHighlight(ledIndex);
-        
-        Color color1 = currentPrimaryEffectA.effectFunction(ledIndex);
-        Color color2 = currentPrimaryEffectB.effectFunction(ledIndex);
-        Color resultColor1 = blendIncorporatingOldMixingMode(color1, color2, percentOfEffectBToShow8Bit);
-        if (effectSettings.millisecondsLeftInTransitionFromSecondaryToPrimaryEffect)
-        {
-            Color color3 = currentSecondaryEffectA.effectFunction(ledIndex);
-            Color color4 = currentSecondaryEffectB.effectFunction(ledIndex);
-            Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
-            resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, effectSettings.percentOfSecondaryEffectToShow);
-            ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
-        } 
-        else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
-        return ledColorMap[ledIndex];
-    }
+        Color color3 = currentSecondaryEffectA.effectFunction(ledIndex);
+        Color color4 = currentSecondaryEffectB.effectFunction(ledIndex);
+        Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
+        resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, effectSettings.percentOfSecondaryEffectToShow);
+        ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
+    } 
+    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
+    return ledColorMap[ledIndex];
+}
+
+Color getLedColorForFrameMusicMode(int ledIndex)
+{
     uint8_t currentScreen = (*currentScreenMap)[ledIndex];
     if (currentScreen == 4) return {0, 0, 0};
     else if (currentScreen & 1) getEffectWithAudioDrivenIntensity(&currentPrimaryEffectA, ledIndex);
@@ -131,6 +137,15 @@ void incrementEffectFrame()
     }
     D_emitMetric(METRIC_NAME_ID_TOTAL_FRAME_TIME, (int)(currentTime - lastTimeFrameIncremented));
     lastTimeFrameIncremented = currentTime;
+
+    if (isMusicDetected())
+    {
+        getLedColorForFrame = getLedColorForFrameMusicMode;
+    }
+    else
+    {
+        getLedColorForFrame = getLedColorForFrameStaticMode;
+    }
 }
 
 void setupEffects()
@@ -146,6 +161,7 @@ void setupEffects()
     subscribeToStepDetectedEvent(handleStepDetected);
     subscribeToMovementDetectedEvent(handleMovementDetected);
     setupNormalMood(&effectSettings);
+    getLedColorForFrame = getLedColorForFrameStaticMode;
 }
 
 void handleStepDetected()

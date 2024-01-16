@@ -125,8 +125,7 @@ inline void specialLedOrderForWings()
 inline void normalLedOrder()
 {
   int pixelIndex = START_LED_OFFSET;
-  int offsetPixelIndex = 0;
-  for(; offsetPixelIndex < END_LED_OFFSET;) 
+  for(int offsetPixelIndex = 0; offsetPixelIndex < END_LED_OFFSET;) 
   {
     Color color = getLedColorForFrame(pixelIndex++);
     setPixelColor(offsetPixelIndex++, color.red, color.green, color.blue);
