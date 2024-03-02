@@ -87,9 +87,9 @@ Color getLedColorForFrameStaticMode(int ledIndex)
         Color color4 = currentSecondaryEffectB.effectFunction(ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, effectSettings.percentOfSecondaryEffectToShow);
-        ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
+        ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps * (frameTimeDelta / 255));
     } 
-    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps);
+    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps * (frameTimeDelta / 255));
     return ledColorMap[ledIndex];
 }
 
@@ -108,9 +108,9 @@ Color getLedColorForFrameMusicMode(int ledIndex)
         Color color4 = getEffectWithAudioDrivenIntensity(&currentSecondaryEffectB, ledIndex);
         Color resultColor2 = blendIncorporatingOldMixingMode(color3, color4, percentOfEffectBToShow8Bit);
         resultColor1 = blendColorsUsingMixing(resultColor1, resultColor2, effectSettings.percentOfSecondaryEffectToShow);
-        ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps);
+        ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenSwitchingTransformMaps * (1-(frameTimeDelta / 255)));
     } 
-    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps * currentAudioIntensityLevel);
+    else ledColorMap[ledIndex] = blendColorsUsingMixing(ledColorMap[ledIndex], resultColor1, effectSettings.GlobalPercentOfLastFrameToUseWhenNotSwitchingTransformMaps * currentAudioIntensityLevel * (1-(frameTimeDelta / 255)));
     return ledColorMap[ledIndex];
 }
 
